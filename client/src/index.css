@@ -1,0 +1,44 @@
+:root {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #16312d;
+  background: #f4f7f5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+main {
+  max-width: 900px;
+  margin: 80px auto;
+  padding: 24px;
+}
+
+h1 {
+  margin: 16px 0;
+  font-size: clamp(42px, 8vw, 72px);
+}
+
+h2 {
+  font-weight: 400;
+}
+
+p {
+  line-height: 1.6;
+}
+
+section {
+  margin-top: 32px;
+  padding: 24px;
+  background: white;
+  border: 1px solid #dce5df;
+  border-radius: 16px;
+}
