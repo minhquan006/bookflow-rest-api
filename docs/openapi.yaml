@@ -1,4 +1,4 @@
-﻿# Business operations are planned contracts, not completed implementations.
+# Business operations are planned contracts, not completed implementations.
 openapi: 3.1.0
 info:
   title: BookFlow REST API
@@ -1237,7 +1237,7 @@ paths:
       description:
         Body only bookId; borrower comes from verified principal. Enforce 3 active loans, no
         overdue loan, and no duplicate open loan for the same book. Due date is borrowedAt + 14*24 hours.
-        Lock user â†’ book â†’ copy; insert loan and audit in one transaction. 409 codes include BOOK_UNAVAILABLE,
+        Lock user → book → copy; insert loan and audit in one transaction. 409 codes include BOOK_UNAVAILABLE,
         LOAN_LIMIT_REACHED, OVERDUE_LOANS, ALREADY_BORROWED. Do not automatically retry ambiguous POST
         outcomes.
     get:
