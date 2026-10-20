@@ -44,3 +44,16 @@ The original blueprint describes the target scope, not completed work.
 - Integration coverage includes 11 category service/HTTP tests and 8 foundation tests.
 - Earlier verification notes above describe the previous browsing milestone.
 - Category creation UI and browser E2E coverage remain pending.
+
+## Book creation verification
+
+- POST /api/v1/books is implemented for LIBRARIAN and ADMIN.
+- Returns 201 with Location and a strong metadata ETag.
+- Validates input and rejects client-supplied internal fields.
+- Missing category: 400 INVALID_CATEGORY.
+- Duplicate ISBN: 409 ISBN_ALREADY_EXISTS.
+- Multiple books may have a null ISBN.
+- Book and audit inserts share one transaction.
+- Latest checks passed: 56 server, 21 client and 26 integration tests.
+- Seven new HTTP integration tests cover book creation.
+- Book creation UI, metadata updates and browser E2E remain pending.

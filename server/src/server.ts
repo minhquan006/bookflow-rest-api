@@ -21,7 +21,7 @@ const app = createApp({
   checkReadiness: () => hasCurrentSchema(pool),
   apiRouter: Router()
     .use(createCategoriesRouter(pool, authenticate))
-    .use(createBooksRouter(pool)),
+    .use(createBooksRouter(pool, authenticate)),
 });
 const server = app.listen(config.port, config.host, () =>
   logger.info({ host: config.host, port: config.port }, "BookFlow API started"),

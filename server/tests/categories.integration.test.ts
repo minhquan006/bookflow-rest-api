@@ -1,3 +1,4 @@
+import { createBooksRouter } from "../src/modules/books/books.routes.js";
 import request from "supertest";
 import { createApp } from "../src/app.js";
 import { loadConfig } from "../src/config/env.js";
@@ -176,7 +177,9 @@ const httpApp = createApp({
   config: httpConfig,
   logger: createLogger(httpConfig),
   checkReadiness: async () => true,
-  apiRouter: createCategoriesRouter(pool, authentication.authenticate),
+  apiRouter: createCategoriesRouter(pool, authentication.authenticate).use(
+    createBooksRouter(pool, authentication.authenticate),
+  ),
 });
 
 describe("Category creation over HTTP", () => {
@@ -285,6 +288,171 @@ describe("Category creation over HTTP", () => {
       await pool.query("UPDATE users SET status = 'ACTIVE' WHERE id = $1", [
         administrator.id,
       ]);
+    }
+  });
+});
+async function bookInput() {
+  const category = await pool.query<{ id: string }>(
+    "SELECT id FROM categories ORDER BY id LIMIT 1",
+  );
+  return {
+    categoryId: category.rows[0]!.id,
+    isbn: null as string | null,
+    title: "HTTP Test Book",
+    author: "Test Author",
+    description: "Integration test data.",
+  };
+}
+
+describe("Book creation over HTTP", () => {
+  it("returns 401 without authentication", async () => {
+    const response = await request(httpApp)
+      .post("/api/v1/books")
+      .send(await bookInput());
+
+    expect(response.status).toBe(401);
+  });
+
+  it("returns 403 for MEMBER", async () => {
+    const token = await authentication.accessTokens.sign(member.id);
+    const response = await request(httpApp)
+      .post("/api/v1/books")
+      .set("Authorization", `Bearer ${token}`)
+      .send(await bookInput());
+
+    expect(response.status).toBe(403);
+  });
+
+  it("creates a book with Location, ETag and matching audit", async () => {
+    const token = await authentication.accessTokens.sign(librarian.id);
+    const input = await bookInput();
+    input.title = "  Trimmed Book  ";
+    input.author = "  Trimmed Author  ";
+
+    const response = await request(httpApp)
+      .post("/api/v1/books")
+      .set("Authorization", `Bearer ${token}`)
+      .send(input);
+
+    expect(response.status).toBe(201);
+    expect(response.body.data).toMatchObject({
+      categoryId: input.categoryId,
+      title: "Trimmed Book",
+      author: "Trimmed Author",
+      isbn: null,
+      archivedAt: null,
+      version: 1,
+    });
+    expect(response.headers.location).toBe(
+      `/api/v1/books/${response.body.data.id}`,
+    );
+    expect(response.headers.etag).toBe(`"book-${response.body.data.id}-v1"`);
+
+    const stored = await pool.query("SELECT title FROM books WHERE id = $1", [
+      response.body.data.id,
+    ]);
+    expect(stored.rows).toEqual([{ title: "Trimmed Book" }]);
+
+    const audit = await pool.query(
+      `SELECT actor_id, action, request_id
+       FROM audit_logs WHERE entity_id = $1`,
+      [response.body.data.id],
+    );
+    expect(audit.rows).toEqual([
+      {
+        actor_id: librarian.id,
+        action: "BOOK_CREATED",
+        request_id: response.headers["x-request-id"],
+      },
+    ]);
+  });
+
+  it("allows ADMIN and multiple books without an ISBN", async () => {
+    const token = await authentication.accessTokens.sign(administrator.id);
+
+    for (const title of ["No ISBN One", "No ISBN Two"]) {
+      const response = await request(httpApp)
+        .post("/api/v1/books")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ ...(await bookInput()), title });
+
+      expect(response.status).toBe(201);
+      expect(response.body.data.isbn).toBeNull();
+    }
+  });
+
+  it("rejects duplicate ISBN with 409 and no extra audit", async () => {
+    const token = await authentication.accessTokens.sign(librarian.id);
+    const input = { ...(await bookInput()), isbn: "9780132350884" };
+
+    const first = await request(httpApp)
+      .post("/api/v1/books")
+      .set("Authorization", `Bearer ${token}`)
+      .send(input);
+    expect(first.status).toBe(201);
+
+    const duplicate = await request(httpApp)
+      .post("/api/v1/books")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ ...input, title: "Duplicate ISBN Attempt" });
+
+    expect(duplicate.status).toBe(409);
+    expect(duplicate.body.code).toBe("ISBN_ALREADY_EXISTS");
+
+    const audit = await pool.query(
+      "SELECT id FROM audit_logs WHERE request_id = $1",
+      [duplicate.headers["x-request-id"]],
+    );
+    expect(audit.rowCount).toBe(0);
+  });
+
+  it("rejects a missing category without creating a book or audit", async () => {
+    const token = await authentication.accessTokens.sign(librarian.id);
+    const input = {
+      ...(await bookInput()),
+      categoryId: randomUUID(),
+      title: "Missing Category Attempt",
+    };
+
+    const response = await request(httpApp)
+      .post("/api/v1/books")
+      .set("Authorization", `Bearer ${token}`)
+      .send(input);
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe("INVALID_CATEGORY");
+
+    const stored = await pool.query("SELECT id FROM books WHERE title = $1", [
+      input.title,
+    ]);
+    const audit = await pool.query(
+      "SELECT id FROM audit_logs WHERE request_id = $1",
+      [response.headers["x-request-id"]],
+    );
+    expect(stored.rowCount).toBe(0);
+    expect(audit.rowCount).toBe(0);
+  });
+
+  it("rejects invalid fields and client-supplied internal fields", async () => {
+    const token = await authentication.accessTokens.sign(librarian.id);
+    const input = await bookInput();
+
+    for (const body of [
+      { ...input, title: " " },
+      { ...input, author: "" },
+      { ...input, isbn: "invalid-isbn" },
+      { ...input, categoryId: "invalid-uuid" },
+      { ...input, description: "x".repeat(5001) },
+      { ...input, version: 99 },
+      { ...input, archivedAt: "2026-01-01T00:00:00Z" },
+    ]) {
+      const response = await request(httpApp)
+        .post("/api/v1/books")
+        .set("Authorization", `Bearer ${token}`)
+        .send(body);
+
+      expect(response.status).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_ERROR");
     }
   });
 });
