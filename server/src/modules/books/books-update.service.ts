@@ -1,4 +1,5 @@
-﻿import type { Pool } from "pg";
+import { expectedVersion } from "./books-version.js";
+import type { Pool } from "pg";
 import type { Principal } from "../../middleware/context.js";
 import { withTransaction } from "../../db/index.js";
 import { AppError, forbidden } from "../../shared/errors.js";
@@ -9,31 +10,6 @@ import {
   lockMetadataCategory,
   insertMetadataAudit,
 } from "./books-update.repository.js";
-
-function expectedVersion(id: string, ifMatch: string | undefined) {
-  if (ifMatch === undefined) {
-    throw new AppError(
-      428,
-      "PRECONDITION_REQUIRED",
-      "Precondition Required",
-      "Send the current book ETag in If-Match.",
-    );
-  }
-
-  const match = new RegExp(`^"book-${id}-v([1-9][0-9]*)"$`).exec(ifMatch);
-  const version = match ? Number(match[1]) : NaN;
-
-  if (!Number.isSafeInteger(version) || version > 2147483647) {
-    throw new AppError(
-      412,
-      "VERSION_MISMATCH",
-      "Precondition Failed",
-      "The supplied book version is not supported.",
-    );
-  }
-
-  return version;
-}
 
 export async function changeBookMetadata(
   pool: Pool,

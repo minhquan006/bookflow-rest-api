@@ -952,7 +952,7 @@ paths:
       summary: Archive a book
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:

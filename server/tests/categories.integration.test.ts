@@ -1212,3 +1212,206 @@ describe("Book metadata updates with If-Match", () => {
     expect(stored.body.data.version).toBe(1);
   });
 });
+describe("Book archiving", () => {
+  it("checks authorization, If-Match and missing books", async () => {
+    const { token, id, etag } = await createMetadataTestBook();
+    const path = `/api/v1/books/${id}`;
+
+    expect((await request(httpApp).delete(path)).status).toBe(401);
+
+    const memberToken = await authentication.accessTokens.sign(member.id);
+    expect(
+      (
+        await request(httpApp)
+          .delete(path)
+          .set("Authorization", `Bearer ${memberToken}`)
+          .set("If-Match", etag)
+      ).status,
+    ).toBe(403);
+
+    const missingHeader = await request(httpApp)
+      .delete(path)
+      .set("Authorization", `Bearer ${token}`);
+    expect(missingHeader.status).toBe(428);
+
+    for (const tag of ["*", `W/${etag}`, `"book-${id}-v999"`]) {
+      const response = await request(httpApp)
+        .delete(path)
+        .set("Authorization", `Bearer ${token}`)
+        .set("If-Match", tag);
+      expect(response.status).toBe(412);
+    }
+
+    const missingId = randomUUID();
+    const missingBook = await request(httpApp)
+      .delete(`/api/v1/books/${missingId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", `"book-${missingId}-v1"`);
+    expect(missingBook.status).toBe(404);
+  });
+
+  it("archives without deleting copies or returned-loan history", async () => {
+    const { token, copy } = await createTestCopy();
+    const loan = await pool.query<{ id: string }>(
+      `INSERT INTO loans
+         (user_id, copy_id, borrowed_at, due_at, returned_at, returned_by)
+       VALUES (
+         $1, $2, now() - interval '2 days',
+         now() + interval '12 days', now(), $3
+       ) RETURNING id`,
+      [member.id, copy.id, librarian.id],
+    );
+
+    const response = await request(httpApp)
+      .delete(`/api/v1/books/${copy.bookId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", `"book-${copy.bookId}-v1"`);
+
+    expect(response.status).toBe(204);
+    expect(response.text).toBe("");
+    expect(response.headers.etag).toBe(`"book-${copy.bookId}-v2"`);
+
+    const guest = await request(httpApp).get(`/api/v1/books/${copy.bookId}`);
+    expect(guest.status).toBe(404);
+
+    const publicList = await request(httpApp).get("/api/v1/books?limit=100");
+    expect(
+      publicList.body.data.some(
+        (book: { id: string }) => book.id === copy.bookId,
+      ),
+    ).toBe(false);
+
+    const staff = await request(httpApp)
+      .get(`/api/v1/books/${copy.bookId}`)
+      .set("Authorization", `Bearer ${token}`);
+    expect(staff.status).toBe(200);
+    expect(staff.body.data.archivedAt).not.toBeNull();
+
+    const storedCopy = await pool.query(
+      "SELECT id FROM book_copies WHERE id = $1",
+      [copy.id],
+    );
+    const storedLoan = await pool.query(
+      "SELECT copy_id FROM loans WHERE id = $1",
+      [loan.rows[0]!.id],
+    );
+    expect(storedCopy.rowCount).toBe(1);
+    expect(storedLoan.rows).toEqual([{ copy_id: copy.id }]);
+  });
+
+  it("rejects archiving when any copy has an open loan", async () => {
+    const { token, copy } = await createTestCopy();
+    await pool.query(
+      `INSERT INTO loans (user_id, copy_id, due_at)
+       VALUES ($1, $2, now() + interval '14 days')`,
+      [member.id, copy.id],
+    );
+
+    const response = await request(httpApp)
+      .delete(`/api/v1/books/${copy.bookId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", `"book-${copy.bookId}-v1"`);
+
+    expect(response.status).toBe(409);
+    expect(response.body.code).toBe("BOOK_HAS_ACTIVE_LOANS");
+
+    const book = await request(httpApp).get(`/api/v1/books/${copy.bookId}`);
+    expect(book.status).toBe(200);
+    expect(book.body.data.archivedAt).toBeNull();
+    expect(book.body.data.version).toBe(1);
+
+    const audit = await pool.query(
+      `SELECT id FROM audit_logs
+       WHERE entity_id = $1 AND action = 'BOOK_ARCHIVED'`,
+      [copy.bookId],
+    );
+    expect(audit.rowCount).toBe(0);
+  });
+
+  it("repeats archive with the current ETag without changing time or audit", async () => {
+    const { id, etag } = await createMetadataTestBook();
+    const token = await authentication.accessTokens.sign(administrator.id);
+    const path = `/api/v1/books/${id}`;
+
+    const first = await request(httpApp)
+      .delete(path)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", etag);
+    expect(first.status).toBe(204);
+
+    const before = await request(httpApp)
+      .get(path)
+      .set("Authorization", `Bearer ${token}`);
+
+    const repeated = await request(httpApp)
+      .delete(path)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", first.headers.etag);
+    expect(repeated.status).toBe(204);
+    expect(repeated.headers.etag).toBe(first.headers.etag);
+
+    const after = await request(httpApp)
+      .get(path)
+      .set("Authorization", `Bearer ${token}`);
+    expect(after.body).toEqual(before.body);
+
+    const audit = await pool.query(
+      `SELECT id FROM audit_logs
+       WHERE entity_id = $1 AND action = 'BOOK_ARCHIVED'`,
+      [id],
+    );
+    expect(audit.rowCount).toBe(1);
+  });
+
+  it("rolls back archive and version if audit insertion fails", async () => {
+    const { id, etag } = await createMetadataTestBook();
+    const { archiveBook } =
+      await import("../src/modules/books/books-archive.service.js");
+
+    await expect(
+      archiveBook(pool, librarian, id, etag, "x".repeat(129)),
+    ).rejects.toMatchObject({ code: "23514" });
+
+    const stored = await request(httpApp).get(`/api/v1/books/${id}`);
+    expect(stored.status).toBe(200);
+    expect(stored.body.data.archivedAt).toBeNull();
+    expect(stored.body.data.version).toBe(1);
+  });
+
+  it("allows only one winner when update and archive use the same version", async () => {
+    const { token, id, etag } = await createMetadataTestBook();
+    const path = `/api/v1/books/${id}`;
+
+    const [update, archive] = await Promise.all([
+      request(httpApp)
+        .patch(path)
+        .set("Authorization", `Bearer ${token}`)
+        .set("If-Match", etag)
+        .send({ title: "Concurrent metadata edit" }),
+      request(httpApp)
+        .delete(path)
+        .set("Authorization", `Bearer ${token}`)
+        .set("If-Match", etag),
+    ]);
+
+    const statuses = [update.status, archive.status];
+    expect(statuses.filter((status) => status === 412)).toHaveLength(1);
+    expect(
+      statuses.filter((status) => status === 200 || status === 204),
+    ).toHaveLength(1);
+
+    const stored = await request(httpApp)
+      .get(path)
+      .set("Authorization", `Bearer ${token}`);
+    expect(stored.status).toBe(200);
+    expect(stored.body.data.version).toBe(2);
+
+    const audit = await pool.query(
+      `SELECT action FROM audit_logs
+       WHERE entity_id = $1
+       AND action IN ('BOOK_METADATA_UPDATED', 'BOOK_ARCHIVED')`,
+      [id],
+    );
+    expect(audit.rowCount).toBe(1);
+  });
+});

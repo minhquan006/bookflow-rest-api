@@ -1,3 +1,4 @@
+import { createBookArchiveRouter } from "./books-archive.routes.js";
 import { createBookUpdateRouter } from "./books-update.routes.js";
 import { createBookDetailsRouter } from "./books-detail.routes.js";
 import { Router, type RequestHandler } from "express";
@@ -40,5 +41,6 @@ export function createBooksRouter(pool: Pool, authenticate: RequestHandler) {
   );
 
   router.use(createBookUpdateRouter(pool, authenticate));
+  router.use(createBookArchiveRouter(pool, authenticate));
   return router;
 }

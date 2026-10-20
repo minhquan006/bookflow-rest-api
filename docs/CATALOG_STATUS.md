@@ -103,3 +103,16 @@ The original blueprint describes the target scope, not completed work.
 - Metadata and audit share a transaction; failure rolls back the version.
 - Latest integration run passed all 52 tests.
 - Edit forms and UI handling of 412 remain pending.
+
+## Book archive verification
+
+- Staff DELETE /api/v1/books/{id} archives the book and returns 204.
+- Requires If-Match; missing header returns 428, stale version returns 412.
+- Active loans block archival with 409 BOOK_HAS_ACTIVE_LOANS.
+- Books, copies and returned-loan history remain stored.
+- Archived books are hidden from public listing and detail.
+- Repeating archive with the current ETag preserves timestamp and audit count.
+- Archive and audit share a transaction.
+- Concurrent metadata update/archive with one version has exactly one winner.
+- Latest checks passed: 56 server, 24 client and 58 integration tests.
+- Archive-versus-borrow concurrency awaits integration with Loans.
