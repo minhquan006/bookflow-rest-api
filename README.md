@@ -125,3 +125,8 @@ phải được triển khai trong service; constraint DB không thay thế các
 CI được lưu trong repository; việc chạy trên GitHub cần push/PR. Branch protection cần
 quản trị repository bật theo [hướng dẫn đóng góp](CONTRIBUTING.md). Bằng chứng kiểm tra
 trong môi trường hiện tại nằm ở [FOUNDATION_VALIDATION](docs/FOUNDATION_VALIDATION.md).
+
+Auth giới hạn mặc định 10 yêu cầu mỗi IP/tài khoản trong 15 phút cho từng endpoint
+login/register. `AUTH_RATE_LIMIT_MAX` cho phép đặt ngưỡng 1–100; mặc định giữ nguyên 10. Playwright tự khởi động server với ngưỡng100 để chạy nhiều browser context;
+kiểm thử bảo mật vẫn xác nhận ngưỡng mặc định. Server đang chạy được tái sử dụng
+thì giữ cấu hình lúc khởi động; restart trước khi chạy suite lớn nếu bị429.

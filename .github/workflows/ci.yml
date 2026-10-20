@@ -24,6 +24,7 @@ jobs:
           --health-interval 3s --health-timeout 3s --health-retries 20
     env:
       NODE_ENV: test
+      AUTH_RATE_LIMIT_MAX: 100
       DATABASE_URL: postgresql://bookflow:ci-only-bookflow@127.0.0.1:5432/bookflow_test
       TEST_DATABASE_URL: postgresql://bookflow:ci-only-bookflow@127.0.0.1:5432/bookflow_test
       LOG_LEVEL: silent

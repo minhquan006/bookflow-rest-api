@@ -305,7 +305,9 @@ function Workspace() {
           </p>
           <a
             className="sidebar-docs"
-            href="/docs/"
+            href={
+              import.meta.env.DEV ? "http://127.0.0.1:3000/docs/" : "/docs/"
+            }
             target="_blank"
             rel="noreferrer"
           >

@@ -33,6 +33,7 @@ export default defineConfig({
     : [
         {
           command: "npm --prefix server run dev",
+          env: { AUTH_RATE_LIMIT_MAX: "100" },
           url: "http://127.0.0.1:3000/health/ready",
           reuseExistingServer: !process.env.CI,
           timeout: 30_000,

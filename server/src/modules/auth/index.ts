@@ -29,7 +29,7 @@ export function createAuthRouter({
   const service = createAuthService(pool, config);
   router.post(
     "/auth/register",
-    ...createAuthRateLimiters(),
+    ...createAuthRateLimiters(config.authRateLimitMax),
     validateBody(registerSchema),
     async (req, res) => {
       const user = await service.register(
@@ -41,7 +41,7 @@ export function createAuthRouter({
   );
   router.post(
     "/auth/login",
-    ...createAuthRateLimiters(),
+    ...createAuthRateLimiters(config.authRateLimitMax),
     validateBody(loginSchema),
     async (req, res) => {
       const result = await service.login(
