@@ -1,4 +1,4 @@
-﻿import type { Pool } from "pg";
+import type { Pool } from "pg";
 import { offsetOf } from "../../shared/pagination.js";
 import type { ListBooksInput } from "./books.schema.js";
 
@@ -21,7 +21,7 @@ const sortColumns = {
 } as const;
 
 const filters = `
-  archived_at IS NULL
+  (archived_at IS NULL OR $3::boolean)
   AND (
     $1::text IS NULL
     OR title ILIKE $1
@@ -33,7 +33,7 @@ const filters = `
 function filterValues(input: ListBooksInput) {
   const keyword = input.q ? `%${input.q.replace(/[\\%_]/g, "\\$&")}%` : null;
 
-  return [keyword, input.categoryId ?? null];
+  return [keyword, input.categoryId ?? null, input.includeArchived === "true"];
 }
 
 export function createBooksRepository(pool: Pool) {
@@ -52,7 +52,7 @@ export function createBooksRepository(pool: Pool) {
          FROM books
          WHERE ${filters}
          ORDER BY ${sortColumns[input.sort]}, id ASC
-         LIMIT $3 OFFSET $4`,
+         LIMIT $4 OFFSET $5`,
         [...filterValues(input), input.limit, offsetOf(input)],
       );
 

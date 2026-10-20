@@ -1640,3 +1640,104 @@ describe("Category replacement and deletion", () => {
     ]);
   });
 });
+describe("Archived books in listing", () => {
+  it("hides archived books publicly and permits staff to include them", async () => {
+    const { token, id, etag } = await createMetadataTestBook();
+    const archived = await request(httpApp)
+      .delete(`/api/v1/books/${id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", etag);
+    expect(archived.status).toBe(204);
+
+    const publicList = await request(httpApp).get("/api/v1/books?limit=100");
+    expect(publicList.status).toBe(200);
+    expect(
+      publicList.body.data.some((book: { id: string }) => book.id === id),
+    ).toBe(false);
+
+    const guest = await request(httpApp).get(
+      "/api/v1/books?includeArchived=true",
+    );
+    expect(guest.status).toBe(403);
+
+    const memberToken = await authentication.accessTokens.sign(member.id);
+    const memberList = await request(httpApp)
+      .get("/api/v1/books?includeArchived=true")
+      .set("Authorization", `Bearer ${memberToken}`);
+    expect(memberList.status).toBe(403);
+
+    for (const actor of [librarian, administrator]) {
+      const staffToken = await authentication.accessTokens.sign(actor.id);
+      const staffList = await request(httpApp)
+        .get("/api/v1/books?includeArchived=true&limit=100")
+        .set("Authorization", `Bearer ${staffToken}`);
+
+      expect(staffList.status).toBe(200);
+      expect(
+        staffList.body.data.some((book: { id: string }) => book.id === id),
+      ).toBe(true);
+
+      const activeOnly = await request(httpApp)
+        .get("/api/v1/books?includeArchived=false&limit=100")
+        .set("Authorization", `Bearer ${staffToken}`);
+      expect(activeOnly.status).toBe(200);
+      expect(
+        activeOnly.body.data.some((book: { id: string }) => book.id === id),
+      ).toBe(false);
+    }
+  });
+
+  it("applies search, category filtering and pagination to archived listing", async () => {
+    const { token, id, etag, input } = await createMetadataTestBook();
+    const archived = await request(httpApp)
+      .delete(`/api/v1/books/${id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", etag);
+    expect(archived.status).toBe(204);
+
+    const query = new URLSearchParams({
+      includeArchived: "true",
+      q: input.title,
+      categoryId: input.categoryId,
+      page: "1",
+      limit: "1",
+      sort: "-title",
+    });
+    const response = await request(httpApp)
+      .get(`/api/v1/books?${query.toString()}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toHaveLength(1);
+    expect(response.body.data[0].id).toBe(id);
+    expect(response.body.pagination).toEqual({
+      page: 1,
+      limit: 1,
+      total: 1,
+      totalPages: 1,
+    });
+  });
+
+  it("rejects invalid tokens and immediately honors account role changes", async () => {
+    const invalid = await request(httpApp)
+      .get("/api/v1/books?includeArchived=true")
+      .set("Authorization", "Bearer invalid-token");
+    expect(invalid.status).toBe(401);
+
+    const token = await authentication.accessTokens.sign(librarian.id);
+    await pool.query("UPDATE users SET role = 'MEMBER' WHERE id = $1", [
+      librarian.id,
+    ]);
+
+    try {
+      const response = await request(httpApp)
+        .get("/api/v1/books?includeArchived=true")
+        .set("Authorization", `Bearer ${token}`);
+      expect(response.status).toBe(403);
+    } finally {
+      await pool.query("UPDATE users SET role = 'LIBRARIAN' WHERE id = $1", [
+        librarian.id,
+      ]);
+    }
+  });
+});

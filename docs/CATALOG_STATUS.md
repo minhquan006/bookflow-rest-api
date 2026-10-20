@@ -1,129 +1,49 @@
 # Catalog implementation status
 
-## Implemented on feat/catalog
+Status on feat/catalog after the archived-listing increment.
 
-- GET /api/v1/categories: public category listing with pagination.
-- GET /api/v1/books: public active-book listing, title/author search,
-  category filtering, allowlisted sorting and pagination.
-- Catalog UI: search, category filter, sorting, pagination,
-  loading, empty and error states, retry and request cancellation.
+## Implemented backend
+
+- Categories: public paginated listing; staff create, replace and delete.
+- Category deletion is blocked while active or archived books reference it.
+- Books: listing, search, category filtering, sorting and pagination.
+- Staff may include archived books; public/MEMBER requests cannot.
+- Book details: visibility checks, metadata ETag and conditional GET.
+- Availability: current count excluding unavailable copies and open loans; no-store.
+- Staff book creation with category/ISBN validation.
+- Staff PUT/PATCH metadata with atomic version checks and If-Match.
+- Staff DELETE archives books, preserves history and blocks active loans.
+- Staff copies: paginated listing, creation and condition updates.
+- Copy condition changes are blocked while borrowed.
+- Mutations and their audit records share transactions.
+
+## Implemented frontend
+
+- Public Catalog with search, category filter, sorting and pagination.
+- Loading, empty and error states, retry and request cancellation.
+- Expandable book details and live availability refresh.
 
 ## Verification
 
-On the contributor's Windows development machine:
-
-- npm run check passed: 56 server tests and 21 client tests.
-- Manual API checks passed against local PostgreSQL:
-  title search, category filtering, no-match search and pagination.
-- Categories page=0 returned HTTP 400.
-- Catalog UI was confirmed to display books.
-
-Service and component tests use mocks. These results do not establish
-PostgreSQL integration-suite or browser E2E-suite success.
+- Latest integration run: 67 tests passed against dedicated PostgreSQL test schemas.
+- Includes HTTP/JWT/RBAC, validation, uniqueness, audit and rollback checks.
+- Concurrent metadata writes using one version have exactly one winner.
+- Concurrent metadata update/archive using one version has exactly one winner.
+- Latest previously reported unit/component counts: 56 server and 24 client.
+- Manual public search/filter/pagination API checks passed.
+- Catalog listing was confirmed visible by the contributor.
+- Detail browser interactions still need explicit manual confirmation.
 
 ## Remaining work
 
-- Staff access to archived books. Currently includeArchived=true is
-  rejected for all callers; GET /books remains partially implemented.
-- Book details and availability.
-- Category/book mutations and copy management.
-- Staff authorization integration.
-- ETag / If-Match.
-- Catalog database integration tests and browser E2E tests.
-- Postman coverage for implemented Catalog operations.
+- Integrate shared frontend Auth state and authenticated HTTP client.
+- Staff forms for categories, books and copies.
+- Edit UI must preserve input and handle 412 by loading the current version for review.
+- Staff UI for archived books and archive confirmation.
+- Update Postman collection for implemented Catalog operations.
+- Browser E2E tests, responsive/accessibility review and screenshots.
+- Integrate with Loans and test archive-versus-borrow concurrency.
+- Prepare Catalog/API-contract report, REST/GraphQL/SOAP comparison and demo.
 
-The original blueprint describes the target scope, not completed work.
-
-## Category creation verification
-
-- POST /api/v1/categories is implemented for LIBRARIAN and ADMIN.
-- Returns 201 with Location; validates input and rejects duplicate names/slugs.
-- Category and audit insert commit together; audit failure rolls back category.
-- JWT authentication checks current account role and status in PostgreSQL.
-- Latest checks: 56 server tests, 21 client tests and 19 integration tests passed.
-- Integration coverage includes 11 category service/HTTP tests and 8 foundation tests.
-- Earlier verification notes above describe the previous browsing milestone.
-- Category creation UI and browser E2E coverage remain pending.
-
-## Book creation verification
-
-- POST /api/v1/books is implemented for LIBRARIAN and ADMIN.
-- Returns 201 with Location and a strong metadata ETag.
-- Validates input and rejects client-supplied internal fields.
-- Missing category: 400 INVALID_CATEGORY.
-- Duplicate ISBN: 409 ISBN_ALREADY_EXISTS.
-- Multiple books may have a null ISBN.
-- Book and audit inserts share one transaction.
-- Latest checks passed: 56 server, 21 client and 26 integration tests.
-- Seven new HTTP integration tests cover book creation.
-- Book creation UI, metadata updates and browser E2E remain pending.
-
-## Book details and availability verification
-
-- GET /api/v1/books/{id} is implemented with metadata ETag.
-- Matching If-None-Match returns 304 with no body after visibility checks.
-- Archived books are visible only to authenticated LIBRARIAN/ADMIN.
-- GET /api/v1/books/{id}/availability returns current available copy count.
-- Availability excludes open loans, MAINTENANCE and RETIRED copies.
-- Availability responses use Cache-Control: no-store.
-- Latest checks passed: 56 server, 21 client and 33 integration tests.
-- Detail UI, metadata mutations, copy management and browser E2E remain pending.
-- Earlier remaining-work lists describe their respective milestones.
-
-## Copy listing and creation verification
-
-- Staff can list copies with pagination and create copies with unique barcodes.
-- New copies default to AVAILABLE; archived books reject new copies.
-- Copy and audit insert share a transaction; audit failure rolls back the copy.
-- Creating an available copy increases the live availability count.
-- Latest checks passed: 56 server, 24 client and 40 integration tests.
-- Copy status updates and staff management UI remain pending.
-- Detail UI now exists with three component tests; browser E2E remains pending.
-
-## Copy condition update verification
-
-- PATCH /api/v1/copies/{id} is implemented for LIBRARIAN and ADMIN.
-- Supports AVAILABLE, MAINTENANCE and RETIRED.
-- Locks the copy before checking open loans and changing condition.
-- A changed condition is rejected with 409 COPY_HAS_ACTIVE_LOAN if borrowed.
-- Repeating the current condition succeeds without an extra audit.
-- Returned-loan history is preserved when retiring a copy.
-- Update and audit share a transaction; audit failure rolls back the update.
-- Latest checks passed: 56 server, 24 client and 46 integration tests.
-- Staff management UI and browser E2E remain pending.
-
-## Book metadata update verification
-
-- Staff PUT/PATCH book metadata is implemented.
-- PUT requires all editable metadata fields; PATCH requires at least one.
-- Missing If-Match returns 428; stale or unsupported tags return 412.
-- Version comparison and increment occur in one conditional UPDATE.
-- Two concurrent writes using the same version produce one 200 and one 412.
-- Successful responses include the updated ETag.
-- Metadata and audit share a transaction; failure rolls back the version.
-- Latest integration run passed all 52 tests.
-- Edit forms and UI handling of 412 remain pending.
-
-## Book archive verification
-
-- Staff DELETE /api/v1/books/{id} archives the book and returns 204.
-- Requires If-Match; missing header returns 428, stale version returns 412.
-- Active loans block archival with 409 BOOK_HAS_ACTIVE_LOANS.
-- Books, copies and returned-loan history remain stored.
-- Archived books are hidden from public listing and detail.
-- Repeating archive with the current ETag preserves timestamp and audit count.
-- Archive and audit share a transaction.
-- Concurrent metadata update/archive with one version has exactly one winner.
-- Latest checks passed: 56 server, 24 client and 58 integration tests.
-- Archive-versus-borrow concurrency awaits integration with Loans.
-
-## Category replacement and deletion verification
-
-- Staff PUT/DELETE category endpoints are implemented.
-- PUT requires name and slug; duplicate values return 409.
-- DELETE removes unused categories and returns 204.
-- Active or archived book references block deletion with 409 CATEGORY_IN_USE.
-- Both operations commit audit in the same transaction.
-- Audit failure rolls back replacement or deletion.
-- Latest integration run passed all 64 tests.
-- Category management forms remain pending.
+OpenAPI implementation markers describe backend operations, not completed staff UI.
+The blueprint describes the target design; it is not evidence that all work is complete.

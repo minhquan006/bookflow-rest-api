@@ -648,7 +648,7 @@ paths:
       summary: Search and paginate book metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - {}
         - bearerAuth: []

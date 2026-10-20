@@ -14,12 +14,18 @@ import { createBook } from "./books-write.service.js";
 
 export function createBooksRouter(pool: Pool, authenticate: RequestHandler) {
   const router = Router();
+  const optionalAuth: RequestHandler = (req, res, next) => {
+    if (req.get("authorization") !== undefined) {
+      return authenticate(req, res, next);
+    }
+    next();
+  };
   router.use(createBookDetailsRouter(pool, authenticate));
   const service = createBooksService(createBooksRepository(pool));
 
-  router.get("/books", async (req, res) => {
+  router.get("/books", optionalAuth, async (req, res) => {
     const input = parseInput(listBooksSchema, req.query);
-    res.json(await service.list(input));
+    res.json(await service.list(input, req.principal));
   });
 
   router.post(
