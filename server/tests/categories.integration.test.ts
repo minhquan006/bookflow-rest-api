@@ -819,3 +819,192 @@ describe("Copy management with PostgreSQL", () => {
     expect(result.rowCount).toBe(0);
   });
 });
+async function createTestCopy() {
+  const token = await authentication.accessTokens.sign(librarian.id);
+  const book = await request(httpApp)
+    .post("/api/v1/books")
+    .set("Authorization", `Bearer ${token}`)
+    .send({ ...(await bookInput()), title: `Condition Test ${randomUUID()}` });
+  expect(book.status).toBe(201);
+
+  const copy = await request(httpApp)
+    .post(`/api/v1/books/${book.body.data.id}/copies`)
+    .set("Authorization", `Bearer ${token}`)
+    .send({ barcode: randomUUID() });
+  expect(copy.status).toBe(201);
+
+  return { token, copy: copy.body.data };
+}
+
+describe("Copy condition updates", () => {
+  it("requires authentication and rejects MEMBER", async () => {
+    const { copy } = await createTestCopy();
+    const path = `/api/v1/copies/${copy.id}`;
+
+    expect(
+      (
+        await request(httpApp)
+          .patch(path)
+          .send({ conditionStatus: "MAINTENANCE" })
+      ).status,
+    ).toBe(401);
+
+    const memberToken = await authentication.accessTokens.sign(member.id);
+    expect(
+      (
+        await request(httpApp)
+          .patch(path)
+          .set("Authorization", `Bearer ${memberToken}`)
+          .send({ conditionStatus: "MAINTENANCE" })
+      ).status,
+    ).toBe(403);
+  });
+
+  it("updates condition and availability without auditing an unchanged retry", async () => {
+    const { token, copy } = await createTestCopy();
+    const path = `/api/v1/copies/${copy.id}`;
+
+    const changed = await request(httpApp)
+      .patch(path)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ conditionStatus: "MAINTENANCE" });
+    expect(changed.status).toBe(200);
+    expect(changed.body.data.conditionStatus).toBe("MAINTENANCE");
+
+    const availability = await request(httpApp).get(
+      `/api/v1/books/${copy.bookId}/availability`,
+    );
+    expect(availability.body.data.availableCopies).toBe(0);
+
+    const repeated = await request(httpApp)
+      .patch(path)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ conditionStatus: "MAINTENANCE" });
+    expect(repeated.status).toBe(200);
+    expect(repeated.body).toEqual(changed.body);
+
+    const audit = await pool.query(
+      `SELECT actor_id FROM audit_logs
+       WHERE entity_id = $1 AND action = 'COPY_CONDITION_UPDATED'`,
+      [copy.id],
+    );
+    expect(audit.rows).toEqual([{ actor_id: librarian.id }]);
+
+    const adminToken = await authentication.accessTokens.sign(administrator.id);
+    const restored = await request(httpApp)
+      .patch(path)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ conditionStatus: "AVAILABLE" });
+    expect(restored.status).toBe(200);
+
+    const after = await request(httpApp).get(
+      `/api/v1/books/${copy.bookId}/availability`,
+    );
+    expect(after.body.data.availableCopies).toBe(1);
+  });
+
+  it("blocks condition changes while an open loan exists", async () => {
+    const { token, copy } = await createTestCopy();
+    await pool.query(
+      `INSERT INTO loans (user_id, copy_id, due_at)
+       VALUES ($1, $2, now() + interval '14 days')`,
+      [member.id, copy.id],
+    );
+
+    for (const conditionStatus of ["MAINTENANCE", "RETIRED"]) {
+      const response = await request(httpApp)
+        .patch(`/api/v1/copies/${copy.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({ conditionStatus });
+
+      expect(response.status).toBe(409);
+      expect(response.body.code).toBe("COPY_HAS_ACTIVE_LOAN");
+    }
+
+    const stored = await pool.query(
+      "SELECT condition_status FROM book_copies WHERE id = $1",
+      [copy.id],
+    );
+    expect(stored.rows[0].condition_status).toBe("AVAILABLE");
+
+    const audit = await pool.query(
+      `SELECT id FROM audit_logs
+       WHERE entity_id = $1 AND action = 'COPY_CONDITION_UPDATED'`,
+      [copy.id],
+    );
+    expect(audit.rowCount).toBe(0);
+  });
+
+  it("allows retiring a returned copy and preserves its loan history", async () => {
+    const { token, copy } = await createTestCopy();
+    const loan = await pool.query<{ id: string }>(
+      `INSERT INTO loans
+         (user_id, copy_id, borrowed_at, due_at, returned_at, returned_by)
+       VALUES (
+         $1, $2, now() - interval '2 days',
+         now() + interval '12 days', now(), $3
+       )
+       RETURNING id`,
+      [member.id, copy.id, librarian.id],
+    );
+
+    const response = await request(httpApp)
+      .patch(`/api/v1/copies/${copy.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ conditionStatus: "RETIRED" });
+    expect(response.status).toBe(200);
+    expect(response.body.data.conditionStatus).toBe("RETIRED");
+
+    const history = await pool.query(
+      "SELECT copy_id, returned_at FROM loans WHERE id = $1",
+      [loan.rows[0]!.id],
+    );
+    expect(history.rowCount).toBe(1);
+    expect(history.rows[0].copy_id).toBe(copy.id);
+    expect(history.rows[0].returned_at).not.toBeNull();
+  });
+
+  it("rejects invalid inputs and returns 404 for a missing copy", async () => {
+    const { token, copy } = await createTestCopy();
+
+    for (const body of [
+      {},
+      { conditionStatus: "BORROWED" },
+      { conditionStatus: "AVAILABLE", barcode: "changed" },
+    ]) {
+      const response = await request(httpApp)
+        .patch(`/api/v1/copies/${copy.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send(body);
+      expect(response.status).toBe(400);
+    }
+
+    const invalid = await request(httpApp)
+      .patch("/api/v1/copies/not-a-uuid")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ conditionStatus: "RETIRED" });
+    expect(invalid.status).toBe(400);
+
+    const missing = await request(httpApp)
+      .patch(`/api/v1/copies/${randomUUID()}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ conditionStatus: "RETIRED" });
+    expect(missing.status).toBe(404);
+  });
+
+  it("rolls back the condition change if audit insertion fails", async () => {
+    const { copy } = await createTestCopy();
+    const { changeCopyCondition } =
+      await import("../src/modules/copies/copies-update.service.js");
+
+    await expect(
+      changeCopyCondition(pool, librarian, copy.id, "RETIRED", "x".repeat(129)),
+    ).rejects.toMatchObject({ code: "23514" });
+
+    const stored = await pool.query(
+      "SELECT condition_status FROM book_copies WHERE id = $1",
+      [copy.id],
+    );
+    expect(stored.rows[0].condition_status).toBe("AVAILABLE");
+  });
+});

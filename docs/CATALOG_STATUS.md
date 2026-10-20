@@ -79,3 +79,15 @@ The original blueprint describes the target scope, not completed work.
 - Latest checks passed: 56 server, 24 client and 40 integration tests.
 - Copy status updates and staff management UI remain pending.
 - Detail UI now exists with three component tests; browser E2E remains pending.
+
+## Copy condition update verification
+
+- PATCH /api/v1/copies/{id} is implemented for LIBRARIAN and ADMIN.
+- Supports AVAILABLE, MAINTENANCE and RETIRED.
+- Locks the copy before checking open loans and changing condition.
+- A changed condition is rejected with 409 COPY_HAS_ACTIVE_LOAN if borrowed.
+- Repeating the current condition succeeds without an extra audit.
+- Returned-loan history is preserved when retiring a copy.
+- Update and audit share a transaction; audit failure rolls back the update.
+- Latest checks passed: 56 server, 24 client and 46 integration tests.
+- Staff management UI and browser E2E remain pending.

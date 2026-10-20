@@ -1,4 +1,5 @@
-﻿import { Router, type RequestHandler } from "express";
+import { createCopyUpdateRouter } from "./copies-update.routes.js";
+import { Router, type RequestHandler } from "express";
 import type { Pool } from "pg";
 import { z } from "zod";
 import { requireRoles } from "../../middleware/auth.js";
@@ -40,5 +41,6 @@ export function createCopiesRouter(pool: Pool, authenticate: RequestHandler) {
     res.location(`/api/v1/copies/${copy.id}`).status(201).json({ data: copy });
   });
 
+  router.use(createCopyUpdateRouter(pool, authenticate));
   return router;
 }
