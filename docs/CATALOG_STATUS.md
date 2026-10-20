@@ -91,3 +91,15 @@ The original blueprint describes the target scope, not completed work.
 - Update and audit share a transaction; audit failure rolls back the update.
 - Latest checks passed: 56 server, 24 client and 46 integration tests.
 - Staff management UI and browser E2E remain pending.
+
+## Book metadata update verification
+
+- Staff PUT/PATCH book metadata is implemented.
+- PUT requires all editable metadata fields; PATCH requires at least one.
+- Missing If-Match returns 428; stale or unsupported tags return 412.
+- Version comparison and increment occur in one conditional UPDATE.
+- Two concurrent writes using the same version produce one 200 and one 412.
+- Successful responses include the updated ETag.
+- Metadata and audit share a transaction; failure rolls back the version.
+- Latest integration run passed all 52 tests.
+- Edit forms and UI handling of 412 remain pending.

@@ -1008,3 +1008,207 @@ describe("Copy condition updates", () => {
     expect(stored.rows[0].condition_status).toBe("AVAILABLE");
   });
 });
+async function createMetadataTestBook() {
+  const token = await authentication.accessTokens.sign(librarian.id);
+  const input = {
+    ...(await bookInput()),
+    title: `Metadata Test ${randomUUID()}`,
+    isbn: "9780201633610",
+  };
+
+  // Use a unique ISBN-free book for each test.
+  input.isbn = null as unknown as string;
+  const response = await request(httpApp)
+    .post("/api/v1/books")
+    .set("Authorization", `Bearer ${token}`)
+    .send(input);
+  expect(response.status).toBe(201);
+
+  return {
+    token,
+    input,
+    id: response.body.data.id as string,
+    etag: response.headers.etag as string,
+  };
+}
+
+describe("Book metadata updates with If-Match", () => {
+  it("checks authorization and requires a supported If-Match", async () => {
+    const { token, id, etag } = await createMetadataTestBook();
+    const path = `/api/v1/books/${id}`;
+
+    expect(
+      (await request(httpApp).patch(path).send({ title: "Guest edit" })).status,
+    ).toBe(401);
+
+    const memberToken = await authentication.accessTokens.sign(member.id);
+    expect(
+      (
+        await request(httpApp)
+          .patch(path)
+          .set("Authorization", `Bearer ${memberToken}`)
+          .set("If-Match", etag)
+          .send({ title: "Member edit" })
+      ).status,
+    ).toBe(403);
+
+    const missing = await request(httpApp)
+      .patch(path)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "Missing precondition" });
+    expect(missing.status).toBe(428);
+    expect(missing.body.code).toBe("PRECONDITION_REQUIRED");
+
+    for (const tag of ["*", `W/${etag}`, '"invalid"']) {
+      const response = await request(httpApp)
+        .patch(path)
+        .set("Authorization", `Bearer ${token}`)
+        .set("If-Match", tag)
+        .send({ title: "Unsupported precondition" });
+      expect(response.status).toBe(412);
+    }
+  });
+
+  it("patches selected fields, increments ETag and rejects stale writes", async () => {
+    const { token, id, etag, input } = await createMetadataTestBook();
+    const path = `/api/v1/books/${id}`;
+
+    const changed = await request(httpApp)
+      .patch(path)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", etag)
+      .send({ title: "Updated title", isbn: null });
+
+    expect(changed.status).toBe(200);
+    expect(changed.body.data).toMatchObject({
+      title: "Updated title",
+      author: input.author,
+      isbn: null,
+      version: 2,
+    });
+    expect(changed.headers.etag).toBe(`"book-${id}-v2"`);
+
+    const stale = await request(httpApp)
+      .patch(path)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", etag)
+      .send({ title: "Stale overwrite" });
+    expect(stale.status).toBe(412);
+    expect(stale.body.code).toBe("VERSION_MISMATCH");
+
+    const read = await request(httpApp).get(path);
+    expect(read.body.data.title).toBe("Updated title");
+    expect(read.body.data.version).toBe(2);
+  });
+
+  it("requires full PUT metadata and rejects empty or internal-field PATCH", async () => {
+    const { id, etag, input } = await createMetadataTestBook();
+    const token = await authentication.accessTokens.sign(administrator.id);
+    const path = `/api/v1/books/${id}`;
+
+    const incomplete = await request(httpApp)
+      .put(path)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", etag)
+      .send({ title: "Incomplete" });
+    expect(incomplete.status).toBe(400);
+
+    for (const body of [{}, { version: 99 }, { title: " " }]) {
+      const invalid = await request(httpApp)
+        .patch(path)
+        .set("Authorization", `Bearer ${token}`)
+        .set("If-Match", etag)
+        .send(body);
+      expect(invalid.status).toBe(400);
+    }
+
+    const replaced = await request(httpApp)
+      .put(path)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", etag)
+      .send({ ...input, title: "Full replacement", description: "" });
+    expect(replaced.status).toBe(200);
+    expect(replaced.body.data.title).toBe("Full replacement");
+    expect(replaced.body.data.description).toBe("");
+    expect(replaced.body.data.version).toBe(2);
+  });
+
+  it("accepts exactly one of two simultaneous writes using the same version", async () => {
+    const { token, id, etag } = await createMetadataTestBook();
+    const responses = await Promise.all(
+      ["Concurrent edit A", "Concurrent edit B"].map((title) =>
+        request(httpApp)
+          .patch(`/api/v1/books/${id}`)
+          .set("Authorization", `Bearer ${token}`)
+          .set("If-Match", etag)
+          .send({ title }),
+      ),
+    );
+
+    expect(responses.map((response) => response.status).sort()).toEqual([
+      200, 412,
+    ]);
+
+    const winner = responses.find((response) => response.status === 200)!;
+    const stored = await request(httpApp).get(`/api/v1/books/${id}`);
+    expect(stored.body.data.title).toBe(winner.body.data.title);
+    expect(stored.body.data.version).toBe(2);
+
+    const audit = await pool.query(
+      `SELECT id FROM audit_logs
+       WHERE entity_id = $1 AND action = 'BOOK_METADATA_UPDATED'`,
+      [id],
+    );
+    expect(audit.rowCount).toBe(1);
+  });
+
+  it("rejects missing categories and duplicate ISBN without changing version", async () => {
+    const { token, id, etag } = await createMetadataTestBook();
+
+    const missingCategory = await request(httpApp)
+      .patch(`/api/v1/books/${id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", etag)
+      .send({ categoryId: randomUUID() });
+    expect(missingCategory.status).toBe(400);
+    expect(missingCategory.body.code).toBe("INVALID_CATEGORY");
+
+    const other = await request(httpApp)
+      .post("/api/v1/books")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ ...(await bookInput()), isbn: "9780201633610" });
+    expect(other.status).toBe(201);
+
+    const duplicate = await request(httpApp)
+      .patch(`/api/v1/books/${id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("If-Match", etag)
+      .send({ isbn: "9780201633610" });
+    expect(duplicate.status).toBe(409);
+
+    const stored = await request(httpApp).get(`/api/v1/books/${id}`);
+    expect(stored.body.data.version).toBe(1);
+    expect(stored.body.data.isbn).toBeNull();
+  });
+
+  it("rolls back metadata and version if audit insertion fails", async () => {
+    const { id, etag, input } = await createMetadataTestBook();
+    const { changeBookMetadata } =
+      await import("../src/modules/books/books-update.service.js");
+
+    await expect(
+      changeBookMetadata(
+        pool,
+        librarian,
+        id,
+        { title: "Must roll back" },
+        etag,
+        "x".repeat(129),
+      ),
+    ).rejects.toMatchObject({ code: "23514" });
+
+    const stored = await request(httpApp).get(`/api/v1/books/${id}`);
+    expect(stored.body.data.title).toBe(input.title);
+    expect(stored.body.data.version).toBe(1);
+  });
+});

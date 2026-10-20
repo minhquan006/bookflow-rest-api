@@ -831,7 +831,7 @@ paths:
       summary: Replace all editable book metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -892,7 +892,7 @@ paths:
       summary: Update part of book metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
