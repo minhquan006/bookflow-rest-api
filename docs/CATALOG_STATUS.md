@@ -32,7 +32,7 @@ Status on feat/catalog after the archived-listing increment.
 - Latest previously reported unit/component counts: 56 server and 24 client.
 - Manual public search/filter/pagination API checks passed.
 - Catalog listing was confirmed visible by the contributor.
-- Detail browser interactions still need explicit manual confirmation.
+- Public book-detail interactions passed automated browser E2E checks.
 
 ## Remaining work
 
@@ -41,9 +41,15 @@ Status on feat/catalog after the archived-listing increment.
 - Edit UI must preserve input and handle 412 by loading the current version for review.
 - Staff UI for archived books and archive confirmation.
 - Update Postman collection for implemented Catalog operations.
-- Browser E2E tests, responsive/accessibility review and screenshots.
+- Staff browser E2E, broader responsive/accessibility review and screenshots.
 - Integrate with Loans and test archive-versus-borrow concurrency.
 - Prepare Catalog/API-contract report, REST/GraphQL/SOAP comparison and demo.
 
 OpenAPI implementation markers describe backend operations, not completed staff UI.
 The blueprint describes the target design; it is not evidence that all work is complete.
+
+## Public browser verification
+
+- Playwright: all 12 desktop/mobile-emulation runs passed.
+- Evidence: docs/evidence/CATALOG_VALIDATION.md.
+- Authenticated staff browser workflows remain pending.
