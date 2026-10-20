@@ -1,7 +1,7 @@
-name: Foundation checks
+name: BookFlow checks
 on:
   push:
-    branches: [main]
+    branches: [main, "feat/**"]
   pull_request:
 
 permissions:

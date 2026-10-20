@@ -3,10 +3,11 @@
 Nền tảng cho hệ thống thư viện RESTful — Web Programming & Applications (503073).
 React/TypeScript + Express/TypeScript + PostgreSQL; kiến trúc monolith chia module.
 
-Đã có cấu hình, database schema/migration/seed, middleware, HTTP client, khung giao diện,
-OpenAPI, kiểm thử, Docker và CI. **Đăng nhập, CRUD, mượn–trả, dashboard và audit viewer
-chưa được triển khai.** Các mục này là phần phát triển tiếp theo của nhóm; xem
-[bàn giao](docs/TEAM_HANDOFF.md) và [blueprint](docs/PROJECT_BLUEPRINT.md).
+Đã triển khai Auth/Users: đăng ký, đăng nhập, JWT, khôi phục phiên bằng refresh token,
+rotation/reuse detection, logout và quản lý tài khoản theo role. Có database/migration/seed,
+HTTP client, OpenAPI, kiểm thử, Docker và CI. Catalog/Copies và Loans/Dashboard/Audit
+được bàn giao riêng cho Tú và An; xem [trạng thái](docs/IMPLEMENTATION_STATUS.md)
+và [blueprint](docs/PROJECT_BLUEPRINT.md).
 
 ## Bắt đầu trên máy phát triển
 
@@ -104,8 +105,8 @@ qua cổng web 8080. Import `postman/BookFlow.postman_collection.json` và local
 
 Seed có ba tài khoản local: `admin@bookflow.test`, `librarian@bookflow.test`,
 `member@bookflow.test`. Mật khẩu là `SEED_DEMO_PASSWORD` trong file `.env` local; không in
-vào log hoặc commit. Seed không ghi đè mật khẩu/role/tài khoản hiện hữu. Chưa có endpoint
-login để sử dụng tài khoản này từ giao diện.
+vào log hoặc commit. Seed không ghi đè mật khẩu/role/tài khoản hiện hữu. Đăng nhập tại `/login`; trang `/users` dành cho ADMIN.
+Access token chỉ giữ trong RAM; tải lại trang khôi phục qua cookie refresh hợp lệ.
 
 ## Cấu trúc và quy ước
 
@@ -118,8 +119,7 @@ login để sử dụng tài khoản này từ giao diện.
 
 Xem [CONTRIBUTING](CONTRIBUTING.md) trước khi mở PR. Module backend mới được tạo khi
 bắt đầu triển khai; `createApp` nhận `apiRouter` để ghép route dưới `/api/v1`, không tạo
-file placeholder rỗng. Schema đã có bảng refresh token nhưng refresh rotation/CSRF vẫn
-là tác vụ của module Auth. Hạn mức, khóa hàng user/book/copy, ownership và admin cuối cùng
+file placeholder rỗng. Auth thực hiện refresh rotation và CSRF đã kiểm thử trên DB thật. Hạn mức, khóa hàng user/book/copy, ownership và admin cuối cùng
 phải được triển khai trong service; constraint DB không thay thế các quy tắc này.
 
 CI được lưu trong repository; việc chạy trên GitHub cần push/PR. Branch protection cần

@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import { existsSync } from "node:fs";
+import { loadEnvFile } from "node:process";
+
+if (existsSync(".env")) loadEnvFile(".env");
 
 const executablePath =
   process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
