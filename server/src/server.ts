@@ -1,4 +1,5 @@
-﻿import { Router } from "express";
+import { createAuthentication } from "./middleware/auth.js";
+import { Router } from "express";
 import { createBooksRouter } from "./modules/books/books.routes.js";
 import { createCategoriesRouter } from "./modules/categories/categories.routes.js";
 import "dotenv/config";
@@ -10,6 +11,7 @@ import { createPool, hasCurrentSchema } from "./db/index.js";
 const config = loadConfig();
 const logger = createLogger(config);
 const pool = createPool(config.databaseUrl);
+const { authenticate } = createAuthentication(config, pool);
 pool.on("error", () =>
   logger.error({ code: "DATABASE_POOL_ERROR" }, "database pool error"),
 );
@@ -18,7 +20,7 @@ const app = createApp({
   logger,
   checkReadiness: () => hasCurrentSchema(pool),
   apiRouter: Router()
-    .use(createCategoriesRouter(pool))
+    .use(createCategoriesRouter(pool, authenticate))
     .use(createBooksRouter(pool)),
 });
 const server = app.listen(config.port, config.host, () =>

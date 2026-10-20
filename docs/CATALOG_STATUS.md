@@ -1,4 +1,4 @@
-﻿# Catalog implementation status
+# Catalog implementation status
 
 ## Implemented on feat/catalog
 
@@ -33,3 +33,14 @@ PostgreSQL integration-suite or browser E2E-suite success.
 - Postman coverage for implemented Catalog operations.
 
 The original blueprint describes the target scope, not completed work.
+
+## Category creation verification
+
+- POST /api/v1/categories is implemented for LIBRARIAN and ADMIN.
+- Returns 201 with Location; validates input and rejects duplicate names/slugs.
+- Category and audit insert commit together; audit failure rolls back category.
+- JWT authentication checks current account role and status in PostgreSQL.
+- Latest checks: 56 server tests, 21 client tests and 19 integration tests passed.
+- Integration coverage includes 11 category service/HTTP tests and 8 foundation tests.
+- Earlier verification notes above describe the previous browsing milestone.
+- Category creation UI and browser E2E coverage remain pending.

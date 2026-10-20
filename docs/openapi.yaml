@@ -512,7 +512,7 @@ paths:
       summary: Create a category
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
