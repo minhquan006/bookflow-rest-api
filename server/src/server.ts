@@ -1,3 +1,8 @@
+import { createCopiesRouter } from "./modules/copies/copies.routes.js";
+import { createAuthentication } from "./middleware/auth.js";
+import { Router } from "express";
+import { createBooksRouter } from "./modules/books/books.routes.js";
+import { createCategoriesRouter } from "./modules/categories/categories.routes.js";
 import "dotenv/config";
 import { createApp } from "./app.js";
 import { loadConfig } from "./config/env.js";
@@ -7,6 +12,7 @@ import { createPool, hasCurrentSchema } from "./db/index.js";
 const config = loadConfig();
 const logger = createLogger(config);
 const pool = createPool(config.databaseUrl);
+const { authenticate } = createAuthentication(config, pool);
 pool.on("error", () =>
   logger.error({ code: "DATABASE_POOL_ERROR" }, "database pool error"),
 );
@@ -14,6 +20,10 @@ const app = createApp({
   config,
   logger,
   checkReadiness: () => hasCurrentSchema(pool),
+  apiRouter: Router()
+    .use(createCategoriesRouter(pool, authenticate))
+    .use(createBooksRouter(pool, authenticate))
+    .use(createCopiesRouter(pool, authenticate)),
 });
 const server = app.listen(config.port, config.host, () =>
   logger.info({ host: config.host, port: config.port }, "BookFlow API started"),

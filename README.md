@@ -1,3 +1,8 @@
+> **Catalog update on `feat/catalog`:** Public category/book listing and the
+> Catalog browsing UI are implemented. See [Catalog status](docs/CATALOG_STATUS.md)
+> for verified behavior and remaining work. The foundation descriptions below
+> predate this increment; full Catalog CRUD is not implemented yet.
+
 # BookFlow
 
 Nền tảng cho hệ thống thư viện RESTful — Web Programming & Applications (503073).

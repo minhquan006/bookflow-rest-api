@@ -1,0 +1,60 @@
+﻿.catalog {
+  display: grid;
+  gap: 1rem;
+}
+
+.catalog-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+}
+
+.catalog-field {
+  display: grid;
+  gap: 0.4rem;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.catalog-field label {
+  font-weight: 600;
+}
+
+.catalog-field input,
+.catalog-field select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0.65rem;
+  border: 1px solid #aab6b2;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b24;
+  font: inherit;
+}
+
+.catalog-field input:focus-visible,
+.catalog-field select:focus-visible {
+  outline: 3px solid #277960;
+  outline-offset: 2px;
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 1rem;
+}
+
+.catalog-card {
+  overflow-wrap: anywhere;
+}
+
+.catalog-card h2 {
+  margin-top: 1rem;
+}
+
+.catalog-author {
+  font-weight: 600;
+  color: #38564a;
+}

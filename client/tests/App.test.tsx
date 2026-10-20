@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+﻿import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import App from "../src/App";
@@ -25,7 +25,7 @@ describe("foundation workspace", () => {
       ),
     );
     render(<App />);
-    expect(screen.getByText("Connecting to the API…")).toBeInTheDocument();
+    expect(screen.getByText("Connecting to the APIâ€¦")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Refresh connection" }),
     ).toBeDisabled();
@@ -69,10 +69,10 @@ describe("foundation workspace", () => {
     render(<App />);
     await screen.findByText("API connected");
     await userEvent.click(
-      screen.getByRole("button", { name: "Catalog Planned" }),
+      screen.getByRole("button", { name: "Borrowing Planned" }),
     );
     expect(
-      screen.getByRole("heading", { name: "Catalog", level: 1 }),
+      screen.getByRole("heading", { name: "Borrowing", level: 1 }),
     ).toBeInTheDocument();
     expect(screen.getByText("Planned module")).toBeInTheDocument();
     expect(
