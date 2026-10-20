@@ -69,3 +69,13 @@ The original blueprint describes the target scope, not completed work.
 - Latest checks passed: 56 server, 21 client and 33 integration tests.
 - Detail UI, metadata mutations, copy management and browser E2E remain pending.
 - Earlier remaining-work lists describe their respective milestones.
+
+## Copy listing and creation verification
+
+- Staff can list copies with pagination and create copies with unique barcodes.
+- New copies default to AVAILABLE; archived books reject new copies.
+- Copy and audit insert share a transaction; audit failure rolls back the copy.
+- Creating an available copy increases the live availability count.
+- Latest checks passed: 56 server, 24 client and 40 integration tests.
+- Copy status updates and staff management UI remain pending.
+- Detail UI now exists with three component tests; browser E2E remains pending.

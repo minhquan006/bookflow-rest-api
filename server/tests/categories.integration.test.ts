@@ -1,3 +1,5 @@
+import { createCopiesRouter } from "../src/modules/copies/copies.routes.js";
+import { createCopiesService } from "../src/modules/copies/copies.service.js";
 import { createBooksRouter } from "../src/modules/books/books.routes.js";
 import request from "supertest";
 import { createApp } from "../src/app.js";
@@ -177,9 +179,9 @@ const httpApp = createApp({
   config: httpConfig,
   logger: createLogger(httpConfig),
   checkReadiness: async () => true,
-  apiRouter: createCategoriesRouter(pool, authentication.authenticate).use(
-    createBooksRouter(pool, authentication.authenticate),
-  ),
+  apiRouter: createCategoriesRouter(pool, authentication.authenticate)
+    .use(createBooksRouter(pool, authentication.authenticate))
+    .use(createCopiesRouter(pool, authentication.authenticate)),
 });
 
 describe("Category creation over HTTP", () => {
@@ -610,5 +612,210 @@ describe("Book details and availability over HTTP", () => {
 
       expect(response.status).toBe(401);
     }
+  });
+});
+describe("Copy management with PostgreSQL", () => {
+  const seedBookId = "10000000-0000-4000-8000-000000000001";
+
+  it("requires authentication for both listing and creation", async () => {
+    const path = `/api/v1/books/${seedBookId}/copies`;
+    expect((await request(httpApp).get(path)).status).toBe(401);
+    expect(
+      (
+        await request(httpApp).post(path).send({
+          barcode: "guest-copy",
+        })
+      ).status,
+    ).toBe(401);
+  });
+
+  it("rejects MEMBER for both listing and creation", async () => {
+    const token = await authentication.accessTokens.sign(member.id);
+    const path = `/api/v1/books/${seedBookId}/copies`;
+
+    const list = await request(httpApp)
+      .get(path)
+      .set("Authorization", `Bearer ${token}`);
+    const create = await request(httpApp)
+      .post(path)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ barcode: "member-copy" });
+
+    expect(list.status).toBe(403);
+    expect(create.status).toBe(403);
+  });
+
+  it("creates and lists a copy, records audit and increases availability", async () => {
+    const token = await authentication.accessTokens.sign(librarian.id);
+    const createdBook = await request(httpApp)
+      .post("/api/v1/books")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ ...(await bookInput()), title: "Copy Creation Test" });
+    expect(createdBook.status).toBe(201);
+
+    const bookId = createdBook.body.data.id;
+    const barcode = `COPY-${randomUUID()}`;
+    const before = await request(httpApp).get(
+      `/api/v1/books/${bookId}/availability`,
+    );
+    expect(before.body.data.availableCopies).toBe(0);
+
+    const created = await request(httpApp)
+      .post(`/api/v1/books/${bookId}/copies`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ barcode: `  ${barcode}  ` });
+
+    expect(created.status).toBe(201);
+    expect(created.body.data).toMatchObject({
+      bookId,
+      barcode,
+      conditionStatus: "AVAILABLE",
+    });
+    expect(created.headers.location).toBe(
+      `/api/v1/copies/${created.body.data.id}`,
+    );
+
+    const audit = await pool.query(
+      `SELECT actor_id, action, request_id
+       FROM audit_logs WHERE entity_id = $1`,
+      [created.body.data.id],
+    );
+    expect(audit.rows).toEqual([
+      {
+        actor_id: librarian.id,
+        action: "COPY_CREATED",
+        request_id: created.headers["x-request-id"],
+      },
+    ]);
+
+    const list = await request(httpApp)
+      .get(`/api/v1/books/${bookId}/copies?page=1&limit=1`)
+      .set("Authorization", `Bearer ${token}`);
+    expect(list.status).toBe(200);
+    expect(list.body.data).toEqual([created.body.data]);
+    expect(list.body.pagination).toEqual({
+      page: 1,
+      limit: 1,
+      total: 1,
+      totalPages: 1,
+    });
+
+    const after = await request(httpApp).get(
+      `/api/v1/books/${bookId}/availability`,
+    );
+    expect(after.body.data.availableCopies).toBe(1);
+  });
+
+  it("allows ADMIN and rejects duplicate barcodes without extra audit", async () => {
+    const token = await authentication.accessTokens.sign(administrator.id);
+    const barcode = `UNIQUE-${randomUUID()}`;
+    const path = `/api/v1/books/${seedBookId}/copies`;
+
+    const first = await request(httpApp)
+      .post(path)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ barcode });
+    expect(first.status).toBe(201);
+
+    const duplicate = await request(httpApp)
+      .post(path)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ barcode });
+
+    expect(duplicate.status).toBe(409);
+    expect(duplicate.body.code).toBe("BARCODE_ALREADY_EXISTS");
+
+    const audit = await pool.query(
+      "SELECT id FROM audit_logs WHERE request_id = $1",
+      [duplicate.headers["x-request-id"]],
+    );
+    expect(audit.rowCount).toBe(0);
+  });
+
+  it("rejects invalid input, UUIDs and pagination", async () => {
+    const token = await authentication.accessTokens.sign(librarian.id);
+
+    for (const body of [
+      { barcode: " " },
+      { barcode: "x".repeat(65) },
+      { barcode: "extra-field", conditionStatus: "RETIRED" },
+    ]) {
+      const response = await request(httpApp)
+        .post(`/api/v1/books/${seedBookId}/copies`)
+        .set("Authorization", `Bearer ${token}`)
+        .send(body);
+      expect(response.status).toBe(400);
+    }
+
+    for (const path of [
+      "/api/v1/books/not-a-uuid/copies",
+      `/api/v1/books/${seedBookId}/copies?page=0`,
+    ]) {
+      const response = await request(httpApp)
+        .get(path)
+        .set("Authorization", `Bearer ${token}`);
+      expect(response.status).toBe(400);
+    }
+  });
+
+  it("returns 404 for missing books and rejects adding to archived books", async () => {
+    const token = await authentication.accessTokens.sign(librarian.id);
+    const missingPath = `/api/v1/books/${randomUUID()}/copies`;
+
+    expect(
+      (
+        await request(httpApp)
+          .get(missingPath)
+          .set("Authorization", `Bearer ${token}`)
+      ).status,
+    ).toBe(404);
+
+    expect(
+      (
+        await request(httpApp)
+          .post(missingPath)
+          .set("Authorization", `Bearer ${token}`)
+          .send({ barcode: randomUUID() })
+      ).status,
+    ).toBe(404);
+
+    const created = await request(httpApp)
+      .post("/api/v1/books")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ ...(await bookInput()), title: "Archived Copy Test" });
+    expect(created.status).toBe(201);
+
+    const bookId = created.body.data.id;
+    await pool.query(
+      "UPDATE books SET archived_at = now(), version = version + 1 WHERE id = $1",
+      [bookId],
+    );
+
+    const response = await request(httpApp)
+      .post(`/api/v1/books/${bookId}/copies`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ barcode: randomUUID() });
+
+    expect(response.status).toBe(409);
+    expect(response.body.code).toBe("BOOK_ARCHIVED");
+  });
+
+  it("rolls back a new copy if its audit cannot be inserted", async () => {
+    const barcode = `ROLLBACK-${randomUUID()}`;
+
+    await expect(
+      createCopiesService(pool).create(
+        librarian,
+        seedBookId,
+        barcode,
+        "x".repeat(129),
+      ),
+    ).rejects.toMatchObject({ code: "23514" });
+
+    const result = await pool.query(
+      "SELECT id FROM book_copies WHERE barcode = $1",
+      [barcode],
+    );
+    expect(result.rowCount).toBe(0);
   });
 });

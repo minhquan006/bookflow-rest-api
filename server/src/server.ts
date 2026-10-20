@@ -1,3 +1,4 @@
+import { createCopiesRouter } from "./modules/copies/copies.routes.js";
 import { createAuthentication } from "./middleware/auth.js";
 import { Router } from "express";
 import { createBooksRouter } from "./modules/books/books.routes.js";
@@ -21,7 +22,8 @@ const app = createApp({
   checkReadiness: () => hasCurrentSchema(pool),
   apiRouter: Router()
     .use(createCategoriesRouter(pool, authenticate))
-    .use(createBooksRouter(pool, authenticate)),
+    .use(createBooksRouter(pool, authenticate))
+    .use(createCopiesRouter(pool, authenticate)),
 });
 const server = app.listen(config.port, config.host, () =>
   logger.info({ host: config.host, port: config.port }, "BookFlow API started"),
