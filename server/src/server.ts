@@ -1,12 +1,49 @@
 import "dotenv/config";
-import { app } from "./app.js";
+import { createApp } from "./app.js";
+import { loadConfig } from "./config/env.js";
+import { createLogger } from "./shared/logger.js";
+import { createPool, hasCurrentSchema } from "./db/index.js";
 
-const port = Number(process.env.PORT ?? 3000);
-
-if (!Number.isInteger(port) || port < 1 || port > 65535) {
-  throw new Error("PORT must be an integer between 1 and 65535.");
-}
-
-app.listen(port, "127.0.0.1", () => {
-  console.log(`BookFlow API: http://127.0.0.1:${port}`);
+const config = loadConfig();
+const logger = createLogger(config);
+const pool = createPool(config.databaseUrl);
+pool.on("error", () =>
+  logger.error({ code: "DATABASE_POOL_ERROR" }, "database pool error"),
+);
+const app = createApp({
+  config,
+  logger,
+  checkReadiness: () => hasCurrentSchema(pool),
 });
+const server = app.listen(config.port, config.host, () =>
+  logger.info({ host: config.host, port: config.port }, "BookFlow API started"),
+);
+server.on("error", (error) => {
+  logger.fatal({ errorType: error.name }, "server startup failed");
+  void pool.end().finally(() => process.exit(1));
+});
+let stopping = false;
+function shutdown(signal: string) {
+  if (stopping) return;
+  stopping = true;
+  logger.info({ signal }, "shutting down");
+  const deadline = setTimeout(() => {
+    logger.error("shutdown timed out");
+    process.exit(1);
+  }, 10_000);
+  deadline.unref();
+  server.close(() => {
+    void pool
+      .end()
+      .then(() => {
+        clearTimeout(deadline);
+        process.exitCode = 0;
+      })
+      .catch(() => {
+        clearTimeout(deadline);
+        process.exitCode = 1;
+      });
+  });
+}
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

@@ -1,0 +1,2126 @@
+# Business operations are planned contracts, not completed implementations.
+openapi: 3.1.0
+info:
+  title: BookFlow REST API
+  version: 0.1.0
+  description:
+    "Development contract for the BookFlow foundation. Operations marked x-implementation-status:
+    planned are agreed targets and currently return the generic 404 until their owners implement them.
+    Only Operations endpoints are implemented. This document is not evidence that business features pass
+    tests."
+servers:
+  - url: /
+    description: Same-origin API; in development call the backend on port 3000.
+tags:
+  - name: Operations
+  - name: Auth
+  - name: Users
+  - name: Catalog
+  - name: Loans
+  - name: Administration
+security: []
+paths:
+  /health/live:
+    get:
+      operationId: getLiveness
+      summary: Process liveness
+      tags:
+        - Operations
+      x-implementation-status: implemented
+      security: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Liveness"
+          headers:
+            X-Request-Id: &id001
+              description: Correlation ID used in logs and Problem Details.
+              schema:
+                type: string
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /health/ready:
+    get:
+      operationId: getReadiness
+      summary: Database and schema readiness
+      tags:
+        - Operations
+      x-implementation-status: implemented
+      security: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Readiness"
+          headers:
+            X-Request-Id: *id001
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      description:
+        Returns 503 until PostgreSQL is reachable and migrations have installed the expected
+        schema.
+  /api/v1:
+    get:
+      operationId: getApiInfo
+      summary: API connection check
+      tags:
+        - Operations
+      x-implementation-status: implemented
+      security: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiInfo"
+          headers:
+            X-Request-Id: *id001
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /openapi.yaml:
+    get:
+      operationId: getOpenApi
+      summary: Download the API contract
+      tags:
+        - Operations
+      x-implementation-status: implemented
+      security: []
+      responses:
+        "200":
+          description: OpenAPI 3.1 YAML document.
+          content:
+            application/yaml:
+              schema:
+                type: string
+          headers:
+            X-Request-Id: *id001
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /docs:
+    get:
+      operationId: getApiDocs
+      summary: Swagger UI
+      tags:
+        - Operations
+      x-implementation-status: implemented
+      security: []
+      responses:
+        "200":
+          description: Interactive API documentation (may redirect to /docs/).
+          content:
+            text/html:
+              schema:
+                type: string
+          headers:
+            X-Request-Id: *id001
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/auth/register:
+    post:
+      operationId: register
+      summary: Register a MEMBER
+      tags:
+        - Auth
+      x-implementation-status: planned
+      security: []
+      responses:
+        "201":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/User"
+                required:
+                  - data
+          headers: &id005
+            Location: &id010
+              description: Canonical resource URI.
+              schema:
+                type: string
+                format: uri-reference
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      description:
+        Reject unknown properties including role/status. Trim fullName and email; lowercase
+        email. Store only an Argon2id password hash. Registration does not issue a session.
+  /api/v1/auth/login:
+    post:
+      operationId: login
+      summary: Create an access and refresh session
+      tags:
+        - Auth
+      x-implementation-status: planned
+      security: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AuthSession"
+                required:
+                  - data
+          headers:
+            Cache-Control: &id002
+              schema:
+                type: string
+                const: no-store
+            Set-Cookie:
+              description: Set bookflow_refresh and bookflow_csrf cookies as separate Set-Cookie headers.
+              schema:
+                type: string
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      description:
+        "Return a short-lived HS256 JWT (sub, iss, aud, iat, exp), opaque rotated refresh token
+        in bookflow_refresh, and a CSRF token. bookflow_refresh uses Path=/api/v1/auth and HttpOnly;
+        bookflow_csrf uses Path=/ and is JavaScript-readable so page reload can restore the session.
+        Both use SameSite=Strict and Secure on HTTPS. The CSRF token must be signed and bound to
+        the refresh session. Generic 401 for all invalid credentials. No-store."
+  /api/v1/auth/refresh:
+    post:
+      operationId: refreshSession
+      summary: Rotate a refresh token
+      tags:
+        - Auth
+      x-implementation-status: planned
+      security:
+        - refreshCookie: []
+          csrfHeader: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AuthSession"
+                required:
+                  - data
+          headers: &id003
+            Cache-Control: *id002
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uri
+          description: Must match the configured frontend origin; absent or untrusted Origin is rejected.
+      description:
+        Require trusted Origin and X-CSRF-Token equal to the signed, session-bound bookflow_csrf
+        cookie; validate the signature and refresh-session binding. Frontend can read this cookie at
+        Path=/ after a page reload. Rotate refresh token atomically, storing only a hash. Detect reuse
+        and revoke the family. Return replacement cookies using their original paths. Frontend
+        serializes refresh requests; never retry indefinitely.
+  /api/v1/auth/logout:
+    post:
+      operationId: logout
+      summary: Revoke refresh session
+      tags:
+        - Auth
+      x-implementation-status: planned
+      security:
+        - refreshCookie: []
+          csrfHeader: []
+      responses:
+        "204":
+          description: Success.
+          headers:
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uri
+          description: Must match the configured frontend origin; absent or untrusted Origin is rejected.
+      description:
+        Require trusted Origin and matching CSRF header/cookie; revoke the family and clear
+        bookflow_refresh with Path=/api/v1/auth and bookflow_csrf with Path=/. An already revoked
+        session remains logged out. Access JWT can
+        remain valid until expiry.
+  /api/v1/users/me:
+    get:
+      operationId: getCurrentUser
+      summary: Read own safe profile
+      tags:
+        - Users
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/User"
+                required:
+                  - data
+          headers: *id003
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: &id014
+        - MEMBER
+        - LIBRARIAN
+        - ADMIN
+  /api/v1/users:
+    get:
+      operationId: listUsers
+      summary: List users
+      tags:
+        - Users
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+          headers: *id003
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles:
+        - ADMIN
+      parameters: &id004
+        - &id008
+          $ref: "#/components/parameters/Page"
+        - &id009
+          $ref: "#/components/parameters/Limit"
+  /api/v1/users/{id}:
+    patch:
+      operationId: updateUser
+      summary: Change user role or status
+      tags:
+        - Users
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/User"
+                required:
+                  - data
+          headers: *id003
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles:
+        - ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPatch"
+      parameters:
+        - &id007
+          $ref: "#/components/parameters/Id"
+      description:
+        Only role/status are writable. Reject disabling or demoting the last ACTIVE ADMIN using
+        a transaction and consistent locking.
+  /api/v1/categories:
+    get:
+      operationId: listCategories
+      summary: List categories
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+          headers:
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      parameters: *id004
+    post:
+      operationId: createCategory
+      summary: Create a category
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Category"
+                required:
+                  - data
+          headers: *id005
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: &id006
+        - LIBRARIAN
+        - ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+  /api/v1/categories/{id}:
+    put:
+      operationId: replaceCategory
+      summary: Replace category metadata
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Category"
+                required:
+                  - data
+          headers:
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id006
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      parameters:
+        - *id007
+    delete:
+      operationId: deleteCategory
+      summary: Delete an unreferenced category
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Success.
+          headers:
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id006
+      parameters:
+        - *id007
+      description: 409 CATEGORY_IN_USE when referenced by any book, including archived books.
+  /api/v1/books:
+    get:
+      operationId: listBooks
+      summary: Search and paginate book metadata
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Book"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+          headers:
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      parameters:
+        - *id008
+        - *id009
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 200
+        - name: categoryId
+          in: query
+          required: false
+          schema: &id015
+            type: string
+            format: uuid
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - title
+              - -title
+              - createdAt
+              - -createdAt
+            default: title
+        - name: includeArchived
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: true requires staff authentication; otherwise return 403.
+      description:
+        Public requests include active books only. Sorting always uses id as a tie-breaker.
+        Metadata excludes copy availability. Optional staff bearer token enables archived records.
+    post:
+      operationId: createBook
+      summary: Create a book
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Book"
+                required:
+                  - data
+          headers:
+            Location: *id010
+            ETag: &id011
+              description: Strong quoted metadata version tag.
+              schema:
+                type: string
+              example: '"book-550e8400-e29b-41d4-a716-446655440000-v1"'
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id006
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookInput"
+  /api/v1/books/{id}:
+    get:
+      operationId: getBook
+      summary: Read book metadata with ETag
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Book"
+                required:
+                  - data
+          headers: &id012
+            ETag: *id011
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+        "304":
+          description: Metadata unchanged; no response body.
+          headers: *id012
+      parameters:
+        - *id007
+        - name: If-None-Match
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Use the previous ETag; matching metadata returns 304 with no body.
+      description:
+        Archived books require staff; otherwise 404. ETag identifies metadata only, never availability.
+        Evaluate authorization/visibility before conditional responses.
+    put:
+      operationId: replaceBook
+      summary: Replace all editable book metadata
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Book"
+                required:
+                  - data
+          headers: *id012
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "412":
+          $ref: "#/components/responses/VersionMismatch"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "428":
+          $ref: "#/components/responses/PreconditionRequired"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id006
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookInput"
+      parameters:
+        - *id007
+        - &id013
+          $ref: "#/components/parameters/IfMatch"
+      description:
+        Require the strong ETag returned by GET. Compare version and mutate in one atomic statement/transaction;
+        increment version on success. PUT requires all editable fields; PATCH rejects an empty object
+        and unknown fields.
+    patch:
+      operationId: updateBook
+      summary: Update part of book metadata
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Book"
+                required:
+                  - data
+          headers: *id012
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "412":
+          $ref: "#/components/responses/VersionMismatch"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "428":
+          $ref: "#/components/responses/PreconditionRequired"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id006
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookPatch"
+      parameters:
+        - *id007
+        - *id013
+      description:
+        Require the strong ETag returned by GET. Compare version and mutate in one atomic statement/transaction;
+        increment version on success. PUT requires all editable fields; PATCH rejects an empty object
+        and unknown fields.
+    delete:
+      operationId: archiveBook
+      summary: Archive a book
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Success.
+          headers:
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "412":
+          $ref: "#/components/responses/VersionMismatch"
+        "428":
+          $ref: "#/components/responses/PreconditionRequired"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id006
+      parameters:
+        - *id007
+        - *id013
+      description:
+        Set archivedAt; do not delete history. 409 BOOK_HAS_ACTIVE_LOANS while any copy has
+        an open loan. Lock the book consistently with borrowing. Missing/stale If-Match gives 428/412.
+  /api/v1/books/{id}/availability:
+    get:
+      operationId: getAvailability
+      summary: Read current copy availability
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Availability"
+                required:
+                  - data
+          headers: *id003
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      parameters:
+        - *id007
+      description:
+        Compute AVAILABLE copies without open loans. Always no-store; never use book metadata
+        ETag. Archived book is hidden from public access.
+  /api/v1/books/{id}/copies:
+    get:
+      operationId: listBookCopies
+      summary: List physical copies
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BookCopy"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+          headers:
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id006
+      parameters:
+        - *id007
+        - *id008
+        - *id009
+    post:
+      operationId: createBookCopy
+      summary: Create a physical copy
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BookCopy"
+                required:
+                  - data
+          headers: *id005
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id006
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CopyInput"
+      parameters:
+        - *id007
+      description: Barcode is unique. New copies start AVAILABLE. Location points to the copy resource.
+  /api/v1/copies/{id}:
+    patch:
+      operationId: updateBookCopy
+      summary: Change physical condition
+      tags:
+        - Catalog
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BookCopy"
+                required:
+                  - data
+          headers:
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id006
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CopyPatch"
+      parameters:
+        - *id007
+      description:
+        Reject changing condition while an active loan exists. Retire copies with history instead
+        of deletion.
+  /api/v1/loans:
+    post:
+      operationId: createLoan
+      summary: Borrow one available copy
+      tags:
+        - Loans
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Loan"
+                required:
+                  - data
+          headers:
+            Location: *id010
+            Cache-Control: *id002
+            X-Request-Id: *id001
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles:
+        - MEMBER
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoanInput"
+      description:
+        Body only bookId; borrower comes from verified principal. Enforce 3 active loans, no
+        overdue loan, and no duplicate open loan for the same book. Due date is borrowedAt + 14*24 hours.
+        Lock user → book → copy; insert loan and audit in one transaction. 409 codes include BOOK_UNAVAILABLE,
+        LOAN_LIMIT_REACHED, OVERDUE_LOANS, ALREADY_BORROWED. Do not automatically retry ambiguous POST
+        outcomes.
+    get:
+      operationId: listLoans
+      summary: List visible loan history
+      tags:
+        - Loans
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Loan"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+          headers: *id003
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id014
+      parameters:
+        - *id008
+        - *id009
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - ACTIVE
+              - RETURNED
+              - OVERDUE
+      description: MEMBER sees only own records; staff sees all. Stable order borrowedAt DESC, id DESC.
+  /api/v1/loans/{id}:
+    get:
+      operationId: getLoan
+      summary: Read a visible loan
+      tags:
+        - Loans
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Loan"
+                required:
+                  - data
+          headers: *id003
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id014
+      parameters:
+        - *id007
+      description: Return 404 for another MEMBER's loan; never reveal its existence.
+  /api/v1/loans/{id}/return:
+    put:
+      operationId: returnLoan
+      summary: Create or read the unique return confirmation
+      tags:
+        - Loans
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/LoanReturn"
+                required:
+                  - data
+          headers: *id003
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id006
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: {}
+              required: []
+      parameters:
+        - *id007
+      description:
+        Accept exactly {}. Server determines returnedAt/returnedBy on the first call. Lock
+        copy then loan and update loan+audit in one transaction. Repeated PUT returns the original confirmation
+        without a second audit or timestamp change.
+  /api/v1/dashboard:
+    get:
+      operationId: getDashboard
+      summary: Read aggregate staff statistics
+      tags:
+        - Administration
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Dashboard"
+                required:
+                  - data
+          headers: *id003
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles: *id006
+      description:
+        "Counts at asOf: activeBooks excludes archived books; serviceableCopies excludes RETIRED
+        copies; activeLoans includes all unreturned loans; overdueLoans are unreturned loans with dueAt
+        < asOf. No borrower personal data."
+  /api/v1/audit-logs:
+    get:
+      operationId: listAuditLogs
+      summary: Read audit events
+      tags:
+        - Administration
+      x-implementation-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AuditLog"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+          headers: *id003
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+      x-roles:
+        - ADMIN
+      parameters:
+        - *id008
+        - *id009
+        - name: action
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+        - name: actorId
+          in: query
+          required: false
+          schema: *id015
+        - name: from
+          in: query
+          required: false
+          schema: &id016
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: false
+          schema: *id016
+      description:
+        Inclusive from, exclusive to; reject from >= to. Order occurredAt DESC, id DESC. Never
+        expose passwords, JWTs, refresh tokens or database credentials.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: bookflow_refresh
+      description: Opaque HttpOnly refresh token; raw token never stored in DB.
+    csrfHeader:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: Must equal the JavaScript-readable bookflow_csrf cookie (Path=/), be signed and bound to the refresh session, and accompany an allowed Origin.
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: *id015
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      schema:
+        type: string
+      description:
+        "Required by application semantics: absent -> 428; stale or unsupported tag -> 412.
+        Use the exact quoted strong ETag from GET; wildcard is not accepted for optimistic concurrency."
+  schemas:
+    Problem:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        instance:
+          type: string
+          format: uri-reference
+        code:
+          type: string
+          minLength: 1
+          maxLength: 100
+        requestId:
+          type: string
+          minLength: 1
+          maxLength: 100
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              path:
+                type: string
+              message:
+                type: string
+                minLength: 1
+                maxLength: 1000
+            required:
+              - path
+              - message
+      required:
+        - type
+        - title
+        - status
+        - detail
+        - instance
+        - code
+        - requestId
+    Pagination:
+      type: object
+      additionalProperties: false
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+    User:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id015
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        email:
+          type: string
+          minLength: 1
+          maxLength: 254
+          format: email
+        role: &id017
+          type: string
+          enum:
+            - MEMBER
+            - LIBRARIAN
+            - ADMIN
+        status: &id018
+          type: string
+          enum:
+            - ACTIVE
+            - DISABLED
+        createdAt: *id016
+      required:
+        - id
+        - fullName
+        - email
+        - role
+        - status
+        - createdAt
+    RegisterInput:
+      type: object
+      additionalProperties: false
+      properties:
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        email:
+          type: string
+          minLength: 1
+          maxLength: 254
+          format: email
+        password:
+          type: string
+          minLength: 12
+          maxLength: 128
+      required:
+        - fullName
+        - email
+        - password
+    LoginInput:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          minLength: 1
+          maxLength: 254
+          format: email
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+      required:
+        - email
+        - password
+    UserPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        role: *id017
+        status: *id018
+      required: []
+      minProperties: 1
+    AuthSession:
+      type: object
+      additionalProperties: false
+      properties:
+        accessToken:
+          type: string
+          minLength: 1
+          maxLength: 8192
+        tokenType:
+          type: string
+          const: Bearer
+        expiresIn:
+          type: integer
+          minimum: 1
+        csrfToken:
+          type: string
+          minLength: 1
+          maxLength: 256
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - accessToken
+        - tokenType
+        - expiresIn
+        - csrfToken
+        - user
+    Category:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id015
+        name:
+          description: Trimmed; unique case-insensitively after normalization.
+          type: string
+          minLength: 1
+          maxLength: 100
+        slug:
+          description: Unique lowercase kebab-case identifier.
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$
+        createdAt: *id016
+      required:
+        - id
+        - name
+        - slug
+        - createdAt
+    CategoryInput:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          description: Trimmed; unique case-insensitively after normalization.
+          type: string
+          minLength: 1
+          maxLength: 100
+        slug:
+          description: Unique lowercase kebab-case identifier.
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$
+      required:
+        - name
+        - slug
+    BookInput:
+      type: object
+      additionalProperties: false
+      properties: &id020
+        categoryId: *id015
+        isbn: &id021
+          type:
+            - string
+            - "null"
+          pattern: ^(?:[0-9]{9}[0-9X]|[0-9]{13})$
+        title: &id022
+          type: string
+          minLength: 1
+          maxLength: 255
+        author: &id023
+          type: string
+          minLength: 1
+          maxLength: 255
+        description: &id024
+          type: string
+          maxLength: 5000
+      required:
+        - categoryId
+        - isbn
+        - title
+        - author
+        - description
+    CopyInput:
+      type: object
+      additionalProperties: false
+      properties:
+        barcode:
+          type: string
+          minLength: 1
+          maxLength: 64
+      required:
+        - barcode
+    CopyPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        conditionStatus: &id019
+          type: string
+          enum:
+            - AVAILABLE
+            - MAINTENANCE
+            - RETIRED
+      required:
+        - conditionStatus
+    BookCopy:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id015
+        bookId: *id015
+        barcode:
+          type: string
+          minLength: 1
+          maxLength: 64
+        conditionStatus: *id019
+        createdAt: *id016
+      required:
+        - id
+        - bookId
+        - barcode
+        - conditionStatus
+        - createdAt
+    Availability:
+      type: object
+      additionalProperties: false
+      properties:
+        bookId: *id015
+        availableCopies:
+          type: integer
+          minimum: 0
+      required:
+        - bookId
+        - availableCopies
+    LoanInput:
+      type: object
+      additionalProperties: false
+      properties:
+        bookId: *id015
+      required:
+        - bookId
+    Loan:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id015
+        userId: *id015
+        bookId: *id015
+        copyId: *id015
+        borrowedAt: *id016
+        dueAt: *id016
+        returnedAt: &id025
+          type:
+            - string
+            - "null"
+          format: date-time
+        returnedBy:
+          type:
+            - string
+            - "null"
+          format: uuid
+      required:
+        - id
+        - userId
+        - bookId
+        - copyId
+        - borrowedAt
+        - dueAt
+        - returnedAt
+        - returnedBy
+    LoanReturn:
+      type: object
+      additionalProperties: false
+      properties:
+        loanId: *id015
+        returnedAt: *id016
+        returnedBy: *id015
+      required:
+        - loanId
+        - returnedAt
+        - returnedBy
+    Dashboard:
+      type: object
+      additionalProperties: false
+      properties:
+        activeBooks:
+          type: integer
+          minimum: 0
+        serviceableCopies:
+          type: integer
+          minimum: 0
+        activeLoans:
+          type: integer
+          minimum: 0
+        overdueLoans:
+          type: integer
+          minimum: 0
+        asOf: *id016
+      required:
+        - activeBooks
+        - serviceableCopies
+        - activeLoans
+        - overdueLoans
+        - asOf
+    AuditLog:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id015
+        actorId:
+          type:
+            - string
+            - "null"
+          format: uuid
+        action:
+          type: string
+          minLength: 1
+          maxLength: 100
+        entityType:
+          type: string
+          minLength: 1
+          maxLength: 100
+        entityId: *id015
+        requestId:
+          type: string
+          minLength: 1
+          maxLength: 100
+        occurredAt: *id016
+      required:
+        - id
+        - actorId
+        - action
+        - entityType
+        - entityId
+        - requestId
+        - occurredAt
+    Liveness:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          const: ok
+        service:
+          type: string
+          const: bookflow-api
+      required:
+        - status
+        - service
+    Readiness:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          const: ready
+        service:
+          type: string
+          const: bookflow-api
+      required:
+        - status
+        - service
+    ApiInfo:
+      type: object
+      additionalProperties: false
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          properties:
+            name:
+              type: string
+              const: BookFlow API
+            version:
+              type: string
+              const: v1
+            message:
+              type: string
+              const: Frontend and backend are connected.
+          required:
+            - name
+            - version
+            - message
+      required:
+        - data
+    BookPatch:
+      type: object
+      additionalProperties: false
+      properties: *id020
+      required: []
+      minProperties: 1
+    Book:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id015
+        categoryId: *id015
+        isbn: *id021
+        title: *id022
+        author: *id023
+        description: *id024
+        archivedAt: *id025
+        version:
+          type: integer
+          minimum: 1
+      required:
+        - id
+        - categoryId
+        - isbn
+        - title
+        - author
+        - description
+        - archivedAt
+        - version
+  responses:
+    BadRequest:
+      description: Invalid JSON, query, UUID, or request schema (VALIDATION_ERROR).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
+    Unauthenticated:
+      description: Missing, invalid, expired or wrong-audience bearer token; inactive user (UNAUTHENTICATED).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
+        WWW-Authenticate:
+          schema:
+            type: string
+          example: Bearer
+    Forbidden:
+      description: Insufficient role or rejected Origin/CSRF token (FORBIDDEN).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
+    NotFound:
+      description: Missing resource or resource hidden by ownership rules (RESOURCE_NOT_FOUND).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
+    Conflict:
+      description: Unique constraint or business-rule conflict. Inspect code for the specific condition.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
+    VersionMismatch:
+      description: Stale or invalid If-Match tag (VERSION_MISMATCH).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
+    PayloadTooLarge:
+      description: Body exceeds the 100 KB JSON limit (PAYLOAD_TOO_LARGE).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
+    UnsupportedMediaType:
+      description: Request bodies must use application/json (UNSUPPORTED_MEDIA_TYPE).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
+    PreconditionRequired:
+      description: Missing If-Match for book metadata mutation (PRECONDITION_REQUIRED).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
+    RateLimited:
+      description: Request rate limit exceeded (RATE_LIMITED).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
+        Retry-After:
+          schema:
+            type: string
+    InternalError:
+      description: Unexpected error. Internal details are not exposed (INTERNAL_ERROR).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
+    Unavailable:
+      description: Database or required schema not ready (SERVICE_UNAVAILABLE).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        X-Request-Id: *id001
