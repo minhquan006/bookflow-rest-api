@@ -1,3 +1,4 @@
+import { CatalogPage } from "./features/catalog/CatalogPage";
 import { useEffect, useState } from "react";
 import { Button } from "./components/Button";
 import { Feedback } from "./components/Feedback";
@@ -13,20 +14,20 @@ const modules = [
   {
     id: "catalog",
     title: "Catalog",
-    audience: "Everyone · Librarian",
+    audience: "Everyone Â· Librarian",
     description:
       "Find books, manage categories and keep physical copies organized.",
   },
   {
     id: "loans",
     title: "Borrowing",
-    audience: "Member · Librarian",
+    audience: "Member Â· Librarian",
     description: "Borrow a copy, review your loans and confirm returns.",
   },
   {
     id: "accounts",
     title: "Accounts",
-    audience: "Member · Administrator",
+    audience: "Member Â· Administrator",
     description: "Sign in, manage your profile and administer account access.",
   },
 ] as const;
@@ -98,9 +99,11 @@ export default function App() {
                 onClick={() => setSection(item.id)}
               >
                 {item.title}{" "}
-                {item.id !== "overview" && (
-                  <span className="nav-note">Planned</span>
-                )}
+                {item.id !== "overview" &&
+                  item.id !== "catalog" &&
+                  item.id !== "catalog" && (
+                    <span className="nav-note">Planned</span>
+                  )}
               </button>
             ))}
           </nav>
@@ -109,14 +112,16 @@ export default function App() {
           </p>
         </aside>
         <main id="main-content" tabIndex={-1}>
-          <p className="eyebrow">WEB PROGRAMMING & APPLICATIONS · 503073</p>
+          <p className="eyebrow">WEB PROGRAMMING & APPLICATIONS Â· 503073</p>
           <h1>{selected?.title ?? "BookFlow"}</h1>
           <p className="lead">
             {selected
               ? selected.description
               : "A shared starting point for a better library experience."}
           </p>
-          {selected ? (
+          {section === "catalog" ? (
+            <CatalogPage />
+          ) : selected ? (
             <section className="panel" aria-labelledby="module-status">
               <span className="badge">Planned module</span>
               <h2 id="module-status">Ready for feature development</h2>
@@ -151,14 +156,14 @@ export default function App() {
                   </Button>
                 </div>
                 {connection.state === "loading" && (
-                  <Feedback kind="loading">Connecting to the API…</Feedback>
+                  <Feedback kind="loading">Connecting to the APIâ€¦</Feedback>
                 )}
                 {connection.state === "connected" && (
                   <Feedback kind="success">
                     <strong>API connected</strong>
                     <p>{connection.service.message}</p>
                     <small>
-                      {connection.service.name} · {connection.service.version}
+                      {connection.service.name} Â· {connection.service.version}
                     </small>
                   </Feedback>
                 )}
@@ -178,7 +183,9 @@ export default function App() {
               <section aria-labelledby="modules-title">
                 <div className="section-heading">
                   <h2 id="modules-title">Upcoming modules</h2>
-                  <span className="muted">Shared API · Separate ownership</span>
+                  <span className="muted">
+                    Shared API Â· Separate ownership
+                  </span>
                 </div>
                 <div className="module-grid">
                   {modules.map((module) => (
@@ -199,7 +206,7 @@ export default function App() {
         </main>
       </div>
       <footer>
-        BookFlow · Team foundation · Business features are under development.
+        BookFlow Â· Team foundation Â· Business features are under development.
       </footer>
     </div>
   );

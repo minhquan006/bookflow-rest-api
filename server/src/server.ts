@@ -1,3 +1,6 @@
+﻿import { Router } from "express";
+import { createBooksRouter } from "./modules/books/books.routes.js";
+import { createCategoriesRouter } from "./modules/categories/categories.routes.js";
 import "dotenv/config";
 import { createApp } from "./app.js";
 import { loadConfig } from "./config/env.js";
@@ -14,6 +17,9 @@ const app = createApp({
   config,
   logger,
   checkReadiness: () => hasCurrentSchema(pool),
+  apiRouter: Router()
+    .use(createCategoriesRouter(pool))
+    .use(createBooksRouter(pool)),
 });
 const server = app.listen(config.port, config.host, () =>
   logger.info({ host: config.host, port: config.port }, "BookFlow API started"),
