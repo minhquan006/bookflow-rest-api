@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+import { BookDetails } from "./BookDetails";
+import { useEffect, useState } from "react";
 import { api } from "../../lib/http";
 import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
@@ -206,6 +207,7 @@ export function CatalogPage() {
                   <h2>{book.title}</h2>
                   <p className="catalog-author">{book.author}</p>
                   <p>{book.description || "No description available."}</p>
+                  <BookDetails bookId={book.id} title={book.title} />
                 </article>
               ))}
             </div>
