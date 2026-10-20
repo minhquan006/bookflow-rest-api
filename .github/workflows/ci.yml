@@ -1,0 +1,76 @@
+name: Foundation checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17.6-bookworm
+        env:
+          POSTGRES_USER: bookflow
+          POSTGRES_PASSWORD: ci-only-bookflow
+          POSTGRES_DB: bookflow_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U bookflow -d bookflow_test"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://bookflow:ci-only-bookflow@127.0.0.1:5432/bookflow_test
+      TEST_DATABASE_URL: postgresql://bookflow:ci-only-bookflow@127.0.0.1:5432/bookflow_test
+      LOG_LEVEL: silent
+      SEED_DEMO_PASSWORD: ci-only-demo-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+            client/package-lock.json
+      - run: npm ci && npm run deps
+      - name: Generate temporary signing key
+        run: echo "JWT_SECRET=$(openssl rand -hex 48)" >> "$GITHUB_ENV"
+      - run: npm run check
+      - run: npm run db:migrate && npm run db:seed && npm run db:migrate && npm run db:seed
+      - run: npm run test:integration
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-failure
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+  containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm run setup
+      - run: docker compose up -d --wait db
+      - run: docker compose build api web
+      - run: docker compose run --rm api npm run db:migrate
+      - run: docker compose run --rm api npm run db:seed
+      - run: docker compose up -d --wait api web
+      - name: Verify full stack
+        run: npm run smoke
+      - run: docker compose logs
+        if: failure()
+      - run: docker compose down
+        if: always()

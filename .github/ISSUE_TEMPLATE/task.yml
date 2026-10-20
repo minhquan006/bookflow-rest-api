@@ -1,0 +1,24 @@
+name: Module task
+description: A small implementation task with clear acceptance criteria
+body:
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options: [Auth and Users, Catalog, Loans, Platform, Documentation]
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected behavior and API contract
+      description: Link to OpenAPI operations and blueprint business rules.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria and tests
+      description: Include roles, failure behavior, and concurrency where applicable.
+    validations:
+      required: true

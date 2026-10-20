@@ -1,0 +1,73 @@
+name: bookflow
+services:
+  db:
+    image: postgres:17.6-bookworm
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bookflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run npm run setup first}
+      POSTGRES_DB: ${POSTGRES_DB:-bookflow}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  api:
+    build:
+      context: .
+      dockerfile: deploy/server.Dockerfile
+    init: true
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      TRUST_PROXY_HOPS: 1
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-bookflow}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-bookflow}
+      JWT_SECRET: ${JWT_SECRET:?Run npm run setup first}
+      JWT_ISSUER: ${JWT_ISSUER:-bookflow-api}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-bookflow-client}
+      ALLOWED_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+      SEED_DEMO_PASSWORD: ${SEED_DEMO_PASSWORD:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+  web:
+    build:
+      context: .
+      dockerfile: deploy/client.Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-Y",
+          "off",
+          "-q",
+          "--spider",
+          "http://127.0.0.1:8080/health/live",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+volumes:
+  postgres-data:

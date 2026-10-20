@@ -1,0 +1,560 @@
+{
+  "info": {
+    "name": "BookFlow \u2014 Planned business examples (not smoke tests)",
+    "description": "Contract examples only. These endpoints are not implemented yet and return 404 in the foundation. Never use this collection as evidence of passed business tests. Choose individual requests only after the responsible module is implemented. Populate tokens and IDs locally; never commit credentials.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth \u2014 PLANNED",
+      "item": [
+        {
+          "name": "[PLANNED] Register a MEMBER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/register",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Reject unknown properties including role/status. Trim fullName and email; lowercase email. Store only an Argon2id password hash. Registration does not issue a session.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Demo Reader\",\n  \"email\": \"reader-new@bookflow.test\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[PLANNED] Create an access and refresh session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Return a short-lived HS256 JWT (sub, iss, aud, iat, exp), opaque rotated refresh token in bookflow_refresh, and a CSRF token. bookflow_refresh uses Path=/api/v1/auth and HttpOnly; bookflow_csrf uses Path=/ and is JavaScript-readable so page reload can restore the session. Both use SameSite=Strict and Secure on HTTPS. The CSRF token must be signed and bound to the refresh session. Generic 401 for all invalid credentials. No-store.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[PLANNED] Rotate a refresh token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontendOrigin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/refresh",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Require trusted Origin and X-CSRF-Token equal to the signed, session-bound bookflow_csrf cookie; validate the signature and refresh-session binding. Frontend can read this cookie at Path=/ after a page reload. Rotate refresh token atomically, storing only a hash. Detect reuse and revoke the family. Return replacement cookies using their original paths. Frontend serializes refresh requests; never retry indefinitely."
+          }
+        },
+        {
+          "name": "[PLANNED] Revoke refresh session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{frontendOrigin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/logout",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Require trusted Origin and matching CSRF header/cookie; revoke the family and clear bookflow_refresh with Path=/api/v1/auth and bookflow_csrf with Path=/. An already revoked session remains logged out. Access JWT can remain valid until expiry."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users \u2014 PLANNED",
+      "item": [
+        {
+          "name": "[PLANNED] Read own safe profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users/me",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. "
+          }
+        },
+        {
+          "name": "[PLANNED] List users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. "
+          }
+        },
+        {
+          "name": "[PLANNED] Change user role or status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users/{{userId}}",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Only role/status are writable. Reject disabling or demoting the last ACTIVE ADMIN using a transaction and consistent locking.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DISABLED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog \u2014 PLANNED",
+      "item": [
+        {
+          "name": "[PLANNED] List categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/categories",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. "
+          }
+        },
+        {
+          "name": "[PLANNED] Create a category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/categories",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. ",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Computer Science\",\n  \"slug\": \"computer-science\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[PLANNED] Replace category metadata",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/categories/{{categoryId}}",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. ",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Computer Science\",\n  \"slug\": \"computer-science\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[PLANNED] Delete an unreferenced category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/categories/{{categoryId}}",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. 409 CATEGORY_IN_USE when referenced by any book, including archived books."
+          }
+        },
+        {
+          "name": "[PLANNED] Search and paginate book metadata",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/books",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Public requests include active books only. Sorting always uses id as a tie-breaker. Metadata excludes copy availability. Optional staff bearer token enables archived records."
+          }
+        },
+        {
+          "name": "[PLANNED] Create a book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. ",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"{{categoryId}}\",\n  \"isbn\": \"9780132350884\",\n  \"title\": \"Clean Code\",\n  \"author\": \"Robert C. Martin\",\n  \"description\": \"Catalog demo metadata.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[PLANNED] Read book metadata with ETag",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Archived books require staff; otherwise 404. ETag identifies metadata only, never availability. Evaluate authorization/visibility before conditional responses."
+          }
+        },
+        {
+          "name": "[PLANNED] Replace all editable book metadata",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "{{bookEtag}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Require the strong ETag returned by GET. Compare version and mutate in one atomic statement/transaction; increment version on success. PUT requires all editable fields; PATCH rejects an empty object and unknown fields.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"{{categoryId}}\",\n  \"isbn\": null,\n  \"title\": \"Updated title\",\n  \"author\": \"Demo Author\",\n  \"description\": \"Updated description.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[PLANNED] Update part of book metadata",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "{{bookEtag}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Require the strong ETag returned by GET. Compare version and mutate in one atomic statement/transaction; increment version on success. PUT requires all editable fields; PATCH rejects an empty object and unknown fields.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Revised title\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[PLANNED] Archive a book",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "{{bookEtag}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Set archivedAt; do not delete history. 409 BOOK_HAS_ACTIVE_LOANS while any copy has an open loan. Lock the book consistently with borrowing. Missing/stale If-Match gives 428/412."
+          }
+        },
+        {
+          "name": "[PLANNED] Read current copy availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}/availability",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Compute AVAILABLE copies without open loans. Always no-store; never use book metadata ETag. Archived book is hidden from public access."
+          }
+        },
+        {
+          "name": "[PLANNED] List physical copies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}/copies",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. "
+          }
+        },
+        {
+          "name": "[PLANNED] Create a physical copy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}/copies",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Barcode is unique. New copies start AVAILABLE. Location points to the copy resource.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"barcode\": \"BF-DEMO-0001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[PLANNED] Change physical condition",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/copies/{{copyId}}",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Reject changing condition while an active loan exists. Retire copies with history instead of deletion.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conditionStatus\": \"MAINTENANCE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loans \u2014 PLANNED",
+      "item": [
+        {
+          "name": "[PLANNED] Borrow one available copy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/loans",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Body only bookId; borrower comes from verified principal. Enforce 3 active loans, no overdue loan, and no duplicate open loan for the same book. Due date is borrowedAt + 14*24 hours. Lock user \u2192 book \u2192 copy; insert loan and audit in one transaction. 409 codes include BOOK_UNAVAILABLE, LOAN_LIMIT_REACHED, OVERDUE_LOANS, ALREADY_BORROWED. Do not automatically retry ambiguous POST outcomes.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookId\": \"{{bookId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[PLANNED] List visible loan history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/loans",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. MEMBER sees only own records; staff sees all. Stable order borrowedAt DESC, id DESC."
+          }
+        },
+        {
+          "name": "[PLANNED] Read a visible loan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/loans/{{loanId}}",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Return 404 for another MEMBER's loan; never reveal its existence."
+          }
+        },
+        {
+          "name": "[PLANNED] Create or read the unique return confirmation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/loans/{{loanId}}/return",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Accept exactly {}. Server determines returnedAt/returnedBy on the first call. Lock copy then loan and update loan+audit in one transaction. Repeated PUT returns the original confirmation without a second audit or timestamp change.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Administration \u2014 PLANNED",
+      "item": [
+        {
+          "name": "[PLANNED] Read aggregate staff statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/dashboard",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Counts at asOf: activeBooks excludes archived books; serviceableCopies excludes RETIRED copies; activeLoans includes all unreturned loans; overdueLoans are unreturned loans with dueAt < asOf. No borrower personal data."
+          }
+        },
+        {
+          "name": "[PLANNED] Read audit events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/audit-logs",
+            "description": "Not implemented by the foundation. Execute only after its owning module is merged. Inclusive from, exclusive to; reject from >= to. Order occurredAt DESC, id DESC. Never expose passwords, JWTs, refresh tokens or database credentials."
+          }
+        }
+      ]
+    }
+  ]
+}
