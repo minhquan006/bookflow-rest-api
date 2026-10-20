@@ -1415,3 +1415,228 @@ describe("Book archiving", () => {
     expect(audit.rowCount).toBe(1);
   });
 });
+async function createDisposableCategory() {
+  const token = await authentication.accessTokens.sign(librarian.id);
+  const suffix = randomUUID();
+  const response = await request(httpApp)
+    .post("/api/v1/categories")
+    .set("Authorization", `Bearer ${token}`)
+    .send({ name: `Category ${suffix}`, slug: `category-${suffix}` });
+
+  expect(response.status).toBe(201);
+  return { token, category: response.body.data };
+}
+
+describe("Category replacement and deletion", () => {
+  it("requires staff for PUT and DELETE", async () => {
+    const { category } = await createDisposableCategory();
+    const path = `/api/v1/categories/${category.id}`;
+    const body = { name: "Unauthorized edit", slug: "unauthorized-edit" };
+
+    expect((await request(httpApp).put(path).send(body)).status).toBe(401);
+    expect((await request(httpApp).delete(path)).status).toBe(401);
+
+    const token = await authentication.accessTokens.sign(member.id);
+    expect(
+      (
+        await request(httpApp)
+          .put(path)
+          .set("Authorization", `Bearer ${token}`)
+          .send(body)
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await request(httpApp)
+          .delete(path)
+          .set("Authorization", `Bearer ${token}`)
+      ).status,
+    ).toBe(403);
+  });
+
+  it("replaces category fields and records matching audit", async () => {
+    const { category } = await createDisposableCategory();
+    const token = await authentication.accessTokens.sign(administrator.id);
+    const name = `Renamed ${randomUUID()}`;
+    const slug = `renamed-${randomUUID()}`;
+
+    const response = await request(httpApp)
+      .put(`/api/v1/categories/${category.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: `  ${name}  `, slug });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual({
+      ...category,
+      name,
+      slug,
+    });
+
+    const audit = await pool.query(
+      `SELECT actor_id, request_id FROM audit_logs
+       WHERE entity_id = $1 AND action = 'CATEGORY_UPDATED'`,
+      [category.id],
+    );
+    expect(audit.rows).toEqual([
+      {
+        actor_id: administrator.id,
+        request_id: response.headers["x-request-id"],
+      },
+    ]);
+  });
+
+  it("rejects incomplete input, duplicate names and duplicate slugs", async () => {
+    const first = await createDisposableCategory();
+    const second = await createDisposableCategory();
+    const path = `/api/v1/categories/${second.category.id}`;
+
+    const incomplete = await request(httpApp)
+      .put(path)
+      .set("Authorization", `Bearer ${second.token}`)
+      .send({ name: "Missing slug" });
+    expect(incomplete.status).toBe(400);
+
+    for (const body of [
+      {
+        name: first.category.name.toUpperCase(),
+        slug: second.category.slug,
+      },
+      {
+        name: second.category.name,
+        slug: first.category.slug,
+      },
+    ]) {
+      const response = await request(httpApp)
+        .put(path)
+        .set("Authorization", `Bearer ${second.token}`)
+        .send(body);
+      expect(response.status).toBe(409);
+      expect(response.body.code).toBe("CATEGORY_ALREADY_EXISTS");
+    }
+
+    const stored = await pool.query(
+      "SELECT name, slug FROM categories WHERE id = $1",
+      [second.category.id],
+    );
+    expect(stored.rows).toEqual([
+      {
+        name: second.category.name,
+        slug: second.category.slug,
+      },
+    ]);
+  });
+
+  it("deletes an unused category with audit and returns 404 when missing", async () => {
+    const { token, category } = await createDisposableCategory();
+    const path = `/api/v1/categories/${category.id}`;
+
+    const deleted = await request(httpApp)
+      .delete(path)
+      .set("Authorization", `Bearer ${token}`);
+    expect(deleted.status).toBe(204);
+    expect(deleted.text).toBe("");
+
+    const stored = await pool.query("SELECT id FROM categories WHERE id = $1", [
+      category.id,
+    ]);
+    expect(stored.rowCount).toBe(0);
+
+    const audit = await pool.query(
+      `SELECT id FROM audit_logs
+       WHERE entity_id = $1 AND action = 'CATEGORY_DELETED'`,
+      [category.id],
+    );
+    expect(audit.rowCount).toBe(1);
+
+    expect(
+      (
+        await request(httpApp)
+          .delete(path)
+          .set("Authorization", `Bearer ${token}`)
+      ).status,
+    ).toBe(404);
+
+    expect(
+      (
+        await request(httpApp)
+          .put(path)
+          .set("Authorization", `Bearer ${token}`)
+          .send({ name: "Missing", slug: "missing" })
+      ).status,
+    ).toBe(404);
+  });
+
+  it("blocks deletion while active or archived books reference the category", async () => {
+    const { token, category } = await createDisposableCategory();
+    const book = await request(httpApp)
+      .post("/api/v1/books")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ ...(await bookInput()), categoryId: category.id });
+    expect(book.status).toBe(201);
+
+    for (const archived of [false, true]) {
+      if (archived) {
+        await pool.query(
+          "UPDATE books SET archived_at = now(), version = version + 1 WHERE id = $1",
+          [book.body.data.id],
+        );
+      }
+
+      const response = await request(httpApp)
+        .delete(`/api/v1/categories/${category.id}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(409);
+      expect(response.body.code).toBe("CATEGORY_IN_USE");
+    }
+
+    const audit = await pool.query(
+      `SELECT id FROM audit_logs
+       WHERE entity_id = $1 AND action = 'CATEGORY_DELETED'`,
+      [category.id],
+    );
+    expect(audit.rowCount).toBe(0);
+  });
+
+  it("rolls back both replacement and deletion if audit fails", async () => {
+    const { category } = await createDisposableCategory();
+    const { updateCategory, deleteCategory } =
+      await import("../src/modules/categories/categories-mutation.service.js");
+
+    await expect(
+      updateCategory(
+        pool,
+        librarian,
+        category.id,
+        { name: `Rollback ${randomUUID()}`, slug: `rollback-${randomUUID()}` },
+        "x".repeat(129),
+      ),
+    ).rejects.toMatchObject({ code: "23514" });
+
+    let stored = await pool.query(
+      "SELECT name, slug FROM categories WHERE id = $1",
+      [category.id],
+    );
+    expect(stored.rows).toEqual([
+      {
+        name: category.name,
+        slug: category.slug,
+      },
+    ]);
+
+    await expect(
+      deleteCategory(pool, librarian, category.id, "x".repeat(129)),
+    ).rejects.toMatchObject({ code: "23514" });
+
+    stored = await pool.query(
+      "SELECT name, slug FROM categories WHERE id = $1",
+      [category.id],
+    );
+    expect(stored.rows).toEqual([
+      {
+        name: category.name,
+        slug: category.slug,
+      },
+    ]);
+  });
+});

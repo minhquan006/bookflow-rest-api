@@ -116,3 +116,14 @@ The original blueprint describes the target scope, not completed work.
 - Concurrent metadata update/archive with one version has exactly one winner.
 - Latest checks passed: 56 server, 24 client and 58 integration tests.
 - Archive-versus-borrow concurrency awaits integration with Loans.
+
+## Category replacement and deletion verification
+
+- Staff PUT/DELETE category endpoints are implemented.
+- PUT requires name and slug; duplicate values return 409.
+- DELETE removes unused categories and returns 204.
+- Active or archived book references block deletion with 409 CATEGORY_IN_USE.
+- Both operations commit audit in the same transaction.
+- Audit failure rolls back replacement or deletion.
+- Latest integration run passed all 64 tests.
+- Category management forms remain pending.

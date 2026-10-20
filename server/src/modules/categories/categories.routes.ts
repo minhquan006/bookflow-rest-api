@@ -1,4 +1,5 @@
-﻿import { Router, type RequestHandler } from "express";
+import { createCategoryMutationRouter } from "./categories-mutation.routes.js";
+import { Router, type RequestHandler } from "express";
 import type { Pool } from "pg";
 import { parseInput } from "../../middleware/validation.js";
 import { requireRoles } from "../../middleware/auth.js";
@@ -44,5 +45,6 @@ export function createCategoriesRouter(
     },
   );
 
+  router.use(createCategoryMutationRouter(pool, authenticate));
   return router;
 }

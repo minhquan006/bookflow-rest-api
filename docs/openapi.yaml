@@ -562,7 +562,7 @@ paths:
       summary: Replace category metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -614,7 +614,7 @@ paths:
       summary: Delete an unreferenced category
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
