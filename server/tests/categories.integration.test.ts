@@ -456,3 +456,159 @@ describe("Book creation over HTTP", () => {
     }
   });
 });
+describe("Book details and availability over HTTP", () => {
+  const seedBookId = "10000000-0000-4000-8000-000000000001";
+
+  it("returns metadata and ETag without embedding availability", async () => {
+    const response = await request(httpApp).get(`/api/v1/books/${seedBookId}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.id).toBe(seedBookId);
+    expect(response.body.data).not.toHaveProperty("availableCopies");
+    expect(response.headers.etag).toBe(`"book-${seedBookId}-v1"`);
+    expect(response.headers["cache-control"]).toBe("private, no-cache");
+    expect(response.headers.vary).toContain("Authorization");
+  });
+
+  it("returns an empty 304 when If-None-Match matches", async () => {
+    const first = await request(httpApp).get(`/api/v1/books/${seedBookId}`);
+    expect(first.status).toBe(200);
+
+    for (const header of [
+      first.headers.etag,
+      `W/${first.headers.etag}`,
+      `"different-tag", ${first.headers.etag}`,
+      "*",
+    ]) {
+      const response = await request(httpApp)
+        .get(`/api/v1/books/${seedBookId}`)
+        .set("If-None-Match", header);
+
+      expect(response.status).toBe(304);
+      expect(response.text).toBe("");
+      expect(response.headers.etag).toBe(first.headers.etag);
+    }
+  });
+
+  it("returns 200 for a nonmatching ETag", async () => {
+    const response = await request(httpApp)
+      .get(`/api/v1/books/${seedBookId}`)
+      .set("If-None-Match", '"old-version"');
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.id).toBe(seedBookId);
+  });
+
+  it("returns 400 for invalid UUID and 404 for missing books", async () => {
+    for (const suffix of ["", "/availability"]) {
+      const invalid = await request(httpApp).get(
+        `/api/v1/books/not-a-uuid${suffix}`,
+      );
+      expect(invalid.status).toBe(400);
+
+      const missing = await request(httpApp).get(
+        `/api/v1/books/${randomUUID()}${suffix}`,
+      );
+      expect(missing.status).toBe(404);
+    }
+  });
+
+  it("checks archived visibility before evaluating conditional GET", async () => {
+    const staffToken = await authentication.accessTokens.sign(librarian.id);
+    const memberToken = await authentication.accessTokens.sign(member.id);
+    const created = await request(httpApp)
+      .post("/api/v1/books")
+      .set("Authorization", `Bearer ${staffToken}`)
+      .send({ ...(await bookInput()), title: "Archived Visibility Test" });
+    expect(created.status).toBe(201);
+
+    const id = created.body.data.id;
+    await pool.query(
+      "UPDATE books SET archived_at = now(), version = version + 1 WHERE id = $1",
+      [id],
+    );
+
+    for (const suffix of ["", "/availability"]) {
+      const guest = await request(httpApp)
+        .get(`/api/v1/books/${id}${suffix}`)
+        .set("If-None-Match", "*");
+      expect(guest.status).toBe(404);
+
+      const memberResponse = await request(httpApp)
+        .get(`/api/v1/books/${id}${suffix}`)
+        .set("Authorization", `Bearer ${memberToken}`)
+        .set("If-None-Match", "*");
+      expect(memberResponse.status).toBe(404);
+
+      for (const actor of [librarian, administrator]) {
+        const token = await authentication.accessTokens.sign(actor.id);
+        const staffResponse = await request(httpApp)
+          .get(`/api/v1/books/${id}${suffix}`)
+          .set("Authorization", `Bearer ${token}`);
+        expect(staffResponse.status).toBe(200);
+      }
+    }
+  });
+
+  it("counts only AVAILABLE copies without an open loan and does not cache availability", async () => {
+    const token = await authentication.accessTokens.sign(librarian.id);
+    const created = await request(httpApp)
+      .post("/api/v1/books")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ ...(await bookInput()), title: "Availability Test" });
+    expect(created.status).toBe(201);
+    const id = created.body.data.id;
+
+    for (const condition of [
+      "AVAILABLE",
+      "AVAILABLE",
+      "MAINTENANCE",
+      "RETIRED",
+    ]) {
+      await pool.query(
+        `INSERT INTO book_copies (book_id, barcode, condition_status)
+         VALUES ($1, $2, $3)`,
+        [id, randomUUID(), condition],
+      );
+    }
+
+    const before = await request(httpApp).get(
+      `/api/v1/books/${id}/availability`,
+    );
+    expect(before.status).toBe(200);
+    expect(before.body.data.availableCopies).toBe(2);
+    expect(before.headers["cache-control"]).toBe("no-store");
+
+    const copy = await pool.query<{ id: string }>(
+      `SELECT id FROM book_copies
+       WHERE book_id = $1 AND condition_status = 'AVAILABLE'
+       ORDER BY id LIMIT 1`,
+      [id],
+    );
+    await pool.query(
+      `INSERT INTO loans (user_id, copy_id, due_at)
+       VALUES ($1, $2, now() + interval '14 days')`,
+      [member.id, copy.rows[0]!.id],
+    );
+
+    const after = await request(httpApp).get(
+      `/api/v1/books/${id}/availability`,
+    );
+    expect(after.status).toBe(200);
+    expect(after.body.data).toEqual({
+      bookId: id,
+      availableCopies: 1,
+    });
+    expect(after.headers["cache-control"]).toBe("no-store");
+  });
+
+  it("rejects an invalid supplied token on public detail routes", async () => {
+    for (const suffix of ["", "/availability"]) {
+      const response = await request(httpApp)
+        .get(`/api/v1/books/${seedBookId}${suffix}`)
+        .set("Authorization", "Bearer invalid-token");
+
+      expect(response.status).toBe(401);
+    }
+  });
+});

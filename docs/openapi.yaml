@@ -780,7 +780,7 @@ paths:
       summary: Read book metadata with ETag
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - {}
         - bearerAuth: []
@@ -993,7 +993,7 @@ paths:
       summary: Read current copy availability
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security: []
       responses:
         "200":

@@ -1,4 +1,5 @@
-﻿import { Router, type RequestHandler } from "express";
+import { createBookDetailsRouter } from "./books-detail.routes.js";
+import { Router, type RequestHandler } from "express";
 import type { Pool } from "pg";
 import { parseInput } from "../../middleware/validation.js";
 import { requireRoles } from "../../middleware/auth.js";
@@ -11,6 +12,7 @@ import { createBook } from "./books-write.service.js";
 
 export function createBooksRouter(pool: Pool, authenticate: RequestHandler) {
   const router = Router();
+  router.use(createBookDetailsRouter(pool, authenticate));
   const service = createBooksService(createBooksRepository(pool));
 
   router.get("/books", async (req, res) => {

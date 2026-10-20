@@ -57,3 +57,15 @@ The original blueprint describes the target scope, not completed work.
 - Latest checks passed: 56 server, 21 client and 26 integration tests.
 - Seven new HTTP integration tests cover book creation.
 - Book creation UI, metadata updates and browser E2E remain pending.
+
+## Book details and availability verification
+
+- GET /api/v1/books/{id} is implemented with metadata ETag.
+- Matching If-None-Match returns 304 with no body after visibility checks.
+- Archived books are visible only to authenticated LIBRARIAN/ADMIN.
+- GET /api/v1/books/{id}/availability returns current available copy count.
+- Availability excludes open loans, MAINTENANCE and RETIRED copies.
+- Availability responses use Cache-Control: no-store.
+- Latest checks passed: 56 server, 21 client and 33 integration tests.
+- Detail UI, metadata mutations, copy management and browser E2E remain pending.
+- Earlier remaining-work lists describe their respective milestones.
