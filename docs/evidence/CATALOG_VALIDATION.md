@@ -1,4 +1,4 @@
-﻿# Catalog validation milestone
+# Catalog validation milestone
 
 Date: 2026-10-20 (Asia/Ho_Chi_Minh)
 Environment: contributor Windows machine, local PostgreSQL and development servers.
@@ -31,3 +31,16 @@ Mobile coverage uses Chromium emulation, not a physical phone.
 Staff forms and authenticated browser workflows are not implemented yet.
 Archive-versus-borrow concurrency awaits integration with Loans.
 Broader accessibility, responsive review and screenshots remain pending.
+
+## Postman Public verification
+
+Date: 2026-10-20. Contributor confirmed all eight Public requests
+returned the expected statuses in Postman desktop:
+
+- Categories, books, search and detail: 200.
+- Conditional GET after saving ETag: 304.
+- Availability: 200.
+- Invalid page: 400.
+- Guest archived listing: 403.
+
+Staff collection execution remains pending Auth integration.
