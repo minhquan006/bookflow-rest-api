@@ -137,8 +137,9 @@ bàn giao kỹ thuật và kịch bản demo, không thay thế sản phẩm bá
 - [Catalog mobile](evidence/catalog-mobile.png)
 - [Quản lý staff và bản sách](evidence/catalog-staff.png)
 
-Test không thay thế review của thành viên khác. Chưa push hoặc mở PR; không tuyên bố
-GitHub CI hay triển khai production đã chạy.
+Test không thay thế review của thành viên khác. Các kết quả trên là local; không tuyên bố GitHub CI hoặc production đã chạy.
+Nhánh bàn giao được công bố tại `codex/tu-bookflow-handoff-20261022`; cần review
+đối chiếu nhánh `feat/catalog` hiện có trước khi merge.
 
 ## Bộ tài liệu trình bày phần Tú
 

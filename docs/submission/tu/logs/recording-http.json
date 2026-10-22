@@ -1,0 +1,352 @@
+{
+  "scope": "Real browser/API actions in an isolated test schema; not production or CI",
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/v1",
+      "status": 200,
+      "etag": "W/\"5f-03wXk3N/s79GT22ACViH2aH6ry4\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1",
+      "status": 200,
+      "etag": "W/\"5f-03wXk3N/s79GT22ACViH2aH6ry4\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "status": 200,
+      "etag": "W/\"c4-Um+mgiLQn+75mPaacXBq1ZM1ECk\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "status": 200,
+      "etag": "W/\"c4-Um+mgiLQn+75mPaacXBq1ZM1ECk\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"2f2-ZpVgjil56uQPPvQPzMBbQUQJPxo\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"2f2-ZpVgjil56uQPPvQPzMBbQUQJPxo\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"19d-tJUBnAmFSiozFbdlvEOw2c7nCpU\""
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status": 200,
+      "etag": "W/\"27a-5P5NyB9D7TGyS+e4gUvQD9/djEY\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "status": 200,
+      "etag": "W/\"c4-Um+mgiLQn+75mPaacXBq1ZM1ECk\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"19d-tJUBnAmFSiozFbdlvEOw2c7nCpU\""
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/categories",
+      "status": 201,
+      "etag": "W/\"8f-EwIsCkjEoAg5DeterfYM/mjUIFc\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "status": 200,
+      "etag": "W/\"14b-zI0NUm8lJyAPoqJqDpn54Nr0IdY\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"19d-tJUBnAmFSiozFbdlvEOw2c7nCpU\""
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/books",
+      "status": 201,
+      "etag": "\"book-04e3e540-28d4-4318-b9ff-cbf7586e1d62-v1\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"19d-tJUBnAmFSiozFbdlvEOw2c7nCpU\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62",
+      "status": 200,
+      "etag": "\"book-04e3e540-28d4-4318-b9ff-cbf7586e1d62-v1\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "status": 200,
+      "etag": "W/\"14b-zI0NUm8lJyAPoqJqDpn54Nr0IdY\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/availability",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 200,
+      "etag": "W/\"47-wzO1/Q8QAopjleAmYevDn15sm+Q\""
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 201,
+      "etag": "W/\"c5-ETDFBDm2qv85mrzaCjj15bCBy7M\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "status": 200,
+      "etag": "W/\"14b-zI0NUm8lJyAPoqJqDpn54Nr0IdY\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62",
+      "status": 200,
+      "etag": "\"book-04e3e540-28d4-4318-b9ff-cbf7586e1d62-v1\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"19d-tJUBnAmFSiozFbdlvEOw2c7nCpU\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/availability",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 200,
+      "etag": "W/\"103-ZuVN2IBdlCUu9SfVJZAwle344A0\""
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/copies/254635cc-3c83-4d17-8580-dba0e4d21110",
+      "status": 200,
+      "etag": "W/\"c7-k3G2CUBaEPihAmK51M+NtIwBI/M\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62",
+      "status": 200,
+      "etag": "\"book-04e3e540-28d4-4318-b9ff-cbf7586e1d62-v1\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "status": 200,
+      "etag": "W/\"14b-zI0NUm8lJyAPoqJqDpn54Nr0IdY\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"19d-tJUBnAmFSiozFbdlvEOw2c7nCpU\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/availability",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 200,
+      "etag": "W/\"105-0RID19INqX1E6XFfhgncTKlH5tE\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 200,
+      "etag": "W/\"105-0RID19INqX1E6XFfhgncTKlH5tE\""
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/copies/254635cc-3c83-4d17-8580-dba0e4d21110",
+      "status": 200,
+      "etag": "W/\"c5-ETDFBDm2qv85mrzaCjj15bCBy7M\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62",
+      "status": 200,
+      "etag": "\"book-04e3e540-28d4-4318-b9ff-cbf7586e1d62-v1\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "status": 200,
+      "etag": "W/\"14b-zI0NUm8lJyAPoqJqDpn54Nr0IdY\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"19d-tJUBnAmFSiozFbdlvEOw2c7nCpU\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/availability",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 200,
+      "etag": "W/\"103-ZuVN2IBdlCUu9SfVJZAwle344A0\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 200,
+      "etag": "W/\"103-ZuVN2IBdlCUu9SfVJZAwle344A0\""
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 409,
+      "etag": "W/\"11b-+7lFF15n1xw6yph6tGrfN+J8+3E\""
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62",
+      "status": 200,
+      "etag": "\"book-04e3e540-28d4-4318-b9ff-cbf7586e1d62-v2\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "status": 200,
+      "etag": "W/\"14b-zI0NUm8lJyAPoqJqDpn54Nr0IdY\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62",
+      "status": 200,
+      "etag": "\"book-04e3e540-28d4-4318-b9ff-cbf7586e1d62-v2\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"19d-tJUBnAmFSiozFbdlvEOw2c7nCpU\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/availability",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 200,
+      "etag": "W/\"103-ZuVN2IBdlCUu9SfVJZAwle344A0\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 200,
+      "etag": "W/\"103-ZuVN2IBdlCUu9SfVJZAwle344A0\""
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62",
+      "status": 412,
+      "etag": "W/\"122-LBYk+nben47sW06wbqX8O5UtEVo\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "status": 200,
+      "etag": "W/\"14b-zI0NUm8lJyAPoqJqDpn54Nr0IdY\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62",
+      "status": 200,
+      "etag": "\"book-04e3e540-28d4-4318-b9ff-cbf7586e1d62-v3\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"19d-tJUBnAmFSiozFbdlvEOw2c7nCpU\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/availability",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 200,
+      "etag": "W/\"103-ZuVN2IBdlCUu9SfVJZAwle344A0\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62/copies",
+      "status": 200,
+      "etag": "W/\"103-ZuVN2IBdlCUu9SfVJZAwle344A0\""
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books/04e3e540-28d4-4318-b9ff-cbf7586e1d62",
+      "status": 200,
+      "etag": "\"book-04e3e540-28d4-4318-b9ff-cbf7586e1d62-v4\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/categories",
+      "status": 200,
+      "etag": "W/\"14b-zI0NUm8lJyAPoqJqDpn54Nr0IdY\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/books",
+      "status": 200,
+      "etag": "W/\"19d-tJUBnAmFSiozFbdlvEOw2c7nCpU\""
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/categories/282812dd-332a-4bce-ba42-cf7082cba0ed",
+      "status": 409,
+      "etag": "W/\"12c-V1gHI9vIG6qSiaHsMsTkSn1N5X0\""
+    }
+  ]
+}

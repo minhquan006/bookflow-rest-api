@@ -1,0 +1,152 @@
+
+> bookflow@0.1.0 check
+> npm run lint && npm run typecheck && npm run build && npm test && npm run contract:check && npm run format:check
+
+
+> bookflow@0.1.0 lint
+> oxlint server/src server/tests scripts tests playwright.config.ts && npm --prefix client run lint
+
+
+> client@0.0.0 lint
+> oxlint
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+
+> bookflow@0.1.0 typecheck
+> npm --prefix server run typecheck && npm --prefix client run typecheck
+
+
+> server@1.0.0 typecheck
+> tsc --noEmit && tsc --noEmit -p tsconfig.test.json
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+
+> client@0.0.0 typecheck
+> tsc -b --pretty false
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+
+> bookflow@0.1.0 build
+> npm --prefix server run build && npm --prefix client run build
+
+
+> server@1.0.0 build
+> tsc
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+
+> client@0.0.0 build
+> tsc -b && vite build
+
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 26 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.56 kB │ gzip:  0.34 kB
+dist/assets/index-DcGuy5pf.css    6.37 kB │ gzip:  2.02 kB
+dist/assets/index-rR2xaqk5.js   241.58 kB │ gzip: 75.03 kB
+
+✓ built in 126ms
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+
+> bookflow@0.1.0 test
+> npm --prefix server test && npm --prefix client test
+
+
+> server@1.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/bookflow-rest-api/server
+
+
+ Test Files  2 passed (2)
+      Tests  42 passed (42)
+   Start at  12:49:38
+   Duration  562ms (import 51%, tests 41%, transform 7%, worker 1%)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+
+> client@0.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /workspace/bookflow-rest-api/client
+
+
+ Test Files  3 passed (3)
+      Tests  17 passed (17)
+   Start at  12:49:39
+   Duration  1.29s (environment 64%, tests 19%, setup 11%, import 4%, transform 2%, worker 1%)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+
+> bookflow@0.1.0 contract:check
+> node scripts/check-contract.mjs
+
+OpenAPI 3.1.0: 32 operations validated; Postman JSON valid.
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+
+> bookflow@0.1.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

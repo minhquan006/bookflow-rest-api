@@ -1,0 +1,32 @@
+
+> bookflow@0.1.0 test:e2e
+> playwright test
+
+
+Running 10 tests using 2 workers
+
+(node:1311087) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1311086) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 [chromium] › tests/e2e/catalog.spec.ts:128:1 › public catalog search, pagination, details, empty and recoverable error states (2.3s)
+  ✓   3 [chromium] › tests/e2e/foundation.spec.ts:3:1 › Swagger loads the actual OpenAPI contract (1.5s)
+  ✓   4 [chromium] › tests/e2e/foundation.spec.ts:12:1 › foundation connects to the real API through the frontend proxy (737ms)
+  ✓   1 [chromium] › tests/e2e/catalog.spec.ts:174:1 › staff manages categories, books and copies with conflict recovery (5.1s)
+  ✓   5 [chromium] › tests/e2e/foundation.spec.ts:35:1 › connection failure is visible and can recover (758ms)
+(node:1311742) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1311751) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   6 [mobile] › tests/e2e/catalog.spec.ts:128:1 › public catalog search, pagination, details, empty and recoverable error states (1.9s)
+  ✓   8 [mobile] › tests/e2e/foundation.spec.ts:3:1 › Swagger loads the actual OpenAPI contract (1.6s)
+  ✓   9 [mobile] › tests/e2e/foundation.spec.ts:12:1 › foundation connects to the real API through the frontend proxy (784ms)
+  ✓   7 [mobile] › tests/e2e/catalog.spec.ts:174:1 › staff manages categories, books and copies with conflict recovery (4.6s)
+  ✓  10 [mobile] › tests/e2e/foundation.spec.ts:35:1 › connection failure is visible and can recover (915ms)
+
+  10 passed (13.5s)
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
