@@ -1,0 +1,26 @@
+{
+  "implementationCommit": "f20c300195421c01a4c44eeff0ce85a7f8b4e968",
+  "validationScope": "Local check/integration/e2e and isolated browser rehearsal; not GitHub CI or a final narrated group video",
+  "testCounts": {
+    "foundation": 59,
+    "integration": 52,
+    "browser": 10,
+    "total": 121
+  },
+  "reportPdfPages": 12,
+  "slides": 10,
+  "speakerScriptTargetSeconds": 360,
+  "practiceVideo": {
+    "durationSeconds": 49.72,
+    "codec": "h264",
+    "width": 1280,
+    "height": 900,
+    "hasAudio": false
+  },
+  "pending": [
+    "Faculty template and instructor details",
+    "Group report assembly (20-60 content pages)",
+    "All three members recording their own English narration/presentation (maximum 20 minutes)",
+    "Review alongside the existing feat/catalog branch before merge"
+  ]
+}

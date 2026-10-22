@@ -1,0 +1,12 @@
+digraph G {
+ graph [rankdir=LR,bgcolor="white",pad="0.3",nodesep="0.3",ranksep="0.4"];
+ node [shape=box,style="rounded,filled",fillcolor="#edf5e8",color="#225e46",fontname="DejaVu Sans",fontsize=13,margin="0.18"];
+ edge [color="#566c62",fontname="DejaVu Sans",fontsize=10];
+ UI [label="React Catalog\nForms + shared HTTP client"];
+ HTTP [label="Express controller\nJWT / RBAC / Zod"];
+ SVC [label="Catalog service\nRules + transaction + audit"];
+ REPO [label="Repository\nParameterized SQL"];
+ DB [label="PostgreSQL 17\nConstraints + row locks"];
+ UI -> HTTP [label="JSON / HTTP"];
+ HTTP -> SVC -> REPO -> DB;
+}
