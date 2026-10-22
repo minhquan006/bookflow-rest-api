@@ -1,4 +1,4 @@
-# Business operations are planned contracts, not completed implementations.
+# Operation status distinguishes implemented endpoints from planned contracts.
 openapi: 3.1.0
 info:
   title: BookFlow REST API
@@ -6,7 +6,7 @@ info:
   description:
     "Development contract for the BookFlow foundation. Operations marked x-implementation-status:
     planned are agreed targets and currently return the generic 404 until their owners implement them.
-    Only Operations endpoints are implemented. This document is not evidence that business features pass
+    Operations, register/login/current-user, and Catalog endpoints are implemented. This document is not evidence that business features pass
     tests."
 servers:
   - url: /
@@ -139,7 +139,7 @@ paths:
       summary: Register a MEMBER
       tags:
         - Auth
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security: []
       responses:
         "201":
@@ -183,14 +183,14 @@ paths:
               $ref: "#/components/schemas/RegisterInput"
       description:
         Reject unknown properties including role/status. Trim fullName and email; lowercase
-        email. Store only an Argon2id password hash. Registration does not issue a session.
+        email. Store only an Argon2id password hash. Registration does not issue a session. Location points to /api/v1/users/me, accessible after login. Duplicate normalized email returns 409 EMAIL_ALREADY_EXISTS.
   /api/v1/auth/login:
     post:
       operationId: login
       summary: Create an access and refresh session
       tags:
         - Auth
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security: []
       responses:
         "200":
@@ -236,11 +236,11 @@ paths:
             schema:
               $ref: "#/components/schemas/LoginInput"
       description:
-        "Return a short-lived HS256 JWT (sub, iss, aud, iat, exp), opaque rotated refresh token
+        "Return a short-lived HS256 JWT (sub, iss, aud, iat, exp), opaque refresh token
         in bookflow_refresh, and a CSRF token. bookflow_refresh uses Path=/api/v1/auth and HttpOnly;
         bookflow_csrf uses Path=/ and is JavaScript-readable so page reload can restore the session.
         Both use SameSite=Strict and Secure on HTTPS. The CSRF token must be signed and bound to
-        the refresh session. Generic 401 for all invalid credentials. No-store."
+        the refresh session. Generic 401 for all invalid credentials. No-store. Initial refresh session is persisted; refresh rotation and logout remain planned endpoints."
   /api/v1/auth/refresh:
     post:
       operationId: refreshSession
@@ -337,7 +337,7 @@ paths:
       summary: Read own safe profile
       tags:
         - Users
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -476,7 +476,7 @@ paths:
       summary: List categories
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security: []
       responses:
         "200":
@@ -512,7 +512,7 @@ paths:
       summary: Create a category
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -562,7 +562,7 @@ paths:
       summary: Replace category metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -614,7 +614,7 @@ paths:
       summary: Delete an unreferenced category
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -641,14 +641,14 @@ paths:
       x-roles: *id006
       parameters:
         - *id007
-      description: 409 CATEGORY_IN_USE when referenced by any book, including archived books.
+      description: 409 CATEGORY_IN_USE when referenced by any book, including archived books. Category names and slugs are unique; duplicates return 409 CATEGORY_ALREADY_EXISTS.
   /api/v1/books:
     get:
       operationId: listBooks
       summary: Search and paginate book metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - {}
         - bearerAuth: []
@@ -723,9 +723,10 @@ paths:
     post:
       operationId: createBook
       summary: Create a book
+      description: Duplicate ISBN returns 409 ISBN_ALREADY_EXISTS. A missing category returns 409 CATEGORY_NOT_FOUND.
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -780,7 +781,7 @@ paths:
       summary: Read book metadata with ETag
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - {}
         - bearerAuth: []
@@ -831,7 +832,7 @@ paths:
       summary: Replace all editable book metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -892,7 +893,7 @@ paths:
       summary: Update part of book metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -952,7 +953,7 @@ paths:
       summary: Archive a book
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -993,7 +994,7 @@ paths:
       summary: Read current copy availability
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security: []
       responses:
         "200":
@@ -1030,7 +1031,7 @@ paths:
       summary: List physical copies
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -1077,7 +1078,7 @@ paths:
       summary: Create a physical copy
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -1123,14 +1124,14 @@ paths:
               $ref: "#/components/schemas/CopyInput"
       parameters:
         - *id007
-      description: Barcode is unique. New copies start AVAILABLE. Location points to the copy resource.
+      description: Barcode is unique. New copies start AVAILABLE. Location points to the copy resource. Archived books reject new copies with 409 BOOK_ARCHIVED. Duplicate barcodes return 409 BARCODE_ALREADY_EXISTS.
   /api/v1/copies/{id}:
     patch:
       operationId: updateBookCopy
       summary: Change physical condition
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:

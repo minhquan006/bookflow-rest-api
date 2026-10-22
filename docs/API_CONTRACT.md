@@ -6,13 +6,15 @@ song song. Không coi endpoint đã có trong OpenAPI là đã có mã nghiệp 
 
 ## Trạng thái triển khai
 
-| Phần                                               | Trạng thái trong nền móng                                        |
-| -------------------------------------------------- | ---------------------------------------------------------------- |
-| `GET /health/live`                                 | Liveness của tiến trình                                          |
-| `GET /health/ready`                                | Kiểm tra kết nối DB và migration hiện tại; chưa sẵn sàng trả 503 |
-| `GET /api/v1`                                      | Kiểm tra kết nối client–API                                      |
-| `GET /openapi.yaml`, `/docs/`                      | Tải contract và Swagger UI                                       |
-| Auth/Users, Catalog/Copies, Loans, Dashboard/Audit | **Contract đã chốt; chưa triển khai endpoint nghiệp vụ**         |
+| Phần                                                | Trạng thái trong nền móng                                        |
+| --------------------------------------------------- | ---------------------------------------------------------------- |
+| `GET /health/live`                                  | Liveness của tiến trình                                          |
+| `GET /health/ready`                                 | Kiểm tra kết nối DB và migration hiện tại; chưa sẵn sàng trả 503 |
+| `GET /api/v1`                                       | Kiểm tra kết nối client–API                                      |
+| `GET /openapi.yaml`, `/docs/`                       | Tải contract và Swagger UI                                       |
+| Register/Login, `GET /users/me`                     | **Đã triển khai API; Catalog có đăng nhập staff**                |
+| Catalog/Copies                                      | **Đã triển khai API và UI Catalog/staff**                        |
+| Refresh/Logout, Users admin, Loans, Dashboard/Audit | **Contract đã chốt; chưa triển khai endpoint nghiệp vụ**         |
 
 Mỗi operation có `x-implementation-status: implemented` hoặc `planned`.
 Endpoint nghiệp vụ chưa có router trả lỗi 404 chung, không có dữ liệu giả mô phỏng
@@ -75,7 +77,8 @@ không lưu cờ riêng.
 
 ## Auth, cookies và phân quyền
 
-Đây là thiết kế cho chủ module Auth thực hiện, chưa phải chức năng hiện có:
+Register, login và `/users/me` đã triển khai. Login tạo refresh session và cookie
+CSRF theo hợp đồng; refresh/logout, rotation/reuse và UI vẫn là thiết kế chưa triển khai:
 
 1. Register luôn tạo MEMBER; body có role/status bị từ chối. Trả safe User, chưa
    tự tạo phiên. Login trả `{data: {accessToken, tokenType: "Bearer", expiresIn,
@@ -144,3 +147,17 @@ riêng cho nghiệp vụ **chưa hiện thực**; chọn request sau khi module 
 Nhập password/token vào biến local của Postman, không commit environment đã xuất
 kèm giá trị thật. Trình Postman tự quản cookie; Origin/CSRF của refresh phải khớp
 môi trường dùng thực tế.
+
+## Catalog đã triển khai
+
+Toàn bộ operation Catalog trong OpenAPI đã có router/service/repository và kiểm thử
+PostgreSQL. Search `q` là substring không phân biệt hoa thường trên title/author/ISBN;
+`%` và `_` được hiểu là ký tự thường. Sort chỉ nhận allowlist và luôn thêm `id`.
+List categories/books/copies đọc count và rows trong cùng snapshot repeatable-read.
+
+Lỗi bổ sung: `CATEGORY_ALREADY_EXISTS`, `ISBN_ALREADY_EXISTS`, `BARCODE_ALREADY_EXISTS`,
+`CATEGORY_NOT_FOUND`, `BOOK_ARCHIVED`, `COPY_HAS_ACTIVE_LOAN` trả 409. Không xóa category
+được sách active/archived tham chiếu. New copies chỉ được thêm vào sách chưa archived.
+Update copy khóa hàng copy trước khi kiểm tra loan; archive khóa book trước khi kiểm
+tra open loans. Loans phải tiếp tục tuân thủ khóa book → copy khi borrow để bảo toàn
+quy tắc archive/condition giữa các module.

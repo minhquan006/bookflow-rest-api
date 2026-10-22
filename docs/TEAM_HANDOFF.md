@@ -14,9 +14,12 @@ migration/seed, giao diện kết nối API, HTTP client, kiểm thử hạ tầ
 CI/Docker. Bằng chứng chạy và giới hạn môi trường phải đọc trong README/kết quả
 kiểm thử hiện tại, không suy ra từ danh sách tính năng thiết kế.
 
-**Chưa có chức năng sản phẩm hoàn chỉnh**: register/login/refresh/logout, CRUD
-catalog, mượn/trả, dashboard và audit viewer vẫn là việc của module. Middleware
-JWT có sẵn không có nghĩa người dùng đã đăng nhập được; schema có loans không
+Đã triển khai API register/login và `/users/me`, gồm kiểm thử PostgreSQL thật.
+Đã hoàn thiện Catalog API và UI cho phần Tú: Categories, Books, Copies, search/filter,
+ETag, availability và quản lý staff; xem [CATALOG_HANDOFF](CATALOG_HANDOFF.md).
+**Còn thiếu ở module khác**: giao diện Auth đầy đủ, refresh/logout, mượn/trả,
+dashboard và audit viewer. JWT và đăng nhập
+API đã được ghép vào entry point; Catalog đã có đăng nhập staff; trang tài khoản riêng chưa có. Schema có loans không
 có nghĩa quy tắc mượn đã hiện thực; component chung không có nghĩa màn hình nghiệp
 vụ đã sẵn sàng. Không đánh dấu các test T01–T20 của blueprint đã đạt trước khi
 chạy thực tế.

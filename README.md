@@ -4,8 +4,9 @@ Nền tảng cho hệ thống thư viện RESTful — Web Programming & Applicat
 React/TypeScript + Express/TypeScript + PostgreSQL; kiến trúc monolith chia module.
 
 Đã có cấu hình, database schema/migration/seed, middleware, HTTP client, khung giao diện,
-OpenAPI, kiểm thử, Docker và CI. **Đăng nhập, CRUD, mượn–trả, dashboard và audit viewer
-chưa được triển khai.** Các mục này là phần phát triển tiếp theo của nhóm; xem
+OpenAPI, kiểm thử, Docker và CI. Đã triển khai API đăng ký, đăng nhập và `/users/me`.
+Đã có Catalog công khai và giao diện quản lý Categories/Books/Copies cho staff.
+**Refresh/logout, giao diện tài khoản đầy đủ, mượn–trả, dashboard và audit viewer chưa được triển khai.** Các mục này là phần phát triển tiếp theo của nhóm; xem
 [bàn giao](docs/TEAM_HANDOFF.md) và [blueprint](docs/PROJECT_BLUEPRINT.md).
 
 ## Bắt đầu trên máy phát triển
@@ -84,8 +85,8 @@ không reset dữ liệu dev. Kiểm tra khóa/ràng buộc dùng PostgreSQL th�
 
 Playwright dùng Chromium có sẵn tại `/usr/bin/chromium` nếu có; nếu không, chạy
 `npx playwright install chromium` trước (Linux CI có thể cần `--with-deps`). Có thể đặt
-`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` để chọn bản Chromium đã cài. Browser tests kiểm tra
-kết nối thật, lỗi/phục hồi và kích thước desktop/mobile; chưa kiểm tra luồng nghiệp vụ.
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` để chọn bản Chromium đã cài. Browser tests kiểm tra kết nối thật, lỗi/phục hồi, Catalog và các thao tác staff trên
+desktop/mobile. Catalog dùng API và schema riêng trong database `_test`, tự dọn sau test.
 
 Kiểm tra HTTP nền tảng:
 
@@ -104,8 +105,7 @@ qua cổng web 8080. Import `postman/BookFlow.postman_collection.json` và local
 
 Seed có ba tài khoản local: `admin@bookflow.test`, `librarian@bookflow.test`,
 `member@bookflow.test`. Mật khẩu là `SEED_DEMO_PASSWORD` trong file `.env` local; không in
-vào log hoặc commit. Seed không ghi đè mật khẩu/role/tài khoản hiện hữu. Chưa có endpoint
-login để sử dụng tài khoản này từ giao diện.
+vào log hoặc commit. Seed không ghi đè mật khẩu/role/tài khoản hiện hữu. Có thể đăng nhập bằng API hoặc mục Staff sign in trong Catalog.
 
 ## Cấu trúc và quy ước
 
@@ -125,3 +125,50 @@ phải được triển khai trong service; constraint DB không thay thế các
 CI được lưu trong repository; việc chạy trên GitHub cần push/PR. Branch protection cần
 quản trị repository bật theo [hướng dẫn đóng góp](CONTRIBUTING.md). Bằng chứng kiểm tra
 trong môi trường hiện tại nằm ở [FOUNDATION_VALIDATION](docs/FOUNDATION_VALIDATION.md).
+
+## API đăng ký và đăng nhập
+
+- `POST /api/v1/auth/register`: JSON `{fullName, email, password}`, trả 201 và User an toàn;
+  tên/email được trim, email lowercase, mật khẩu 12–128 ký tự. Luôn tạo MEMBER/ACTIVE;
+  trường lạ (kể cả role/status) trả 400, email trùng trả 409 `EMAIL_ALREADY_EXISTS`.
+- `POST /api/v1/auth/login`: JSON `{email, password}`, trả access JWT HS256, thời hạn,
+  CSRF token và User. Email không tồn tại, mật khẩu sai và tài khoản khóa cùng trả
+  401 `INVALID_CREDENTIALS`. Có giới hạn theo IP và email.
+- `GET /api/v1/users/me`: gửi `Authorization: Bearer <accessToken>`, trả hồ sơ an toàn;
+  đọc lại role/status từ PostgreSQL ở mỗi request, từ chối tài khoản khóa/xóa.
+
+Auth và users trả `Cache-Control: no-store`; không trả password hash. Login tạo
+refresh session chỉ lưu SHA-256 hash; cookie refresh HttpOnly, cookie CSRF có chữ ký
+gắn với session, SameSite=Strict và Secure khi HTTPS hoặc production.
+**Refresh rotation và logout chưa triển khai**; cookie hiện chưa dùng để phục hồi
+phiên. Khi access token hết hạn cần đăng nhập lại; chỉ lưu access token trong RAM.
+Đăng ký và login ghi audit cùng transaction với user/session.
+
+Kiểm thử mới ở `server/tests/auth.integration.test.ts`, chạy bằng
+`npm run test:integration` trên database `_test` với schema riêng tự dọn dẹp.
+Postman có nhóm Auth và Catalog đã triển khai; nhập mật khẩu local trước khi chạy. Nhóm
+Register tạo dữ liệu mới nên chỉ chạy trên database phát triển/demo phù hợp.
+
+## Phần Catalog — Phạm Văn Tú
+
+Mở **Catalog** trên thanh điều hướng để tìm theo title/author/ISBN, lọc thể loại,
+sắp xếp, phân trang và xem chi tiết cùng số bản có thể mượn. Staff chọn **Staff sign in**
+để đăng nhập, quản lý thể loại, tạo/sửa/lưu trữ sách, thêm bản sách và đổi tình trạng.
+
+- Role LIBRARIAN/ADMIN mới được quản lý; MEMBER và khách chỉ đọc Catalog công khai.
+- Sách lưu trữ được giữ lịch sử và chỉ staff xem; không lưu trữ nếu còn khoản mượn mở.
+- Chỉnh metadata cần ETag/If-Match; form báo xung đột nếu người khác đã sửa trước.
+- Availability luôn tính từ DB, loại bản MAINTENANCE/RETIRED và bản đang được mượn.
+- Không đổi condition khi bản sách còn loan mở; không xóa thể loại được sách tham chiếu.
+- Đăng nhập UI giữ access token trong RAM; tải lại trang cần đăng nhập lại. Sign out
+  xóa phiên phía client, chưa thu hồi refresh session phía server.
+
+Xem [bàn giao Catalog](docs/CATALOG_HANDOFF.md) cho danh sách API, quy tắc khóa,
+kiểm thử và các bước demo. Chức năng Borrow thuộc module Loans, chưa có trong Catalog.
+
+## Tài liệu báo cáo và trình bày phần Tú
+
+Xem [gói bàn giao báo cáo/slide/demo](docs/submission/tu/README.md).
+Có bản Word/PDF, slide chỉnh sửa được, kịch bản tiếng Anh và clip tập trình bày.
+Đây là phần Catalog để nhóm tích hợp; video nộp chính thức cần cả ba thành viên
+tham gia có âm thanh theo đề môn học.

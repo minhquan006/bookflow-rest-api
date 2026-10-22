@@ -61,7 +61,7 @@ describe("foundation workspace", () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
-  it("labels business modules as planned instead of displaying fake data", async () => {
+  it("keeps unfinished borrowing screens labeled as planned", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn<typeof fetch>().mockResolvedValue(Response.json(service)),
@@ -69,10 +69,10 @@ describe("foundation workspace", () => {
     render(<App />);
     await screen.findByText("API connected");
     await userEvent.click(
-      screen.getByRole("button", { name: "Catalog Planned" }),
+      screen.getByRole("button", { name: "Borrowing Planned" }),
     );
     expect(
-      screen.getByRole("heading", { name: "Catalog", level: 1 }),
+      screen.getByRole("heading", { name: "Borrowing", level: 1 }),
     ).toBeInTheDocument();
     expect(screen.getByText("Planned module")).toBeInTheDocument();
     expect(

@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "BookFlow \u2014 Foundation smoke",
-    "description": "Executable checks for implemented foundation endpoints only. Start PostgreSQL, run migrations, start API, select BookFlow.local environment, and run this collection. Business features are in a separate planned collection.",
+    "name": "BookFlow — Implemented API checks",
+    "description": "Implemented foundation, Auth and Catalog requests. Auth/Catalog mutations create or modify demo data. Select local environment and enter credentials securely; run login then choose individual Catalog requests with valid IDs/ETags. Do not blindly run all destructive examples. Other modules remain in the planned collection.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -129,6 +129,558 @@
               "pm.test(\"Problem Details\", () => { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\"); const body=pm.response.json(); pm.expect(body.status).to.eql(404); pm.expect(body.code).to.eql(\"RESOURCE_NOT_FOUND\"); pm.expect(body.requestId).to.be.a(\"string\"); });"
             ]
           }
+        }
+      ]
+    },
+    {
+      "name": "Auth — implemented (registration creates data)",
+      "item": [
+        {
+          "name": "Register a MEMBER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/register",
+            "description": "Reject unknown properties including role/status. Trim fullName and email; lowercase email. Store only an Argon2id password hash. Registration does not issue a session.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Demo Reader\",\n  \"email\": \"{{registrationEmail}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"registrationEmail\", \"reader-\" + pm.variables.replaceIn(\"{{$guid}}\") + \"@bookflow.test\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Created MEMBER\", () => { pm.response.to.have.status(201); pm.expect(pm.response.json().data.role).to.eql(\"MEMBER\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create an access and refresh session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "description": "Return a short-lived HS256 JWT (sub, iss, aud, iat, exp), opaque refresh token in bookflow_refresh, and a CSRF token. bookflow_refresh uses Path=/api/v1/auth and HttpOnly; bookflow_csrf uses Path=/ and is JavaScript-readable so page reload can restore the session. Both use SameSite=Strict and Secure on HTTPS. The CSRF token must be signed and bound to the refresh session. Generic 401 for all invalid credentials. No-store. Refresh/logout endpoints remain planned; these cookies do not yet restore a session.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login succeeds\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { const data = pm.response.json().data; pm.variables.set(\"accessToken\", data.accessToken); pm.variables.set(\"csrfToken\", data.csrfToken); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read own safe profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/users/me",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Own safe profile\", () => { pm.response.to.have.status(200); const user = pm.response.json().data; pm.expect(user).to.have.all.keys(\"id\", \"fullName\", \"email\", \"role\", \"status\", \"createdAt\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Catalog — implemented — choose requests individually",
+      "item": [
+        {
+          "name": "List categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/categories",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/categories",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Computer Science\",\n  \"slug\": \"computer-science\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if(pm.response.code===201) pm.variables.set(\"categoryId\",pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replace category metadata",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/categories/{{categoryId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Computer Science\",\n  \"slug\": \"computer-science\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete an unreferenced category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/categories/{{categoryId}}",
+            "description": "409 CATEGORY_IN_USE when referenced by any book, including archived books."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search and paginate book metadata",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/books",
+            "description": "Public requests include active books only. Sorting always uses id as a tie-breaker. Metadata excludes copy availability. Optional staff bearer token enables archived records."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"{{categoryId}}\",\n  \"isbn\": \"9780132350884\",\n  \"title\": \"Clean Code\",\n  \"author\": \"Robert C. Martin\",\n  \"description\": \"Catalog demo metadata.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if(pm.response.code===201) { pm.variables.set(\"bookId\",pm.response.json().data.id); pm.variables.set(\"bookEtag\",pm.response.headers.get(\"ETag\")); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read book metadata with ETag",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}",
+            "description": "Archived books require staff; otherwise 404. ETag identifies metadata only, never availability. Evaluate authorization/visibility before conditional responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if(pm.response.code===200) pm.variables.set(\"bookEtag\",pm.response.headers.get(\"ETag\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replace all editable book metadata",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "{{bookEtag}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}",
+            "description": "Require the strong ETag returned by GET. Compare version and mutate in one atomic statement/transaction; increment version on success. PUT requires all editable fields; PATCH rejects an empty object and unknown fields.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"{{categoryId}}\",\n  \"isbn\": null,\n  \"title\": \"Updated title\",\n  \"author\": \"Demo Author\",\n  \"description\": \"Updated description.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if(pm.response.code===200) pm.variables.set(\"bookEtag\",pm.response.headers.get(\"ETag\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update part of book metadata",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "{{bookEtag}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}",
+            "description": "Require the strong ETag returned by GET. Compare version and mutate in one atomic statement/transaction; increment version on success. PUT requires all editable fields; PATCH rejects an empty object and unknown fields.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Revised title\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if(pm.response.code===200) pm.variables.set(\"bookEtag\",pm.response.headers.get(\"ETag\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Archive a book",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "{{bookEtag}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}",
+            "description": "Set archivedAt; do not delete history. 409 BOOK_HAS_ACTIVE_LOANS while any copy has an open loan. Lock the book consistently with borrowing. Missing/stale If-Match gives 428/412."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read current copy availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}/availability",
+            "description": "Compute AVAILABLE copies without open loans. Always no-store; never use book metadata ETag. Archived book is hidden from public access."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List physical copies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}/copies",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a physical copy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/books/{{bookId}}/copies",
+            "description": "Barcode is unique. New copies start AVAILABLE. Location points to the copy resource.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"barcode\": \"BF-DEMO-0001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if(pm.response.code===201) pm.variables.set(\"copyId\",pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change physical condition",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/copies/{{copyId}}",
+            "description": "Reject changing condition while an active loan exists. Retire copies with history instead of deletion.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conditionStatus\": \"MAINTENANCE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
         }
       ]
     }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Catalog } from "./features/catalog/Catalog";
 import { Button } from "./components/Button";
 import { Feedback } from "./components/Feedback";
 import { api, ApiError } from "./lib/http";
@@ -98,14 +99,14 @@ export default function App() {
                 onClick={() => setSection(item.id)}
               >
                 {item.title}{" "}
-                {item.id !== "overview" && (
+                {item.id !== "overview" && item.id !== "catalog" && (
                   <span className="nav-note">Planned</span>
                 )}
               </button>
             ))}
           </nav>
           <p className="sidebar-note">
-            Module screens will be delivered by the feature teams.
+            Browse the catalog, or sign in there to manage books and copies.
           </p>
         </aside>
         <main id="main-content" tabIndex={-1}>
@@ -116,7 +117,9 @@ export default function App() {
               ? selected.description
               : "A shared starting point for a better library experience."}
           </p>
-          {selected ? (
+          {section === "catalog" ? (
+            <Catalog />
+          ) : selected ? (
             <section className="panel" aria-labelledby="module-status">
               <span className="badge">Planned module</span>
               <h2 id="module-status">Ready for feature development</h2>
@@ -177,18 +180,22 @@ export default function App() {
               </section>
               <section aria-labelledby="modules-title">
                 <div className="section-heading">
-                  <h2 id="modules-title">Upcoming modules</h2>
+                  <h2 id="modules-title">Library modules</h2>
                   <span className="muted">Shared API · Separate ownership</span>
                 </div>
                 <div className="module-grid">
                   {modules.map((module) => (
                     <article className="panel module-card" key={module.id}>
-                      <span className="badge">Planned</span>
+                      <span className="badge">
+                        {module.id === "catalog" ? "Available" : "Planned"}
+                      </span>
                       <h3>{module.title}</h3>
                       <p>{module.description}</p>
                       <small className="muted">{module.audience}</small>
                       <Button onClick={() => setSection(module.id)}>
-                        View {module.title.toLowerCase()} plan
+                        {module.id === "catalog"
+                          ? "Open catalog"
+                          : `View ${module.title.toLowerCase()} plan`}
                       </Button>
                     </article>
                   ))}
