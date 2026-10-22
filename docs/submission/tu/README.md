@@ -60,3 +60,14 @@ không ghi request body/password/token vào evidence.
 
 Ứng dụng chính vẫn dùng hướng dẫn chạy ở README root. Không cần Python/FFmpeg để
 chạy Catalog thông thường; các công cụ này chỉ để tạo lại tài liệu/clip.
+
+## Nhánh bàn giao và PR
+
+Đã push mã và tài liệu lên nhánh
+[`codex/tu-bookflow-handoff-20261022`](https://github.com/minhquan006/bookflow-rest-api/tree/codex/tu-bookflow-handoff-20261022).
+
+GitHub API từ môi trường này từ chối tạo PR bằng `Forbidden`; chưa có PR mới được xác nhận.
+Bạn có thể mở trang Compare của nhánh trên GitHub, chọn base `main`, tạo **Draft PR**
+và dùng nội dung [PULL_REQUEST_DRAFT.md](PULL_REQUEST_DRAFT.md).
+Nhờ Quân review Auth integration và đối chiếu nhánh `feat/catalog` sẵn có trước merge.
+Không merge trực tiếp vào main chỉ vì các test local đã đạt.
