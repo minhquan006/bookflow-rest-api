@@ -1,13 +1,12 @@
-# Catalog integration status
+# Catalog implementation status
 
-The existing Catalog implementation and history from `feat/catalog` at `1bdf367`
-are retained. Authenticated client integration, staff category/book/copy forms,
-archive/version-conflict handling and advanced detail pages are now added.
-See [current validation](CATALOG_VALIDATION.md) for actual checks on the merged
-source. Borrow/return is delivered separately with Loans. Until that integration,
-book details show availability without borrowing controls, and the navigation and
-account screen do not offer My loans. Guest/member component tests and authenticated
-desktop/mobile browser tests cover this boundary.
+Catalog/Copies includes public browsing, live availability and staff management.
+Auth/Users and Loans/Dashboard/Audit are integrated in this assembled snapshot.
+Borrow controls and Loans navigation are enabled together with the Loans API.
+The historical Catalog-only review fix remains recorded in
+[evidence/CATALOG_REVIEW_FIX.md](evidence/CATALOG_REVIEW_FIX.md); its absence-of-Loans
+assertions apply to that earlier stage. Current tests verify integrated navigation
+without creating a loan merely by browsing.
 
 The following is the historical status recorded on Tú’s branch before integration.
 

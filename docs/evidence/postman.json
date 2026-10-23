@@ -1,0 +1,16 @@
+{
+  "recordedAt": "2026-10-21T14:01:38.191Z",
+  "runner": "Newman",
+  "endpointMode": "Docker/Nginx",
+  "requests": {
+    "total": 20,
+    "pending": 0,
+    "failed": 0
+  },
+  "assertions": {
+    "total": 33,
+    "pending": 0,
+    "failed": 0
+  },
+  "failures": []
+}

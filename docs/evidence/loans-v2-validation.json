@@ -1,0 +1,71 @@
+{
+  "recordedAt": "2026-10-23T20:04:08.600875+00:00",
+  "baseCommit": "50e2dc410e3f2e8146da007f58f71f6c7f7af9a5",
+  "packageVersion": 2,
+  "verifiedPackageFinalTree": "1ee65d24b3d63400a4c33aaf839bf9e620899fa3",
+  "steps": [
+    {
+      "step": 1,
+      "server": 66,
+      "client": 59,
+      "integration": 105,
+      "browser": 20,
+      "checkExitCode": 0,
+      "integrationExitCode": 0,
+      "e2eExitCode": 0
+    },
+    {
+      "step": 2,
+      "server": 66,
+      "client": 66,
+      "integration": 105,
+      "browser": 20,
+      "checkExitCode": 0,
+      "integrationExitCode": 0,
+      "e2eExitCode": 0
+    },
+    {
+      "step": 3,
+      "server": 66,
+      "client": 71,
+      "integration": 105,
+      "browser": 20,
+      "checkExitCode": 0,
+      "integrationExitCode": 0,
+      "e2eExitCode": 0
+    },
+    {
+      "step": 4,
+      "server": 66,
+      "client": 71,
+      "integration": 105,
+      "browser": 22,
+      "checkExitCode": 0,
+      "integrationExitCode": 0,
+      "e2eExitCode": 0
+    },
+    {
+      "step": 5,
+      "server": 66,
+      "client": 71,
+      "integration": 105,
+      "browser": 22,
+      "checkExitCode": 0,
+      "integrationExitCode": 0,
+      "e2eExitCode": 0
+    }
+  ],
+  "scope": "Actual AI-assisted cloud execution; not GitHub Actions or a second team machine.",
+  "finalAmendments": "Documentation and current evidence only; application, tests, dependency declarations and lockfiles retain the validated v2 content.",
+  "notRun": [
+    "Full Docker API/web build/deployment",
+    "Newman/Postman runner",
+    "Second machine validation",
+    "Independent human review"
+  ],
+  "benchmark": "loans-v2-benchmark.json",
+  "smoke": {
+    "apiChecksPassed": 11,
+    "frontendAndProxyPassed": true
+  }
+}

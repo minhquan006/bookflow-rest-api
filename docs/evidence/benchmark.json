@@ -1,0 +1,54 @@
+{
+  "recordedAt": "2026-10-21T14:00:28.653Z",
+  "kind": "Synthetic catalog read benchmark; not a production capacity claim",
+  "dataset": {
+    "books": 1000,
+    "copies": 3000,
+    "historical_loans": 10000
+  },
+  "workload": {
+    "requests": 500,
+    "concurrency": 20,
+    "poolMax": 10,
+    "warmupRequests": 20,
+    "endpoints": ["GET /api/v1/books page/sort", "GET /api/v1/books q/page"]
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "arch": "x64",
+    "kernel": "6.18.55",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 5,
+    "availableParallelism": 4,
+    "hostMemoryBytes": 35743760384
+  },
+  "results": {
+    "p50Ms": 43.67,
+    "p95Ms": 73.94,
+    "p99Ms": 143.35,
+    "durationMs": 1184.09,
+    "requestsPerSecond": 422.27,
+    "errors": 0,
+    "errorRate": 0,
+    "statuses": {
+      "200": 500
+    },
+    "processCpuMicros": {
+      "user": 774095,
+      "system": 235104
+    },
+    "processMemoryBytes": {
+      "rss": 157880320,
+      "heapTotal": 63737856,
+      "heapUsed": 37944368,
+      "external": 6274122,
+      "arrayBuffers": 2260618
+    }
+  },
+  "target": {
+    "p95Below500Ms": true,
+    "noRequestErrors": true
+  },
+  "limits": "Local ephemeral HTTP server and PostgreSQL on this cloud host; measures catalog reads only, not password hashing or loan writes. Database fixture is generated directly and does not represent real users."
+}

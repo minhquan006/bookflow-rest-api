@@ -1,0 +1,73 @@
+{
+  "recordedAt": "2026-10-21T14:05:08.994429+00:00",
+  "sourceScope": {
+    "auth": "f33bd6b",
+    "preservedCatalog": "1bdf367",
+    "catalogMergeBase": "0901559",
+    "catalogAdditions": "e182809",
+    "loans": "local delivery patch applied after catalog additions"
+  },
+  "checks": {
+    "lint": {
+      "exitCode": 0,
+      "advisories": "React effect/ref/HMR warnings remain; no errors"
+    },
+    "typecheck": {
+      "exitCode": 0
+    },
+    "build": {
+      "exitCode": 0,
+      "targets": ["server", "client"]
+    },
+    "unit": {
+      "exitCode": 0,
+      "server": 66,
+      "client": 71
+    },
+    "integration": {
+      "exitCode": 0,
+      "passed": 105,
+      "catalog": 59,
+      "auth": 20,
+      "database": 8,
+      "loans": 18,
+      "databaseMode": "dedicated _test database, disposable isolated schemas"
+    },
+    "openapiPostman": {
+      "exitCode": 0,
+      "operations": 32
+    },
+    "format": {
+      "exitCode": 0
+    },
+    "playwrightNative": {
+      "exitCode": 0,
+      "passed": 20,
+      "projects": ["chromium desktop", "chromium mobile emulation"]
+    },
+    "dockerBuildHealth": {
+      "exitCode": 0,
+      "services": ["db", "api", "web"]
+    },
+    "playwrightDocker": {
+      "exitCode": 0,
+      "passed": 20
+    },
+    "dockerSmoke": {
+      "exitCode": 0,
+      "passed": 11
+    },
+    "newmanDocker": {
+      "exitCode": 0,
+      "requests": 20,
+      "assertions": 33,
+      "failures": 0
+    }
+  },
+  "limits": [
+    "Current cloud host only; not GitHub Actions or a second team machine.",
+    "Benchmark workload and limits are in benchmark.json.",
+    "Browser/Postman synthetic records and audit history are retained.",
+    "Auth rate budget was 100 only for multi-browser tests; runtime restored to default 10 afterward."
+  ]
+}

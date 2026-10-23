@@ -1,3 +1,9 @@
+> Integration note: this document records the earlier Catalog-only stage.
+> The Loans delivery now restores borrowing controls together with the backend.
+> Guest/member availability, cache and visibility regressions are retained;
+> navigation tests now target the integrated Loans screens. See the delivery
+> [LOANS_VALIDATION.md](LOANS_VALIDATION.md) for the newly executed checks.
+
 # Kiểm tra Catalog/Copies — bản giữ mã và lịch sử của Tú
 
 Bản này hòa giải Auth/Users `f33bd6b` với Catalog thật của Tú tại `1bdf367`.
