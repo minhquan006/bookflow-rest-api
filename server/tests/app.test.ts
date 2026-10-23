@@ -395,3 +395,36 @@ describe("authentication and role middleware", () => {
     ).toBe(500);
   });
 });
+
+describe("operational dependency failures", () => {
+  it.each(["ECONNREFUSED", "ETIMEDOUT", "57P01", "53300"])(
+    "returns safe 503 for %s",
+    async (code) => {
+      const router = Router();
+      router.get("/dependency", () => {
+        throw Object.assign(
+          new Error("postgresql://private:credential@database/internal"),
+          { code },
+        );
+      });
+      const response = await request(app({ apiRouter: router })).get(
+        "/api/v1/dependency",
+      );
+      expect(response.status).toBe(503);
+      expect(response.body.code).toBe("SERVICE_UNAVAILABLE");
+      expect(JSON.stringify(response.body)).not.toContain("credential");
+      expect(response.body.requestId).toBeTruthy();
+    },
+  );
+  it("keeps SQL programming failures as 500", async () => {
+    const router = Router();
+    router.get("/dependency", () => {
+      throw Object.assign(new Error("query failure"), { code: "42601" });
+    });
+    const response = await request(app({ apiRouter: router })).get(
+      "/api/v1/dependency",
+    );
+    expect(response.status).toBe(500);
+    expect(response.body.code).toBe("INTERNAL_ERROR");
+  });
+});

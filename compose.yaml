@@ -32,6 +32,7 @@ services:
       ALLOWED_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
       SEED_DEMO_PASSWORD: ${SEED_DEMO_PASSWORD:-}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      AUTH_RATE_LIMIT_MAX: ${AUTH_RATE_LIMIT_MAX:-10}
     depends_on:
       db:
         condition: service_healthy

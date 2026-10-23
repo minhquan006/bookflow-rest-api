@@ -2,6 +2,21 @@ import type { ErrorRequestHandler } from "express";
 import type { Logger } from "pino";
 import { AppError } from "../shared/errors.js";
 
+const unavailableCodes = new Set([
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "ETIMEDOUT",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "08001",
+  "08003",
+  "08006",
+  "53300",
+  "57P01",
+  "57P02",
+  "57P03",
+]);
+
 export function errorHandler(logger: Logger): ErrorRequestHandler {
   return (error: unknown, req, res, next) => {
     if (res.headersSent) {
@@ -58,6 +73,19 @@ export function errorHandler(logger: Logger): ErrorRequestHandler {
         "VALIDATION_ERROR",
         "Bad Request",
         "The request body length does not match its declared size.",
+      );
+    else if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      typeof error.code === "string" &&
+      unavailableCodes.has(error.code)
+    )
+      problem = new AppError(
+        503,
+        "SERVICE_UNAVAILABLE",
+        "Service Unavailable",
+        "A required service is temporarily unavailable. Please try again later.",
       );
     else
       problem = new AppError(
