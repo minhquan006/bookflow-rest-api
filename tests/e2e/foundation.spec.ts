@@ -19,9 +19,7 @@ test("foundation connects to the real API through the frontend proxy", async ({
   );
   await page.goto("/");
   expect((await response).status()).toBe(200);
-  await expect(
-    page.getByRole("heading", { name: "BookFlow", exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Good books/ })).toBeVisible();
   await expect(
     page.getByText("Frontend and backend are connected."),
   ).toBeVisible();

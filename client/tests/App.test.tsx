@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../src/App";
 
 const service = {
@@ -11,8 +11,12 @@ const service = {
   },
 };
 afterEach(() => vi.unstubAllGlobals());
+beforeEach(() => {
+  window.history.replaceState(null, "", "/");
+  vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+});
 
-describe("foundation workspace", () => {
+describe("library workspace", () => {
   it("shows loading until the actual API responds", async () => {
     let complete!: (response: Response) => void;
     vi.stubGlobal(
@@ -61,28 +65,21 @@ describe("foundation workspace", () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
-  it("labels business modules as planned instead of displaying fake data", async () => {
+  it("handles a missing page and navigates back to the overview", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn<typeof fetch>().mockResolvedValue(Response.json(service)),
     );
+    window.history.replaceState(null, "", "/missing-page");
     render(<App />);
-    await screen.findByText("API connected");
-    await userEvent.click(
-      screen.getByRole("button", { name: "Catalog Planned" }),
-    );
     expect(
-      screen.getByRole("heading", { name: "Catalog", level: 1 }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Planned module")).toBeInTheDocument();
-    expect(
-      screen.getByText(/This area has no business features yet/),
+      screen.getByRole("heading", { name: "Page not found" }),
     ).toBeInTheDocument();
     await userEvent.click(
       screen.getByRole("button", { name: "Back to overview" }),
     );
     expect(
-      screen.getByRole("heading", { name: "BookFlow", level: 1 }),
+      await screen.findByRole("heading", { name: /Good books/ }),
     ).toBeInTheDocument();
   });
 

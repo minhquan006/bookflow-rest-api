@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import { existsSync } from "node:fs";
+import { loadEnvFile } from "node:process";
+
+if (existsSync(".env")) loadEnvFile(".env");
 
 const executablePath =
   process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
@@ -30,6 +33,7 @@ export default defineConfig({
     : [
         {
           command: "npm --prefix server run dev",
+          env: { AUTH_RATE_LIMIT_MAX: "100" },
           url: "http://127.0.0.1:3000/health/ready",
           reuseExistingServer: !process.env.CI,
           timeout: 30_000,
