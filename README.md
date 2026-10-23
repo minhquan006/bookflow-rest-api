@@ -1,3 +1,8 @@
+> **Catalog update on `feat/catalog`:** Public category/book listing and the
+> Catalog browsing UI are implemented. See [Catalog status](docs/CATALOG_STATUS.md)
+> for verified behavior and remaining work. The foundation descriptions below
+> predate this increment; full Catalog CRUD is not implemented yet.
+
 # BookFlow
 
 Nền tảng cho hệ thống thư viện RESTful — Web Programming & Applications (503073).
@@ -130,3 +135,7 @@ Auth giới hạn mặc định 10 yêu cầu mỗi IP/tài khoản trong 15 ph�
 login/register. `AUTH_RATE_LIMIT_MAX` cho phép đặt ngưỡng 1–100; mặc định giữ nguyên 10. Playwright tự khởi động server với ngưỡng100 để chạy nhiều browser context;
 kiểm thử bảo mật vẫn xác nhận ngưỡng mặc định. Server đang chạy được tái sử dụng
 thì giữ cấu hình lúc khởi động; restart trước khi chạy suite lớn nếu bị429.
+
+Catalog hiện giữ mã và lịch sử nhánh `feat/catalog` của Tú; đã ghép Auth và thêm
+staff screens, ETag/412 và quản lý copy. Xem [CATALOG_VALIDATION](docs/CATALOG_VALIDATION.md)
+về kiểm thử trên bản ghép thực tế; Loans được áp dụng sau bằng gói riêng.
