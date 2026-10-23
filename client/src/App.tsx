@@ -3,6 +3,9 @@ import { AuthProvider, useAuth } from "./features/auth/AuthContext";
 import { LoginPage } from "./features/auth/LoginPage";
 import { RegisterPage } from "./features/auth/RegisterPage";
 import { UsersPage } from "./features/users/UsersPage";
+import { CatalogPage } from "./features/catalog/CatalogPage";
+import { BookDetailPage } from "./features/catalog/BookDetailPage";
+import { CategoriesPage } from "./features/catalog/CategoriesPage";
 import { Button } from "./components/Button";
 import { Feedback } from "./components/Feedback";
 import { ApiError } from "./lib/http";
@@ -129,7 +132,8 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
 
 function Workspace() {
   const { path, navigate } = usePath();
-  const { user, loading, logout, sessionError } = useAuth();
+  const { user, loading, logout, sessionError, api } = useAuth();
+  const viewer = user ? `${user.id}:${user.role}` : "anonymous";
   const [logoutError, setLogoutError] = useState("");
   const staff = user?.role === "ADMIN" || user?.role === "LIBRARIAN";
   const links = [
@@ -172,6 +176,31 @@ function Workspace() {
   else if (path === "/login") content = <LoginPage onNavigate={navigate} />;
   else if (path === "/register")
     content = <RegisterPage onNavigate={navigate} />;
+  else if (path === "/books")
+    content = (
+      <CatalogPage
+        key={viewer}
+        client={api}
+        user={user}
+        onNavigate={navigate}
+      />
+    );
+  else if (/^\/books\/[^/]+$/.test(path))
+    content = (
+      <BookDetailPage
+        key={`${viewer}:${path}`}
+        bookId={path.split("/")[2]!}
+        onNavigate={navigate}
+      />
+    );
+  else if (path === "/categories")
+    content = staff ? (
+      <CategoriesPage />
+    ) : (
+      <Feedback kind="error">
+        Catalog management is available to librarians and administrators.
+      </Feedback>
+    );
   else if (path === "/users")
     content =
       user?.role === "ADMIN" ? (
@@ -195,11 +224,7 @@ function Workspace() {
         <Button onClick={() => navigate("/loans")}>View your loans</Button>
       </section>
     );
-  else if (
-    ["/books", "/categories", "/loans", "/dashboard", "/audit-logs"].includes(
-      path,
-    )
-  )
+  else if (["/loans", "/dashboard", "/audit-logs"].includes(path))
     content = (
       <section className="panel">
         <h1>Coming soon</h1>
