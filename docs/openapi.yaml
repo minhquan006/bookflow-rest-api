@@ -476,7 +476,7 @@ paths:
       summary: List categories
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security: []
       responses:
         "200":
@@ -512,7 +512,7 @@ paths:
       summary: Create a category
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -562,7 +562,7 @@ paths:
       summary: Replace category metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -614,7 +614,7 @@ paths:
       summary: Delete an unreferenced category
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -648,7 +648,7 @@ paths:
       summary: Search and paginate book metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - {}
         - bearerAuth: []
@@ -725,7 +725,7 @@ paths:
       summary: Create a book
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -780,7 +780,7 @@ paths:
       summary: Read book metadata with ETag
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - {}
         - bearerAuth: []
@@ -831,7 +831,7 @@ paths:
       summary: Replace all editable book metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -892,7 +892,7 @@ paths:
       summary: Update part of book metadata
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -952,7 +952,7 @@ paths:
       summary: Archive a book
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -993,7 +993,7 @@ paths:
       summary: Read current copy availability
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security: []
       responses:
         "200":
@@ -1030,7 +1030,7 @@ paths:
       summary: List physical copies
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -1077,7 +1077,7 @@ paths:
       summary: Create a physical copy
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -1130,7 +1130,7 @@ paths:
       summary: Change physical condition
       tags:
         - Catalog
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:

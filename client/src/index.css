@@ -672,3 +672,46 @@ legend {
   display: grid;
   gap: 8px;
 }
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+.table-wrap th,
+.table-wrap td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.table-wrap th {
+  background: #f8faf7;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 20px;
+}
+.detail-grid dd {
+  margin-top: 8px;
+}
+.stat-card h2 {
+  color: var(--muted);
+  font-size: 13px;
+}
+.stat-card p {
+  font-size: 36px;
+  margin: 8px 0;
+}
+.checkbox-field {
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.checkbox-field input {
+  min-height: unset;
+}

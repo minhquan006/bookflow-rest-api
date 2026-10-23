@@ -5,9 +5,11 @@ React/TypeScript + Express/TypeScript + PostgreSQL; kiến trúc monolith chia m
 
 Đã triển khai Auth/Users: đăng ký, đăng nhập, JWT, khôi phục phiên bằng refresh token,
 rotation/reuse detection, logout và quản lý tài khoản theo role. Có database/migration/seed,
-HTTP client, OpenAPI, kiểm thử, Docker và CI. Catalog/Copies và Loans/Dashboard/Audit
-được bàn giao riêng cho Tú và An; xem [trạng thái](docs/IMPLEMENTATION_STATUS.md)
-và [blueprint](docs/PROJECT_BLUEPRINT.md).
+HTTP client, OpenAPI, kiểm thử, Docker và CI. Catalog/Copies đã có API và giao diện
+tra cứu, quản lý danh mục/sách/bản sao, ETag/If-Match và archive. Loans/Dashboard/Audit
+chưa tích hợp, được bàn giao riêng cho An; giao diện hiện chưa cung cấp thao tác mượn
+hoặc điều hướng My loans. Xem [trạng thái](docs/IMPLEMENTATION_STATUS.md),
+[Catalog](docs/CATALOG_STATUS.md) và [blueprint](docs/PROJECT_BLUEPRINT.md).
 
 ## Bắt đầu trên máy phát triển
 
@@ -86,7 +88,8 @@ không reset dữ liệu dev. Kiểm tra khóa/ràng buộc dùng PostgreSQL th�
 Playwright dùng Chromium có sẵn tại `/usr/bin/chromium` nếu có; nếu không, chạy
 `npx playwright install chromium` trước (Linux CI có thể cần `--with-deps`). Có thể đặt
 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` để chọn bản Chromium đã cài. Browser tests kiểm tra
-kết nối thật, lỗi/phục hồi và kích thước desktop/mobile; chưa kiểm tra luồng nghiệp vụ.
+kết nối thật, Auth/Users, Catalog/staff, lỗi/phục hồi và kích thước desktop/mobile.
+Mượn–trả đầy đủ sẽ được kiểm tra sau khi tích hợp Loans.
 
 Kiểm tra HTTP nền tảng:
 
@@ -130,3 +133,7 @@ Auth giới hạn mặc định 10 yêu cầu mỗi IP/tài khoản trong 15 ph�
 login/register. `AUTH_RATE_LIMIT_MAX` cho phép đặt ngưỡng 1–100; mặc định giữ nguyên 10. Playwright tự khởi động server với ngưỡng100 để chạy nhiều browser context;
 kiểm thử bảo mật vẫn xác nhận ngưỡng mặc định. Server đang chạy được tái sử dụng
 thì giữ cấu hình lúc khởi động; restart trước khi chạy suite lớn nếu bị429.
+
+Catalog hiện giữ mã và lịch sử nhánh `feat/catalog` của Tú; đã ghép Auth và thêm
+staff screens, ETag/412 và quản lý copy. Xem [CATALOG_VALIDATION](docs/CATALOG_VALIDATION.md)
+về kiểm thử trên bản ghép thực tế; Loans được áp dụng sau bằng gói riêng.

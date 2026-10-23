@@ -1,18 +1,19 @@
 # Hợp đồng API dùng chung
 
 Nguồn máy đọc là [`openapi.yaml`](openapi.yaml); các quyết định nghiệp vụ gốc ở
-[`PROJECT_BLUEPRINT.md`](PROJECT_BLUEPRINT.md). Auth/Users đã triển khai; các module khác được bàn giao theo từng phần. Không coi endpoint đã có trong OpenAPI là đã có mã nghiệp vụ.
+[`PROJECT_BLUEPRINT.md`](PROJECT_BLUEPRINT.md). Auth/Users và Catalog/Copies đã triển khai; Loans/Admin được bàn giao ở phần tiếp theo. Không coi endpoint đã có trong OpenAPI là đã có mã nghiệp vụ.
 
 ## Trạng thái triển khai
 
-| Phần                                   | Trạng thái trong nền móng                                        |
-| -------------------------------------- | ---------------------------------------------------------------- |
-| `GET /health/live`                     | Liveness của tiến trình                                          |
-| `GET /health/ready`                    | Kiểm tra kết nối DB và migration hiện tại; chưa sẵn sàng trả 503 |
-| `GET /api/v1`                          | Kiểm tra kết nối client–API                                      |
-| `GET /openapi.yaml`, `/docs/`          | Tải contract và Swagger UI                                       |
-| Auth/Users                             | Đã triển khai và kiểm thử trên PostgreSQL thật                   |
-| Catalog/Copies, Loans, Dashboard/Audit | Contract đã chốt; bàn giao ở các phần tiếp theo                  |
+| Phần                          | Trạng thái trong nền móng                                        |
+| ----------------------------- | ---------------------------------------------------------------- |
+| `GET /health/live`            | Liveness của tiến trình                                          |
+| `GET /health/ready`           | Kiểm tra kết nối DB và migration hiện tại; chưa sẵn sàng trả 503 |
+| `GET /api/v1`                 | Kiểm tra kết nối client–API                                      |
+| `GET /openapi.yaml`, `/docs/` | Tải contract và Swagger UI                                       |
+| Auth/Users                    | Đã triển khai và kiểm thử trên PostgreSQL thật                   |
+| Catalog/Copies                | Đã triển khai; có ETag/If-Match và phân quyền staff              |
+| Loans, Dashboard/Audit        | Contract đã chốt; bàn giao ở phần tiếp theo                      |
 
 Mỗi operation có `x-implementation-status: implemented` hoặc `planned`.
 Endpoint nghiệp vụ chưa có router trả lỗi 404 chung, không có dữ liệu giả mô phỏng

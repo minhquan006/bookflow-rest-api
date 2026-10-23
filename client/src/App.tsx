@@ -3,6 +3,9 @@ import { AuthProvider, useAuth } from "./features/auth/AuthContext";
 import { LoginPage } from "./features/auth/LoginPage";
 import { RegisterPage } from "./features/auth/RegisterPage";
 import { UsersPage } from "./features/users/UsersPage";
+import { CatalogPage } from "./features/catalog/CatalogPage";
+import { BookDetailPage } from "./features/catalog/BookDetailPage";
+import { CategoriesPage } from "./features/catalog/CategoriesPage";
 import { Button } from "./components/Button";
 import { Feedback } from "./components/Feedback";
 import { ApiError } from "./lib/http";
@@ -57,11 +60,11 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
         <h1>
           Good books.
           <br />
-          Simple borrowing.
+          Simple discovery.
         </h1>
         <p className="lead">
-          Discover your next read, keep track of your loans, and make room for a
-          new story.
+          Discover your next read, explore the collection, and check live copy
+          availability.
         </p>
         <div className="action-row">
           <Button
@@ -85,13 +88,15 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
         </article>
         <article className="panel">
           <span className="step-number">02</span>
-          <h2>Borrow a copy</h2>
-          <p>Members can borrow up to three books for fourteen days.</p>
+          <h2>Check availability</h2>
+          <p>See how many copies are currently available.</p>
         </article>
         <article className="panel">
           <span className="step-number">03</span>
-          <h2>Keep your story going</h2>
-          <p>Check your due dates and return books with a librarian.</p>
+          <h2>Borrowing is coming soon</h2>
+          <p>
+            Browse the collection while borrowing services are being prepared.
+          </p>
         </article>
       </div>
       <section className="panel connection" aria-labelledby="connection-title">
@@ -129,17 +134,13 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
 
 function Workspace() {
   const { path, navigate } = usePath();
-  const { user, loading, logout, sessionError } = useAuth();
+  const { user, loading, logout, sessionError, api } = useAuth();
+  const viewer = user ? `${user.id}:${user.role}` : "anonymous";
   const [logoutError, setLogoutError] = useState("");
   const staff = user?.role === "ADMIN" || user?.role === "LIBRARIAN";
   const links = [
     { path: "/", label: "Overview", visible: true },
     { path: "/books", label: "Catalog", visible: true },
-    {
-      path: "/loans",
-      label: staff ? "All loans" : "My loans",
-      visible: !!user,
-    },
     { path: "/categories", label: "Categories", visible: staff },
     { path: "/dashboard", label: "Dashboard", visible: staff },
     { path: "/users", label: "Users", visible: user?.role === "ADMIN" },
@@ -172,6 +173,31 @@ function Workspace() {
   else if (path === "/login") content = <LoginPage onNavigate={navigate} />;
   else if (path === "/register")
     content = <RegisterPage onNavigate={navigate} />;
+  else if (path === "/books")
+    content = (
+      <CatalogPage
+        key={viewer}
+        client={api}
+        user={user}
+        onNavigate={navigate}
+      />
+    );
+  else if (/^\/books\/[^/]+$/.test(path))
+    content = (
+      <BookDetailPage
+        key={`${viewer}:${path}`}
+        bookId={path.split("/")[2]!}
+        onNavigate={navigate}
+      />
+    );
+  else if (path === "/categories")
+    content = staff ? (
+      <CategoriesPage />
+    ) : (
+      <Feedback kind="error">
+        Catalog management is available to librarians and administrators.
+      </Feedback>
+    );
   else if (path === "/users")
     content =
       user?.role === "ADMIN" ? (
@@ -192,14 +218,9 @@ function Workspace() {
           <dt>Role</dt>
           <dd>{user?.role}</dd>
         </dl>
-        <Button onClick={() => navigate("/loans")}>View your loans</Button>
       </section>
     );
-  else if (
-    ["/books", "/categories", "/loans", "/dashboard", "/audit-logs"].includes(
-      path,
-    )
-  )
+  else if (["/loans", "/dashboard", "/audit-logs"].includes(path))
     content = (
       <section className="panel">
         <h1>Coming soon</h1>
