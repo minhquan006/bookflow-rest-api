@@ -6,6 +6,9 @@ import { UsersPage } from "./features/users/UsersPage";
 import { CatalogPage } from "./features/catalog/CatalogPage";
 import { BookDetailPage } from "./features/catalog/BookDetailPage";
 import { CategoriesPage } from "./features/catalog/CategoriesPage";
+import { LoansPage } from "./features/loans/LoansPage";
+import { DashboardPage } from "./features/administration/DashboardPage";
+import { AuditPage } from "./features/administration/AuditPage";
 import { Button } from "./components/Button";
 import { Feedback } from "./components/Feedback";
 import { ApiError } from "./lib/http";
@@ -60,11 +63,11 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
         <h1>
           Good books.
           <br />
-          Simple discovery.
+          Simple borrowing.
         </h1>
         <p className="lead">
-          Discover your next read, explore the collection, and check live copy
-          availability.
+          Discover your next read, keep track of your loans, and make room for a
+          new story.
         </p>
         <div className="action-row">
           <Button
@@ -88,15 +91,13 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
         </article>
         <article className="panel">
           <span className="step-number">02</span>
-          <h2>Check availability</h2>
-          <p>See how many copies are currently available.</p>
+          <h2>Borrow a copy</h2>
+          <p>Members can borrow up to three books for fourteen days.</p>
         </article>
         <article className="panel">
           <span className="step-number">03</span>
-          <h2>Borrowing is coming soon</h2>
-          <p>
-            Browse the collection while borrowing services are being prepared.
-          </p>
+          <h2>Keep your story going</h2>
+          <p>Check your due dates and return books with a librarian.</p>
         </article>
       </div>
       <section className="panel connection" aria-labelledby="connection-title">
@@ -141,6 +142,11 @@ function Workspace() {
   const links = [
     { path: "/", label: "Overview", visible: true },
     { path: "/books", label: "Catalog", visible: true },
+    {
+      path: "/loans",
+      label: staff ? "All loans" : "My loans",
+      visible: !!user,
+    },
     { path: "/categories", label: "Categories", visible: staff },
     { path: "/dashboard", label: "Dashboard", visible: staff },
     { path: "/users", label: "Users", visible: user?.role === "ADMIN" },
@@ -173,6 +179,24 @@ function Workspace() {
   else if (path === "/login") content = <LoginPage onNavigate={navigate} />;
   else if (path === "/register")
     content = <RegisterPage onNavigate={navigate} />;
+  else if (path === "/loans") content = <LoansPage onNavigate={navigate} />;
+  else if (path === "/dashboard")
+    content = staff ? (
+      <DashboardPage />
+    ) : (
+      <Feedback kind="error">
+        Staff access is required to view the dashboard.
+      </Feedback>
+    );
+  else if (path === "/audit-logs")
+    content =
+      user?.role === "ADMIN" ? (
+        <AuditPage />
+      ) : (
+        <Feedback kind="error">
+          Administrator access is required to view the audit log.
+        </Feedback>
+      );
   else if (path === "/books")
     content = (
       <CatalogPage
@@ -218,14 +242,7 @@ function Workspace() {
           <dt>Role</dt>
           <dd>{user?.role}</dd>
         </dl>
-      </section>
-    );
-  else if (["/loans", "/dashboard", "/audit-logs"].includes(path))
-    content = (
-      <section className="panel">
-        <h1>Coming soon</h1>
-        <p>This part of the library is being prepared.</p>
-        <Button onClick={() => navigate("/")}>Back to overview</Button>
+        <Button onClick={() => navigate("/loans")}>View your loans</Button>
       </section>
     );
   else

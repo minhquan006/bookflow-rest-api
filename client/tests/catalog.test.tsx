@@ -326,7 +326,7 @@ describe("catalog and copy screens", () => {
   });
 
   it.each(["guest", "MEMBER"] as const)(
-    "shows availability to %s without offering the unimplemented Loans workflow",
+    "shows availability and the appropriate borrowing controls to %s after Loans integration",
     async (viewer) => {
       state.user = viewer === "guest" ? null : principal(viewer);
       const navigate = vi.fn();
@@ -335,12 +335,25 @@ describe("catalog and copy screens", () => {
         await screen.findByRole("heading", { name: book.title }),
       ).toBeVisible();
       expect(screen.getByText("1 available copy")).toBeVisible();
-      expect(screen.getByText("Borrowing is coming soon.")).toBeVisible();
+      if (viewer === "MEMBER") {
+        expect(
+          screen.getByRole("button", { name: "Borrow this book" }),
+        ).toBeEnabled();
+        expect(screen.getByRole("button", { name: "My loans" })).toBeVisible();
+      } else {
+        expect(
+          screen.getByRole("button", {
+            name: "Sign in to borrow",
+          }),
+        ).toBeVisible();
+        expect(
+          screen.queryByRole("button", {
+            name: "Borrow this book",
+          }),
+        ).not.toBeInTheDocument();
+      }
       expect(
-        screen.queryByRole("button", { name: /borrow|my loans/i }),
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByRole("link", { name: /borrow|my loans/i }),
+        screen.queryByText("Borrowing is coming soon."),
       ).not.toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: "Edit metadata" }),

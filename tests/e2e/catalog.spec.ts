@@ -106,9 +106,11 @@ test("catalog opens details and displays live API availability", async ({
       exact: true,
     }),
   ).toBeVisible();
-  await expect(page.getByText("Borrowing is coming soon.")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /borrow|my loans/i }),
+    page.getByRole("button", { name: "Sign in to borrow", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Borrow this book", exact: true }),
   ).toHaveCount(0);
 
   const overflowing = await page.evaluate(
@@ -117,7 +119,7 @@ test("catalog opens details and displays live API availability", async ({
   expect(overflowing).toBe(false);
 });
 
-test("member can view availability without unavailable borrowing or loan navigation", async ({
+test("member can view availability and navigate to integrated Loans without automatic borrowing", async ({
   page,
 }) => {
   const password = process.env.SEED_DEMO_PASSWORD;
@@ -139,8 +141,10 @@ test("member can view availability without unavailable borrowing or loan navigat
     page.getByRole("heading", { name: "Book catalog", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /^(my|all) loans$/i }),
-  ).toHaveCount(0);
+    page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("button", { name: "My loans", exact: true }),
+  ).toBeVisible();
   await page.goto("/books/10000000-0000-4000-8000-000000000001");
   await expect(
     page.getByRole("heading", {
@@ -149,17 +153,25 @@ test("member can view availability without unavailable borrowing or loan navigat
     }),
   ).toBeVisible();
   await expect(page.getByText(/^\d+ available cop(?:y|ies)$/)).toBeVisible();
-  await expect(page.getByText("Borrowing is coming soon.")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /borrow|my loans/i }),
-  ).toHaveCount(0);
+    page.getByRole("button", { name: "Borrow this book", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Borrowing is coming soon.")).toHaveCount(0);
   await expect(
     page.getByRole("link", { name: /borrow|my loans/i }),
   ).toHaveCount(0);
   await page.goto("/account");
   await expect(page.getByText("YOUR ACCOUNT", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: /loans/i })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "View your loans", exact: true }),
+  ).toBeVisible();
   expect(loanRequests).toEqual([]);
+  await page
+    .getByRole("button", { name: "View your loans", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "My loans", exact: true }),
+  ).toBeVisible();
 });
 
 test("catalog paginates and displays an empty search", async ({ page }) => {
