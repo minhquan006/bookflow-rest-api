@@ -1,8 +1,3 @@
-> **Catalog update on `feat/catalog`:** Public category/book listing and the
-> Catalog browsing UI are implemented. See [Catalog status](docs/CATALOG_STATUS.md)
-> for verified behavior and remaining work. The foundation descriptions below
-> predate this increment; full Catalog CRUD is not implemented yet.
-
 # BookFlow
 
 Nền tảng cho hệ thống thư viện RESTful — Web Programming & Applications (503073).
@@ -10,9 +5,11 @@ React/TypeScript + Express/TypeScript + PostgreSQL; kiến trúc monolith chia m
 
 Đã triển khai Auth/Users: đăng ký, đăng nhập, JWT, khôi phục phiên bằng refresh token,
 rotation/reuse detection, logout và quản lý tài khoản theo role. Có database/migration/seed,
-HTTP client, OpenAPI, kiểm thử, Docker và CI. Catalog/Copies và Loans/Dashboard/Audit
-được bàn giao riêng cho Tú và An; xem [trạng thái](docs/IMPLEMENTATION_STATUS.md)
-và [blueprint](docs/PROJECT_BLUEPRINT.md).
+HTTP client, OpenAPI, kiểm thử, Docker và CI. Catalog/Copies đã có API và giao diện
+tra cứu, quản lý danh mục/sách/bản sao, ETag/If-Match và archive. Loans/Dashboard/Audit
+chưa tích hợp, được bàn giao riêng cho An; giao diện hiện chưa cung cấp thao tác mượn
+hoặc điều hướng My loans. Xem [trạng thái](docs/IMPLEMENTATION_STATUS.md),
+[Catalog](docs/CATALOG_STATUS.md) và [blueprint](docs/PROJECT_BLUEPRINT.md).
 
 ## Bắt đầu trên máy phát triển
 
@@ -91,7 +88,8 @@ không reset dữ liệu dev. Kiểm tra khóa/ràng buộc dùng PostgreSQL th�
 Playwright dùng Chromium có sẵn tại `/usr/bin/chromium` nếu có; nếu không, chạy
 `npx playwright install chromium` trước (Linux CI có thể cần `--with-deps`). Có thể đặt
 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` để chọn bản Chromium đã cài. Browser tests kiểm tra
-kết nối thật, lỗi/phục hồi và kích thước desktop/mobile; chưa kiểm tra luồng nghiệp vụ.
+kết nối thật, Auth/Users, Catalog/staff, lỗi/phục hồi và kích thước desktop/mobile.
+Mượn–trả đầy đủ sẽ được kiểm tra sau khi tích hợp Loans.
 
 Kiểm tra HTTP nền tảng:
 

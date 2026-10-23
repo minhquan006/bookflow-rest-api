@@ -325,28 +325,46 @@ describe("catalog and copy screens", () => {
     expect(await screen.findByText("Book metadata saved.")).toBeVisible();
   });
 
-  it("shows a guest how to sign in before borrowing", async () => {
-    const navigate = vi.fn();
-    render(<BookDetailPage bookId={book.id} onNavigate={navigate} />);
-    await screen.findByRole("heading", { name: book.title });
-    await userEvent.click(
-      screen.getByRole("button", { name: "Sign in to borrow" }),
-    );
-    expect(navigate).toHaveBeenCalledWith("/login");
-    expect(
-      screen.queryByRole("button", { name: "Edit metadata" }),
-    ).not.toBeInTheDocument();
-  });
+  it.each(["guest", "MEMBER"] as const)(
+    "shows availability to %s without offering the unimplemented Loans workflow",
+    async (viewer) => {
+      state.user = viewer === "guest" ? null : principal(viewer);
+      const navigate = vi.fn();
+      render(<BookDetailPage bookId={book.id} onNavigate={navigate} />);
+      expect(
+        await screen.findByRole("heading", { name: book.title }),
+      ).toBeVisible();
+      expect(screen.getByText("1 available copy")).toBeVisible();
+      expect(screen.getByText("Borrowing is coming soon.")).toBeVisible();
+      expect(
+        screen.queryByRole("button", { name: /borrow|my loans/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("link", { name: /borrow|my loans/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Edit metadata" }),
+      ).not.toBeInTheDocument();
+      expect(
+        state.request.mock.calls.some(([path]) => path.startsWith("/loans")),
+      ).toBe(false);
+      await userEvent.click(
+        screen.getByRole("button", { name: "Back to catalog" }),
+      );
+      expect(navigate).toHaveBeenCalledWith("/books");
+      expect(navigate).not.toHaveBeenCalledWith("/loans");
+    },
+  );
 
-  it("borrows once and refreshes live availability, keeping a cached metadata representation on 304", async () => {
-    state.user = principal("MEMBER");
+  it("refreshes live availability after a copy change while retaining metadata on 304", async () => {
+    state.user = principal("LIBRARIAN");
     let available = 1;
     const original = state.request.getMockImplementation()!;
     state.request.mockImplementation(
       async (path: string, options?: { method?: string }) => {
-        if (path === "/loans" && options?.method === "POST") {
+        if (path === `/copies/${copy.id}` && options?.method === "PATCH") {
           available = 0;
-          return { data: { id: "loan-id" } };
+          return { data: { ...copy, conditionStatus: "MAINTENANCE" } };
         }
         if (path.includes("/availability"))
           return { data: { bookId: book.id, availableCopies: available } };
@@ -359,88 +377,49 @@ describe("catalog and copy screens", () => {
       headers: new Headers({ ETag: `"book-${book.id}-v1"` }),
     });
     render(<BookDetailPage bookId={book.id} onNavigate={vi.fn()} />);
-    await screen.findByRole("heading", { name: book.title });
+    await screen.findByLabelText(`Condition for ${copy.barcode}`);
+    await userEvent.selectOptions(
+      screen.getByLabelText(`Condition for ${copy.barcode}`),
+      "MAINTENANCE",
+    );
     await userEvent.click(
-      screen.getByRole("button", { name: "Borrow this book" }),
+      screen.getByRole("button", { name: "Update condition" }),
     );
-    expect(
-      await screen.findByText(
-        "Book borrowed successfully. You can review its due date in My loans.",
-      ),
-    ).toBeVisible();
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "Borrow this book" }),
-      ).toBeDisabled(),
-    );
-    expect(
-      state.request.mock.calls.filter(([path]) => path === "/loans"),
-    ).toHaveLength(1);
-    expect(state.request).toHaveBeenCalledWith("/loans", {
-      method: "POST",
-      json: { bookId: book.id },
-    });
+    expect(await screen.findByText("0 available copies")).toBeVisible();
     expect(screen.getByRole("heading", { name: book.title })).toBeVisible();
     expect(state.metadata.mock.calls[1][1].headers.get("If-None-Match")).toBe(
       `"book-${book.id}-v1"`,
     );
   });
 
-  it("keeps an ambiguous borrowing result visible instead of retrying a mutation", async () => {
-    state.user = principal("MEMBER");
-    const original = state.request.getMockImplementation()!;
-    state.request.mockImplementation(async (path: string) => {
-      if (path === "/loans") throw new TypeError("Failed to fetch");
-      return original(path);
-    });
-    render(<BookDetailPage bookId={book.id} onNavigate={vi.fn()} />);
-    await screen.findByRole("heading", { name: book.title });
-    await userEvent.click(
-      screen.getByRole("button", { name: "Borrow this book" }),
-    );
-    expect(
-      await screen.findByText(
-        "The borrowing result could not be confirmed. Check My loans before trying again.",
-      ),
-    ).toBeVisible();
-    expect(
-      state.request.mock.calls.filter(([path]) => path === "/loans"),
-    ).toHaveLength(1);
-  });
-
-  it("removes cached book details when a refresh reveals the resource is no longer visible", async () => {
-    state.user = principal("MEMBER");
-    const original = state.request.getMockImplementation()!;
-    state.request.mockImplementation(async (path: string) => {
-      if (path === "/loans")
-        throw problem(
-          404,
-          "RESOURCE_NOT_FOUND",
-          "The book is no longer available.",
-        );
-      return original(path);
-    });
+  it("removes cached book details when a copy refresh reveals the resource is no longer visible", async () => {
+    state.user = principal("LIBRARIAN");
     state.metadata
       .mockResolvedValueOnce(metadata())
       .mockRejectedValue(
         problem(404, "RESOURCE_NOT_FOUND", "The book is no longer available."),
       );
     render(<BookDetailPage bookId={book.id} onNavigate={vi.fn()} />);
-    await screen.findByRole("heading", { name: book.title });
+    await screen.findByLabelText(`Condition for ${copy.barcode}`);
+    expect(screen.getByRole("heading", { name: book.title })).toBeVisible();
+    await userEvent.selectOptions(
+      screen.getByLabelText(`Condition for ${copy.barcode}`),
+      "MAINTENANCE",
+    );
     await userEvent.click(
-      screen.getByRole("button", { name: "Borrow this book" }),
+      screen.getByRole("button", { name: "Update condition" }),
     );
     await waitFor(() =>
-      expect(
-        screen.queryByRole("heading", { name: book.title }),
-      ).not.toBeInTheDocument(),
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "The book is no longer available.",
+      ),
     );
     expect(
-      screen.queryByRole("button", { name: "Borrow this book" }),
+      screen.queryByRole("heading", { name: book.title }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "The book is no longer available.",
-    );
+    expect(
+      screen.queryByRole("button", { name: "Edit metadata" }),
+    ).not.toBeInTheDocument();
   });
 
   it("requires review of the latest version after a stale write and retains the editor draft", async () => {

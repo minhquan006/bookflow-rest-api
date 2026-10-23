@@ -60,11 +60,11 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
         <h1>
           Good books.
           <br />
-          Simple borrowing.
+          Simple discovery.
         </h1>
         <p className="lead">
-          Discover your next read, keep track of your loans, and make room for a
-          new story.
+          Discover your next read, explore the collection, and check live copy
+          availability.
         </p>
         <div className="action-row">
           <Button
@@ -88,13 +88,15 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
         </article>
         <article className="panel">
           <span className="step-number">02</span>
-          <h2>Borrow a copy</h2>
-          <p>Members can borrow up to three books for fourteen days.</p>
+          <h2>Check availability</h2>
+          <p>See how many copies are currently available.</p>
         </article>
         <article className="panel">
           <span className="step-number">03</span>
-          <h2>Keep your story going</h2>
-          <p>Check your due dates and return books with a librarian.</p>
+          <h2>Borrowing is coming soon</h2>
+          <p>
+            Browse the collection while borrowing services are being prepared.
+          </p>
         </article>
       </div>
       <section className="panel connection" aria-labelledby="connection-title">
@@ -139,11 +141,6 @@ function Workspace() {
   const links = [
     { path: "/", label: "Overview", visible: true },
     { path: "/books", label: "Catalog", visible: true },
-    {
-      path: "/loans",
-      label: staff ? "All loans" : "My loans",
-      visible: !!user,
-    },
     { path: "/categories", label: "Categories", visible: staff },
     { path: "/dashboard", label: "Dashboard", visible: staff },
     { path: "/users", label: "Users", visible: user?.role === "ADMIN" },
@@ -221,7 +218,6 @@ function Workspace() {
           <dt>Role</dt>
           <dd>{user?.role}</dd>
         </dl>
-        <Button onClick={() => navigate("/loans")}>View your loans</Button>
       </section>
     );
   else if (["/loans", "/dashboard", "/audit-logs"].includes(path))
