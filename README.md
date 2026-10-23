@@ -1,16 +1,19 @@
-# BookFlow download only
+# BookFlow download and member handoff
 
-This branch delivers two ZIP files. Do not merge this branch into main.
+Current merged main: `50e2dc4`, after Auth PR #4 and Catalog PR #5 including its review fix. The next member is An.
 
-- bookflow-source.zip: complete integrated tracked source from the supplied Auth + actual Tu Catalog + Loans packages. Dependencies and generated outputs are excluded. Run setup from its README; local secrets are generated on your machine.
-- bookflow-15-commits.zip: five patch steps per member, self-commit scripts, instructions and validation logs. Use this with the project Git repository for the intended member commit workflow. The standalone source ZIP has no Git history and is for running/reading the complete application.
+## Download for An
 
-The old branches and main remain unchanged. Source was verified during the previous task: 137 unit/component, 105 PostgreSQL integration and 20 browser tests at the final snapshot. Benchmark measurements inside source documents are historical, not rerun here. No .env credentials, node_modules or database files are included.
+Download **an-loans-v2-5commits.zip** using the file download button, or download this whole branch with Code > Download ZIP. Extract it outside the repository; read an-loans-v2/README.md. This v2 replaces the old An package, whose base tree no longer matches main. Use the repository cloned from GitHub plus this patch series. Node 24.19.0, npm 11, Docker PostgreSQL and Chromium are required. An reviews/tests and creates each commit with their own Git identity; scripts do not push or change authors.
 
-GitHub: download this branch using Code > Download ZIP, then extract the outer ZIP and the two ZIP files inside it. On Mac you may instead clone this delivery branch, then unzip the two files. Do not commit the assembled standalone snapshot as a replacement for the five-step member workflow.
+The five steps prepare backend, Loans UI, administration UI, integrated navigation/borrowing, and delivery tooling/docs. Borrow controls are restored only at the UI integration step, with the Loans API already present. The Catalog-only review regressions are adapted to the integrated behavior; availability/cache/visibility checks remain.
 
-## Mac with EduTrack running
+The v2 package includes per-step manifests, checksums and actual validation logs. All five steps passed check/integration/E2E. Final snapshot: 66 server + 71 client tests, 105 PostgreSQL integration tests, 22 browser tests. React lint advisories remain. Full Docker API/web, Newman and benchmark were not rerun. These results are from the cloud workspace, not An's machine or GitHub Actions.
 
-Download bookflow-mac-dev.mjs outside the project checkout. From the BookFlow repository root, run node /path/to/bookflow-mac-dev.mjs and keep that terminal open. It runs the API on 127.0.0.1:3100 and Vite on 127.0.0.1:5174, proxying /api, /docs, /health and /openapi.yaml. It sets the local API allowed origins and test auth rate budget without editing tracked files or .env. In the test/commit terminal export E2E_EXTERNAL=1 and E2E_BASE_URL=http://127.0.0.1:5174, then run npm run test:e2e. These exports must also be present when running each commit-step script. Keep this helper running; API and Vite watch source changes between steps. Ctrl+C stops only the processes started by the helper. PostgreSQL remains on the separately configured host port 5433.
+## Other files
 
-Verified in the cloud execution environment: 6 foundation browser tests at Auth step 1 and all 10 Auth browser tests at the final Auth tree pass using this external dev stack. This is not validation on the user Mac. No application source or member patch series was changed.
+- bookflow-15-commits.zip: updated combined handoff. Quân/Tú original folders are historical references because their work is merged; the current An folder is an-loans-v2. The obsolete An folder was removed from this combined archive.
+- bookflow-source.zip: complete assembled source preview including the pending An integration; it is not a claim that Loans is already merged into main. It has no Git history and is for reading/running, not replacing the member patch workflow. Local secrets, dependencies, DB data and generated build outputs are excluded.
+- bookflow-mac-dev.mjs: optional dev launcher if Mac ports 3000/5173 belong to another app. Run from the repository root, with the file outside the checkout, and keep its terminal open. It uses API 3100 and web 5174 and proxies /api, /docs, /health and /openapi.yaml. In the test/commit terminal set E2E_EXTERNAL=1 and E2E_BASE_URL=http://127.0.0.1:5174. Configure DB host port separately if needed.
+
+Do not merge this download-only branch into main. It preserves distribution files; actual member work goes through its own reviewed PR. If main changes, stop on the base-tree check and reconcile the package rather than bypassing it or resetting anyone's work.
