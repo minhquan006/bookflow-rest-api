@@ -6,8 +6,8 @@ info:
   description:
     "Development contract for the BookFlow foundation. Operations marked x-implementation-status:
     planned are agreed targets and currently return the generic 404 until their owners implement them.
-    Only Operations endpoints are implemented. This document is not evidence that business features pass
-    tests."
+    Operations and Auth/Users endpoints are implemented. Catalog and Loans are separate delivery stages.
+    See IMPLEMENTATION_STATUS.md for verified capabilities."
 servers:
   - url: /
     description: Same-origin API; in development call the backend on port 3000.
@@ -139,7 +139,7 @@ paths:
       summary: Register a MEMBER
       tags:
         - Auth
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security: []
       responses:
         "201":
@@ -190,7 +190,7 @@ paths:
       summary: Create an access and refresh session
       tags:
         - Auth
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security: []
       responses:
         "200":
@@ -247,7 +247,7 @@ paths:
       summary: Rotate a refresh token
       tags:
         - Auth
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - refreshCookie: []
           csrfHeader: []
@@ -299,7 +299,7 @@ paths:
       summary: Revoke refresh session
       tags:
         - Auth
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - refreshCookie: []
           csrfHeader: []
@@ -337,7 +337,7 @@ paths:
       summary: Read own safe profile
       tags:
         - Users
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -372,7 +372,7 @@ paths:
       summary: List users
       tags:
         - Users
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -419,7 +419,7 @@ paths:
       summary: Change user role or status
       tags:
         - Users
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:

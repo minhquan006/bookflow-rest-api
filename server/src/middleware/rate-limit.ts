@@ -21,7 +21,8 @@ export function createRateLimiter(limit = 300, windowMs = 60_000) {
 }
 
 // Memory stores are per process. A shared store is required before adding replicas.
-export const createAuthRateLimiter = () => createRateLimiter(10, 15 * 60_000);
+export const createAuthRateLimiter = (limit = 10) =>
+  createRateLimiter(limit, 15 * 60_000);
 
 export function createAccountRateLimiter(limit = 10) {
   return rateLimit({
@@ -41,7 +42,7 @@ export function createAccountRateLimiter(limit = 10) {
 }
 
 // Mount these together after JSON parsing on login; the IP limit bounds arbitrary account keys.
-export const createAuthRateLimiters = () => [
-  createAuthRateLimiter(),
-  createAccountRateLimiter(),
+export const createAuthRateLimiters = (limit = 10) => [
+  createAuthRateLimiter(limit),
+  createAccountRateLimiter(limit),
 ];

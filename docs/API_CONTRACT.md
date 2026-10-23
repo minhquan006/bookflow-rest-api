@@ -1,18 +1,18 @@
 # Hợp đồng API dùng chung
 
 Nguồn máy đọc là [`openapi.yaml`](openapi.yaml); các quyết định nghiệp vụ gốc ở
-[`PROJECT_BLUEPRINT.md`](PROJECT_BLUEPRINT.md). API hiện là nền móng cho phát triển
-song song. Không coi endpoint đã có trong OpenAPI là đã có mã nghiệp vụ.
+[`PROJECT_BLUEPRINT.md`](PROJECT_BLUEPRINT.md). Auth/Users đã triển khai; các module khác được bàn giao theo từng phần. Không coi endpoint đã có trong OpenAPI là đã có mã nghiệp vụ.
 
 ## Trạng thái triển khai
 
-| Phần                                               | Trạng thái trong nền móng                                        |
-| -------------------------------------------------- | ---------------------------------------------------------------- |
-| `GET /health/live`                                 | Liveness của tiến trình                                          |
-| `GET /health/ready`                                | Kiểm tra kết nối DB và migration hiện tại; chưa sẵn sàng trả 503 |
-| `GET /api/v1`                                      | Kiểm tra kết nối client–API                                      |
-| `GET /openapi.yaml`, `/docs/`                      | Tải contract và Swagger UI                                       |
-| Auth/Users, Catalog/Copies, Loans, Dashboard/Audit | **Contract đã chốt; chưa triển khai endpoint nghiệp vụ**         |
+| Phần                                   | Trạng thái trong nền móng                                        |
+| -------------------------------------- | ---------------------------------------------------------------- |
+| `GET /health/live`                     | Liveness của tiến trình                                          |
+| `GET /health/ready`                    | Kiểm tra kết nối DB và migration hiện tại; chưa sẵn sàng trả 503 |
+| `GET /api/v1`                          | Kiểm tra kết nối client–API                                      |
+| `GET /openapi.yaml`, `/docs/`          | Tải contract và Swagger UI                                       |
+| Auth/Users                             | Đã triển khai và kiểm thử trên PostgreSQL thật                   |
+| Catalog/Copies, Loans, Dashboard/Audit | Contract đã chốt; bàn giao ở các phần tiếp theo                  |
 
 Mỗi operation có `x-implementation-status: implemented` hoặc `planned`.
 Endpoint nghiệp vụ chưa có router trả lỗi 404 chung, không có dữ liệu giả mô phỏng
@@ -75,7 +75,7 @@ không lưu cờ riêng.
 
 ## Auth, cookies và phân quyền
 
-Đây là thiết kế cho chủ module Auth thực hiện, chưa phải chức năng hiện có:
+Các quy tắc Auth dưới đây đã được triển khai và có kiểm thử hồi quy:
 
 1. Register luôn tạo MEMBER; body có role/status bị từ chối. Trả safe User, chưa
    tự tạo phiên. Login trả `{data: {accessToken, tokenType: "Bearer", expiresIn,

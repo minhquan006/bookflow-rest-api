@@ -162,3 +162,21 @@ describe("shared utilities", () => {
     expect(JSON.parse(log).route).toBe("unmatched");
   });
 });
+
+describe("authentication rate-limit configuration", () => {
+  it("preserves the default and supports a bounded explicit test setting", () => {
+    expect(loadConfig(environment).authRateLimitMax).toBe(10);
+    expect(
+      loadConfig({ ...environment, AUTH_RATE_LIMIT_MAX: "100" })
+        .authRateLimitMax,
+    ).toBe(100);
+  });
+  it.each(["0", "101", "NaN", "1.5"])(
+    "rejects invalid auth request budgets: %s",
+    (budget) => {
+      expect(() =>
+        loadConfig({ ...environment, AUTH_RATE_LIMIT_MAX: budget }),
+      ).toThrow("AUTH_RATE_LIMIT_MAX");
+    },
+  );
+});

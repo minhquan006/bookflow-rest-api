@@ -14,12 +14,11 @@ migration/seed, giao diện kết nối API, HTTP client, kiểm thử hạ tầ
 CI/Docker. Bằng chứng chạy và giới hạn môi trường phải đọc trong README/kết quả
 kiểm thử hiện tại, không suy ra từ danh sách tính năng thiết kế.
 
-**Chưa có chức năng sản phẩm hoàn chỉnh**: register/login/refresh/logout, CRUD
-catalog, mượn/trả, dashboard và audit viewer vẫn là việc của module. Middleware
-JWT có sẵn không có nghĩa người dùng đã đăng nhập được; schema có loans không
-có nghĩa quy tắc mượn đã hiện thực; component chung không có nghĩa màn hình nghiệp
-vụ đã sẵn sàng. Không đánh dấu các test T01–T20 của blueprint đã đạt trước khi
-chạy thực tế.
+Auth/Users đã có register/login/refresh/logout, quản lý user, kiểm thử HTTP/DB và
+màn hình tài khoản. Catalog/Copies và Loans/Dashboard/Audit được đóng gói thành phần
+riêng cho chủ module review, chạy thử và commit. Xem [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md).
+Bằng chứng của phần nền móng không thay thế kiểm thử nghiệp vụ; mỗi phần được xác nhận
+bằng bộ test riêng và bước tích hợp cuối.
 
 ## Phân công và việc đầu tiên
 

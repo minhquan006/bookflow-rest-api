@@ -3,6 +3,7 @@ import { createApp } from "./app.js";
 import { loadConfig } from "./config/env.js";
 import { createLogger } from "./shared/logger.js";
 import { createPool, hasCurrentSchema } from "./db/index.js";
+import { createApiRouter } from "./routes.js";
 
 const config = loadConfig();
 const logger = createLogger(config);
@@ -14,6 +15,7 @@ const app = createApp({
   config,
   logger,
   checkReadiness: () => hasCurrentSchema(pool),
+  apiRouter: createApiRouter({ pool, config }),
 });
 const server = app.listen(config.port, config.host, () =>
   logger.info({ host: config.host, port: config.port }, "BookFlow API started"),
