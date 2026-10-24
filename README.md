@@ -14,3 +14,17 @@ Next work is shared acceptance on team machines and preparation of the English r
 ## Latest full test run on merged main
 
 Download **bookflow-test-report-main-7221e9e.zip** for sanitized logs and JSON results, or read **TEST_REPORT_MAIN_7221E9E.md**. Fresh cloud run: 66 server + 73 client tests, 105 PostgreSQL integration, 22 native dev-stack browser cases, 22 Docker/Nginx browser cases, Docker API/web build, repeated migrate/seed, 11 HTTP smoke checks, and Newman 47 requests/67 assertions all passed in the final runs. Benchmark: 500 HTTP 200, 0 errors, p95 55.26 ms at concurrency 20 over the documented synthetic dataset. An initial native mobile case failed with ERR_NETWORK_CHANGED during concurrent Docker startup; its log is retained and all 22 passed after networking settled without source/assertion changes. No real credentials or raw browser traces are shared. These are cloud results, not a new Mac or GitHub Actions run.
+
+## Optional Vietnamese interface update (not merged into main)
+
+Download **bookflow-vietnamese-update.zip** for the patch against main `7221e9e`,
+Vietnamese Mac instructions, PR text and sanitized validation receipts. Read
+**VIETNAMESE_UPDATE.md** before applying it. **bookflow-vietnamese-source.zip** is
+the full proposed source without Git history or local credentials. The existing
+**bookflow-source.zip** above still represents merged main, without this feature.
+
+The header selector switches English/Vietnamese and remembers an explicit choice.
+It preserves the session, form drafts and filters. Cloud validation passed: 66 server,
+80 client tests and 24 desktop/mobile browser cases. No API/database/dependency
+changes or limiter changes. Review and test on your own machine before opening the
+feature PR. Do not merge the download-only branch.
