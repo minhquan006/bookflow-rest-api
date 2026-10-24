@@ -75,6 +75,11 @@ export function LoansPage({
       })
       .then((result) => {
         if (!controller.signal.aborted && currentViewer.current === viewer) {
+          const lastPage = Math.max(1, result.pagination.totalPages);
+          if (page > lastPage) {
+            setPage(lastPage);
+            return;
+          }
           setCollection(result);
           setCollectionViewer(viewer);
         }

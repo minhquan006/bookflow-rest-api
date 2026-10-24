@@ -214,6 +214,88 @@ describe("loan history", () => {
     ).not.toBeInTheDocument();
   });
 
+  it.each([20, 0])(
+    "reloads a valid page after returning the last loan on page two leaves %i active loans",
+    async (remaining) => {
+      mocks.user = { id: staffId, role: "LIBRARIAN" };
+      const loans = Array.from({ length: 21 }, (_, index) => ({
+        ...activeLoan,
+        id: `${String(index + 1).padStart(8, "0")}-0000-4000-8000-000000000001`,
+      }));
+      const lastLoan = loans[20]!;
+      let activeLoans = loans;
+      mocks.request.mockImplementation((path: string) => {
+        if (path.endsWith("/return")) {
+          activeLoans = loans.slice(0, remaining);
+          return Promise.resolve({
+            data: {
+              loanId: lastLoan.id,
+              returnedAt: new Date().toISOString(),
+              returnedBy: staffId,
+            },
+          });
+        }
+        const query = new URL(path, "http://bookflow.test").searchParams;
+        const page = Number(query.get("page"));
+        return Promise.resolve({
+          data: activeLoans.slice((page - 1) * 20, page * 20),
+          pagination: {
+            page,
+            limit: 20,
+            total: activeLoans.length,
+            totalPages: Math.ceil(activeLoans.length / 20),
+          },
+        });
+      });
+      render(<LoansPage />);
+      await screen.findByText("Page 1 of 2");
+      await userEvent.selectOptions(
+        screen.getByLabelText("Loan status"),
+        "ACTIVE",
+      );
+      await screen.findByText("Page 1 of 2");
+      await userEvent.click(screen.getByRole("button", { name: "Next" }));
+      await screen.findByText("Page 2 of 2");
+      await userEvent.click(
+        screen.getByRole("button", { name: "Return loan 00000021" }),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: "Confirm return" }),
+      );
+
+      if (remaining > 0) {
+        expect(await screen.findByText("Page 1 of 1")).toBeInTheDocument();
+        expect(
+          screen.getByRole("button", { name: "View loan 00000001" }),
+        ).toBeInTheDocument();
+        expect(
+          screen.queryByText("No loans match this filter."),
+        ).not.toBeInTheDocument();
+      } else {
+        await screen.findByText("No loans match this filter.");
+        await waitFor(() =>
+          expect(mocks.request).toHaveBeenLastCalledWith(
+            "/loans?page=1&limit=20&status=ACTIVE",
+            expect.objectContaining({ signal: expect.any(AbortSignal) }),
+          ),
+        );
+        expect(
+          screen.queryByRole("navigation", { name: "Pagination" }),
+        ).not.toBeInTheDocument();
+      }
+      expect(screen.getByLabelText("Loan status")).toHaveValue("ACTIVE");
+      expect(screen.queryByText("Page 2 of 1")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "View loan 00000021" }),
+      ).not.toBeInTheDocument();
+      expect(
+        mocks.request.mock.calls.filter(([path]) =>
+          String(path).endsWith("/return"),
+        ),
+      ).toHaveLength(1);
+    },
+  );
+
   it("keeps an unsuccessful return visible and does not retry the mutation automatically", async () => {
     mocks.user = { id: staffId, role: "ADMIN" };
     mocks.request.mockImplementation((path: string) =>

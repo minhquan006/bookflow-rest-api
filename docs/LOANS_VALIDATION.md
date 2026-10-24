@@ -1,5 +1,21 @@
 # Kiểm chứng Loans v2 trên main đã merge Catalog
 
+## Sửa phân trang theo review PR #6
+
+Sau mốc bàn giao `6a9cd5b`, thêm một commit sửa riêng, giữ nguyên năm commit
+gốc. Khi trả phiếu cuối ở trang cuối làm trang hiện tại vượt tổng trang mới,
+Loans UI chuyển về trang hợp lệ cuối cùng và tải lại với bộ lọc đang chọn.
+Danh sách rỗng quay về trang 1, không tạo request trang 0.
+
+Hai regression cases tái hiện 21 ACTIVE loans ở trang 2, trả phiếu duy nhất rồi
+danh sách còn 20 hoặc đồng thời trở thành rỗng. Cả hai fail trên code trước sửa
+và pass sau sửa. `npm run check` mới đạt 66 server tests, **73 client tests**,
+lint/typecheck/build/contract/format; **22 E2E** desktop/mobile đạt.
+Không đổi backend/DB/contract; integration không chạy lại local cho bản sửa UI
+này. Kết quả integration và benchmark bên dưới thuộc lần bàn giao ban đầu.
+
+## Kết quả bàn giao ban đầu
+
 Gói `an-loans-v2` được áp dụng trên main
 `50e2dc410e3f2e8146da007f58f71f6c7f7af9a5`, gồm Auth/Users PR #4 và
 Catalog/Copies PR #5 với sửa review `118d20f`. Checksum toàn bộ gói khớp;
