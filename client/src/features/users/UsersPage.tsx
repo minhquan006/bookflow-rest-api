@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/language";
 import { useEffect, useState } from "react";
 import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
@@ -17,6 +18,7 @@ type UserPage = {
 };
 
 export function UsersPage() {
+  const { t, translate } = useTranslation();
   const { api, user, refreshProfile } = useAuth();
   const [result, setResult] = useState<UserPage | null>(null);
   const [page, setPage] = useState(1);
@@ -48,7 +50,7 @@ export function UsersPage() {
   if (user?.role !== "ADMIN")
     return (
       <Feedback kind="error">
-        Administrator access is required to manage users.
+        {t("Administrator access is required to manage users.")}
       </Feedback>
     );
   const matching =
@@ -65,42 +67,48 @@ export function UsersPage() {
     <section aria-labelledby="users-title">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Administration</p>
-          <h1 id="users-title">Users</h1>
+          <p className="eyebrow">{t("Administration")}</p>
+          <h1 id="users-title">{t("Users")}</h1>
           <p className="muted">
-            Manage access while preserving at least one active administrator.
+            {t(
+              "Manage access while preserving at least one active administrator.",
+            )}
           </p>
         </div>
         <Button
           busy={busy}
           onClick={() => setRevision((current) => current + 1)}
         >
-          Refresh users
+          {t("Refresh users")}
         </Button>
       </div>
       <label className="filter-field">
-        Filter this page by name or email
+        {t("Filter this page by name or email")}
         <input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
       </label>
-      {error && <Feedback kind="error">{error}</Feedback>}
-      {busy && <Feedback kind="loading">Loading users…</Feedback>}
+      {error && <Feedback kind="error">{translate(error)}</Feedback>}
+      {busy && <Feedback kind="loading">{t("Loading users…")}</Feedback>}
       {!busy && result && matching.length === 0 && (
-        <Feedback kind="empty">No users match this page filter.</Feedback>
+        <Feedback kind="empty">
+          {t("No users match this page filter.")}
+        </Feedback>
       )}
       {result && (
         <div className="table-wrap">
           <table>
-            <caption className="sr-only">User access administration</caption>
+            <caption className="sr-only">
+              {t("User access administration")}
+            </caption>
             <thead>
               <tr>
-                <th scope="col">Account</th>
-                <th scope="col">Role</th>
-                <th scope="col">Status</th>
-                <th scope="col">Action</th>
+                <th scope="col">{t("Account")}</th>
+                <th scope="col">{t("Role")}</th>
+                <th scope="col">{t("Status")}</th>
+                <th scope="col">{t("Action")}</th>
               </tr>
             </thead>
             <tbody>
@@ -118,8 +126,9 @@ export function UsersPage() {
       {result && (
         <>
           <p className="muted">
-            {result.pagination.total} accounts · Filters apply to the current
-            page.
+            {t("{count} accounts · Filters apply to the current page.", {
+              count: result.pagination.total,
+            })}
           </p>
           <Pagination
             page={page}
@@ -140,6 +149,7 @@ function UserRow({
   entry: User;
   onSaved: (user: User) => Promise<void>;
 }) {
+  const { t, translate } = useTranslation();
   const { api } = useAuth();
   const [role, setRole] = useState<Role>(entry.role);
   const [status, setStatus] = useState<User["status"]>(entry.status);
@@ -173,25 +183,25 @@ function UserRow({
       </td>
       <td>
         <select
-          aria-label={`Role for ${entry.email}`}
+          aria-label={t("Role for {email}", { email: entry.email })}
           value={role}
           disabled={busy}
           onChange={(event) => setRole(event.target.value as Role)}
         >
-          <option value="MEMBER">Member</option>
-          <option value="LIBRARIAN">Librarian</option>
-          <option value="ADMIN">Administrator</option>
+          <option value="MEMBER">{t("Member")}</option>
+          <option value="LIBRARIAN">{t("Librarian")}</option>
+          <option value="ADMIN">{t("Administrator")}</option>
         </select>
       </td>
       <td>
         <select
-          aria-label={`Status for ${entry.email}`}
+          aria-label={t("Status for {email}", { email: entry.email })}
           value={status}
           disabled={busy}
           onChange={(event) => setStatus(event.target.value as User["status"])}
         >
-          <option value="ACTIVE">Active</option>
-          <option value="DISABLED">Disabled</option>
+          <option value="ACTIVE">{t("Active")}</option>
+          <option value="DISABLED">{t("Disabled")}</option>
         </select>
       </td>
       <td>
@@ -202,10 +212,10 @@ function UserRow({
             void save();
           }}
         >
-          Save {entry.fullName}
+          {t("Save {name}", { name: entry.fullName })}
         </Button>
-        {error && <Feedback kind="error">{error}</Feedback>}
-        {success && <span role="status">Access updated.</span>}
+        {error && <Feedback kind="error">{translate(error)}</Feedback>}
+        {success && <span role="status">{t("Access updated.")}</span>}
       </td>
     </tr>
   );

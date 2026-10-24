@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/language";
 import { useEffect, useState } from "react";
 import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
@@ -13,6 +14,7 @@ type Dashboard = {
 };
 
 export function DashboardPage() {
+  const { t, translate, locale } = useTranslation();
   const { user, loading: authLoading, api } = useAuth();
   const permitted = user?.role === "LIBRARIAN" || user?.role === "ADMIN";
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -46,11 +48,11 @@ export function DashboardPage() {
   }, [api, permitted, refresh]);
 
   if (authLoading)
-    return <Feedback kind="loading">Restoring your session…</Feedback>;
+    return <Feedback kind="loading">{t("Restoring your session…")}</Feedback>;
   if (!permitted)
     return (
       <Feedback kind="error">
-        The dashboard is available to librarians and administrators.
+        {t("The dashboard is available to librarians and administrators.")}
       </Feedback>
     );
 
@@ -58,18 +60,21 @@ export function DashboardPage() {
     <div className="stack">
       <header className="section-heading">
         <div>
-          <h1>Library dashboard</h1>
+          <h1>{t("Library dashboard")}</h1>
           <p className="muted">
-            A snapshot of the library. Refresh after borrowing or returning
-            books.
+            {t(
+              "A snapshot of the library. Refresh after borrowing or returning books.",
+            )}
           </p>
         </div>
         <Button busy={busy} onClick={() => setRefresh((value) => value + 1)}>
-          Refresh statistics
+          {t("Refresh statistics")}
         </Button>
       </header>
-      {error && <Feedback kind="error">{error}</Feedback>}
-      {busy && <Feedback kind="loading">Loading library statistics…</Feedback>}
+      {error && <Feedback kind="error">{translate(error)}</Feedback>}
+      {busy && (
+        <Feedback kind="loading">{t("Loading library statistics…")}</Feedback>
+      )}
       {dashboard && (
         <>
           <div className="stat-grid">
@@ -92,14 +97,16 @@ export function DashboardPage() {
               ],
             ].map(([label, value, description]) => (
               <section className="panel stat-card" key={label}>
-                <h2>{label}</h2>
+                <h2>{translate(String(label))}</h2>
                 <p className="stat-value">{value}</p>
-                <p className="muted">{description}</p>
+                <p className="muted">{translate(String(description))}</p>
               </section>
             ))}
           </div>
           <p className="muted">
-            Statistics as of {formatLibraryDate(dashboard.asOf)} (Vietnam time).
+            {t("Statistics as of {date} (Vietnam time).", {
+              date: formatLibraryDate(dashboard.asOf, locale),
+            })}
           </p>
         </>
       )}

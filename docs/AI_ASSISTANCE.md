@@ -18,3 +18,7 @@ Do not rewrite authorship or invent a history of activity for another person.
 The Faculty's or instructor's applicable AI-use/disclosure rules take precedence
 for the academic submission. Test outcomes and screenshots must come from actual
 runs; planned behavior and unrun checks must remain clearly identified.
+
+The English/Vietnamese interface, language preference handling and related tests
+were also implemented with AI assistance. The team should review the Vietnamese
+wording and verify the language selector in its final demo and submission.

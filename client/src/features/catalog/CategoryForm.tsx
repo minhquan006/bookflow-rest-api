@@ -1,4 +1,5 @@
-﻿import { useState } from "react";
+import { useTranslation } from "../../i18n/language";
+import { useState } from "react";
 import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
 
@@ -12,6 +13,7 @@ export function CategoryForm({
 }: {
   onCreate: (input: CategoryInput) => Promise<unknown>;
 }) {
+  const { t, translate } = useTranslation();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [busy, setBusy] = useState(false);
@@ -21,7 +23,7 @@ export function CategoryForm({
   return (
     <form
       className="panel catalog"
-      aria-label="Create category"
+      aria-label={t("Create category")}
       onSubmit={async (event) => {
         event.preventDefault();
         if (busy) return;
@@ -58,10 +60,10 @@ export function CategoryForm({
         }
       }}
     >
-      <h2>Add category</h2>
+      <h2>{t("Add category")}</h2>
 
       <div className="catalog-field">
-        <label htmlFor="new-category-name">Category name</label>
+        <label htmlFor="new-category-name">{t("Category name")}</label>
         <input
           id="new-category-name"
           value={name}
@@ -73,7 +75,7 @@ export function CategoryForm({
       </div>
 
       <div className="catalog-field">
-        <label htmlFor="new-category-slug">Slug</label>
+        <label htmlFor="new-category-slug">{t("Slug")}</label>
         <input
           id="new-category-slug"
           value={slug}
@@ -84,16 +86,18 @@ export function CategoryForm({
           disabled={busy}
           onChange={(event) => setSlug(event.target.value)}
         />
-        <small id="category-slug-help">Example: science-fiction</small>
+        <small id="category-slug-help">{t("Example: science-fiction")}</small>
       </div>
 
-      {error && <Feedback kind="error">{error}</Feedback>}
+      {error && <Feedback kind="error">{translate(error)}</Feedback>}
       {success && (
-        <Feedback kind="success">Category created successfully.</Feedback>
+        <Feedback kind="success">
+          {t("Category created successfully.")}
+        </Feedback>
       )}
 
       <Button type="submit" busy={busy}>
-        Create category
+        {t("Create category")}
       </Button>
     </form>
   );

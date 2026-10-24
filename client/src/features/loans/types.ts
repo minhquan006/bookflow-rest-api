@@ -29,8 +29,11 @@ export function loanStatus(loan: Loan, at = Date.now()) {
   return new Date(loan.dueAt).getTime() < at ? "Overdue" : "Active";
 }
 
-export function formatLibraryDate(value: string) {
-  return new Intl.DateTimeFormat("en-GB", {
+export function formatLibraryDate(
+  value: string,
+  locale: "en-GB" | "vi-VN" = "en-GB",
+) {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: "Asia/Ho_Chi_Minh",

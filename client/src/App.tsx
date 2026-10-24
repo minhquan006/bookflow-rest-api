@@ -1,3 +1,6 @@
+import { LanguageSelector } from "./components/LanguageSelector";
+import { useTranslation } from "./i18n/language";
+import { LanguageProvider } from "./i18n/LanguageProvider";
 import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "./features/auth/AuthContext";
 import { LoginPage } from "./features/auth/LoginPage";
@@ -30,6 +33,7 @@ function usePath() {
 }
 
 function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
+  const { t, translate } = useTranslation();
   const { api, user } = useAuth();
   const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
   const [message, setMessage] = useState("");
@@ -59,26 +63,27 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
   return (
     <>
       <section className="hero-panel">
-        <p className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p>
+        <p className="eyebrow">{t("YOUR NEXT CHAPTER STARTS HERE")}</p>
         <h1>
-          Good books.
+          {t("Good books.")}
           <br />
-          Simple borrowing.
+          {t("Simple borrowing.")}
         </h1>
         <p className="lead">
-          Discover your next read, keep track of your loans, and make room for a
-          new story.
+          {t(
+            "Discover your next read, keep track of your loans, and make room for a new story.",
+          )}
         </p>
         <div className="action-row">
           <Button
             className="button button-primary"
             onClick={() => onNavigate("/books")}
           >
-            Explore the catalog
+            {t("Explore the catalog")}
           </Button>
           {!user && (
             <Button onClick={() => onNavigate("/register")}>
-              Join the library
+              {t("Join the library")}
             </Button>
           )}
         </div>
@@ -86,23 +91,23 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
       <div className="module-grid overview-cards">
         <article className="panel">
           <span className="step-number">01</span>
-          <h2>Find your next read</h2>
-          <p>Browse books by category, title or author.</p>
+          <h2>{t("Find your next read")}</h2>
+          <p>{t("Browse books by category, title or author.")}</p>
         </article>
         <article className="panel">
           <span className="step-number">02</span>
-          <h2>Borrow a copy</h2>
-          <p>Members can borrow up to three books for fourteen days.</p>
+          <h2>{t("Borrow a copy")}</h2>
+          <p>{t("Members can borrow up to three books for fourteen days.")}</p>
         </article>
         <article className="panel">
           <span className="step-number">03</span>
-          <h2>Keep your story going</h2>
-          <p>Check your due dates and return books with a librarian.</p>
+          <h2>{t("Keep your story going")}</h2>
+          <p>{t("Check your due dates and return books with a librarian.")}</p>
         </article>
       </div>
       <section className="panel connection" aria-labelledby="connection-title">
         <div className="section-heading">
-          <h2 id="connection-title">Library service</h2>
+          <h2 id="connection-title">{t("Library service")}</h2>
           <Button
             busy={status === "loading"}
             onClick={() => {
@@ -110,22 +115,22 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
               setAttempt((value) => value + 1);
             }}
           >
-            Refresh connection
+            {t("Refresh connection")}
           </Button>
         </div>
         {status === "loading" && (
-          <Feedback kind="loading">Connecting to the API…</Feedback>
+          <Feedback kind="loading">{t("Connecting to the API…")}</Feedback>
         )}
         {status === "ok" && (
           <Feedback kind="success">
-            <strong>API connected</strong>
-            <p>{message}</p>
+            <strong>{t("API connected")}</strong>
+            <p>{translate(message)}</p>
           </Feedback>
         )}
         {status === "error" && (
           <Feedback kind="error">
-            <p>{message}</p>
-            {requestId && <p>Request ID: {requestId}</p>}
+            <p>{translate(message)}</p>
+            {requestId && <p>{t("Request ID: {id}", { id: requestId })}</p>}
           </Feedback>
         )}
       </section>
@@ -134,9 +139,10 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
 }
 
 function Workspace() {
+  const { t, translate } = useTranslation();
   const { path, navigate } = usePath();
   const { user, loading, logout, sessionError, api } = useAuth();
-  const viewer = user ? `${user.id}:${user.role}` : "anonymous";
+  const viewer = user ? `${user.id}:${translate(user.role)}` : "anonymous";
   const [logoutError, setLogoutError] = useState("");
   const staff = user?.role === "ADMIN" || user?.role === "LIBRARIAN";
   const links = [
@@ -166,13 +172,17 @@ function Workspace() {
     "/audit-logs",
   ].includes(path);
   if (protectedPath && loading)
-    content = <Feedback kind="loading">Restoring your session…</Feedback>;
+    content = (
+      <Feedback kind="loading">{t("Restoring your session…")}</Feedback>
+    );
   else if (protectedPath && !user)
     content = (
       <section className="panel">
-        <h1>Sign in to continue</h1>
-        <p>Your library account keeps your loans and information together.</p>
-        <Button onClick={() => navigate("/login")}>Sign in</Button>
+        <h1>{t("Sign in to continue")}</h1>
+        <p>
+          {t("Your library account keeps your loans and information together.")}
+        </p>
+        <Button onClick={() => navigate("/login")}>{t("Sign in")}</Button>
       </section>
     );
   else if (path === "/") content = <Home onNavigate={navigate} />;
@@ -185,7 +195,7 @@ function Workspace() {
       <DashboardPage />
     ) : (
       <Feedback kind="error">
-        Staff access is required to view the dashboard.
+        {t("Staff access is required to view the dashboard.")}
       </Feedback>
     );
   else if (path === "/audit-logs")
@@ -194,7 +204,7 @@ function Workspace() {
         <AuditPage />
       ) : (
         <Feedback kind="error">
-          Administrator access is required to view the audit log.
+          {t("Administrator access is required to view the audit log.")}
         </Feedback>
       );
   else if (path === "/books")
@@ -219,7 +229,7 @@ function Workspace() {
       <CategoriesPage />
     ) : (
       <Feedback kind="error">
-        Catalog management is available to librarians and administrators.
+        {t("Catalog management is available to librarians and administrators.")}
       </Feedback>
     );
   else if (path === "/users")
@@ -228,35 +238,37 @@ function Workspace() {
         <UsersPage />
       ) : (
         <Feedback kind="error">
-          You do not have permission to view this page.
+          {t("You do not have permission to view this page.")}
         </Feedback>
       );
   else if (path === "/account")
     content = (
       <section className="panel">
-        <p className="eyebrow">YOUR ACCOUNT</p>
+        <p className="eyebrow">{t("YOUR ACCOUNT")}</p>
         <h1>{user?.fullName}</h1>
         <dl>
-          <dt>Email</dt>
+          <dt>{t("Email")}</dt>
           <dd>{user?.email}</dd>
-          <dt>Role</dt>
-          <dd>{user?.role}</dd>
+          <dt>{t("Role")}</dt>
+          <dd>{user && translate(user.role)}</dd>
         </dl>
-        <Button onClick={() => navigate("/loans")}>View your loans</Button>
+        <Button onClick={() => navigate("/loans")}>
+          {t("View your loans")}
+        </Button>
       </section>
     );
   else
     content = (
       <section className="panel">
-        <h1>Page not found</h1>
-        <p>Choose a page from the navigation to continue.</p>
-        <Button onClick={() => navigate("/")}>Back to overview</Button>
+        <h1>{t("Page not found")}</h1>
+        <p>{t("Choose a page from the navigation to continue.")}</p>
+        <Button onClick={() => navigate("/")}>{t("Back to overview")}</Button>
       </section>
     );
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
-        Skip to content
+        {t("Skip to content")}
       </a>
       <header className="app-header">
         <a
@@ -266,24 +278,25 @@ function Workspace() {
             event.preventDefault();
             navigate("/");
           }}
-          aria-label="BookFlow home"
+          aria-label={t("BookFlow home")}
         >
           <span className="brand-mark" aria-hidden="true">
             B
           </span>
           <span>
-            BookFlow<small>A little more discovery.</small>
+            BookFlow<small>{t("A little more discovery.")}</small>
           </span>
         </a>
         <div className="header-actions">
+          <LanguageSelector />
           {loading ? (
-            <span className="muted">Restoring session…</span>
+            <span className="muted">{t("Restoring session…")}</span>
           ) : user ? (
             <>
               <Button onClick={() => navigate("/account")}>
                 {user.fullName}
               </Button>
-              <span className="badge">{user.role}</span>
+              <span className="badge">{translate(user.role)}</span>
               <Button
                 onClick={() => {
                   setLogoutError("");
@@ -298,17 +311,17 @@ function Workspace() {
                     );
                 }}
               >
-                Sign out
+                {t("Sign out")}
               </Button>
             </>
           ) : (
             <>
-              <Button onClick={() => navigate("/login")}>Sign in</Button>
+              <Button onClick={() => navigate("/login")}>{t("Sign in")}</Button>
               <Button
                 className="button button-primary"
                 onClick={() => navigate("/register")}
               >
-                Create account
+                {t("Create account")}
               </Button>
             </>
           )}
@@ -316,8 +329,8 @@ function Workspace() {
       </header>
       <div className="workspace">
         <aside className="sidebar">
-          <p className="eyebrow">YOUR LIBRARY</p>
-          <nav aria-label="Main navigation">
+          <p className="eyebrow">{t("YOUR LIBRARY")}</p>
+          <nav aria-label={t("Main navigation")}>
             {links
               .filter((link) => link.visible)
               .map((link) => (
@@ -332,14 +345,12 @@ function Workspace() {
                   }
                   onClick={() => navigate(link.path)}
                 >
-                  {link.label}
+                  {translate(link.label)}
                 </button>
               ))}
           </nav>
           <p className="sidebar-note">
-            Find something worth
-            <br />
-            turning the page for.
+            {t("Find something worth turning the page for.")}
           </p>
           <a
             className="sidebar-docs"
@@ -349,18 +360,22 @@ function Workspace() {
             target="_blank"
             rel="noreferrer"
           >
-            API documentation ↗
+            {t("API documentation ↗")}
           </a>
         </aside>
         <main id="main-content" tabIndex={-1}>
           {(logoutError || sessionError) && (
-            <Feedback kind="error">{logoutError || sessionError}</Feedback>
+            <Feedback kind="error">
+              {translate(logoutError || sessionError)}
+            </Feedback>
           )}
           {content}
         </main>
       </div>
       <footer>
-        BookFlow · Library Management · Web Programming & Applications — 503073
+        {t(
+          "BookFlow · Library Management · Web Programming & Applications — 503073",
+        )}
       </footer>
     </div>
   );
@@ -368,8 +383,10 @@ function Workspace() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Workspace />
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <Workspace />
+      </AuthProvider>
+    </LanguageProvider>
   );
 }

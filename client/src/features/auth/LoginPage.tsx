@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/language";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Button } from "../../components/Button";
@@ -11,6 +12,7 @@ export function LoginPage({
 }: {
   onNavigate: (path: string) => void;
 }) {
+  const { t, translate } = useTranslation();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,12 +42,12 @@ export function LoginPage({
   }
   return (
     <section className="panel auth-panel" aria-labelledby="login-title">
-      <p className="eyebrow">Welcome back</p>
-      <h1 id="login-title">Sign in</h1>
+      <p className="eyebrow">{t("Welcome back")}</p>
+      <h1 id="login-title">{t("Sign in")}</h1>
       <p className="muted">
-        Access your loans or manage the library with your assigned role.
+        {t("Access your loans or manage the library with your assigned role.")}
       </p>
-      {error && <Feedback kind="error">{error}</Feedback>}
+      {error && <Feedback kind="error">{translate(error)}</Feedback>}
       <form
         onSubmit={(event) => {
           void submit(event);
@@ -54,7 +56,7 @@ export function LoginPage({
         className="form-stack"
       >
         <FormField
-          label="Email"
+          label={t("Email")}
           type="email"
           autoComplete="username"
           required
@@ -64,7 +66,7 @@ export function LoginPage({
           error={errors.email}
         />
         <FormField
-          label="Password"
+          label={t("Password")}
           type="password"
           autoComplete="current-password"
           required
@@ -74,17 +76,17 @@ export function LoginPage({
           error={errors.password}
         />
         <Button type="submit" busy={busy}>
-          {busy ? "Signing in…" : "Sign in"}
+          {busy ? t("Signing in…") : t("Sign in")}
         </Button>
       </form>
       <p>
-        New to BookFlow?{" "}
+        {t("New to BookFlow?")}{" "}
         <button
           type="button"
           className="text-button"
           onClick={() => onNavigate("/register")}
         >
-          Create an account
+          {t("Create an account")}
         </button>
       </p>
     </section>

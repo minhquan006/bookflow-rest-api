@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/language";
 import { BookDetails } from "./BookDetails";
 import { useEffect, useState } from "react";
 import { api } from "../../lib/http";
@@ -42,6 +43,7 @@ export function CatalogPage({
   user?: { role: "MEMBER" | "LIBRARIAN" | "ADMIN" } | null;
   onNavigate?: (path: string) => void;
 } = {}) {
+  const { t, translate } = useTranslation();
   const staff = user?.role === "LIBRARIAN" || user?.role === "ADMIN";
   const [draft, setDraft] = useState(initialFilters);
   const [filters, setFilters] = useState(initialFilters);
@@ -128,13 +130,13 @@ export function CatalogPage({
   }
 
   return (
-    <section className="catalog" aria-label="Book catalog">
+    <section className="catalog" aria-label={t("Book catalog")}>
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Library collection</p>
-          <h1>Book catalog</h1>
+          <p className="eyebrow">{t("Library collection")}</p>
+          <h1>{t("Book catalog")}</h1>
           <p className="lead">
-            Discover your next read and check live copy availability.
+            {t("Discover your next read and check live copy availability.")}
           </p>
         </div>
         {staff && (
@@ -145,11 +147,11 @@ export function CatalogPage({
                 setSaveError("");
               }}
             >
-              Add book
+              {t("Add book")}
             </Button>
             {onNavigate && (
               <Button onClick={() => onNavigate("/categories")}>
-                Manage categories
+                {t("Manage categories")}
               </Button>
             )}
           </div>
@@ -157,17 +159,19 @@ export function CatalogPage({
       </div>
       {staff && creating && (
         <section className="panel stack" aria-labelledby="create-book-title">
-          <h2 id="create-book-title">Add a book</h2>
+          <h2 id="create-book-title">{t("Add a book")}</h2>
           {categories.length === 0 && (
             <Feedback kind="empty">
-              Create a category before adding a book.
+              {t("Create a category before adding a book.")}
             </Feedback>
           )}
-          {saveError && <Feedback kind="error">{saveError}</Feedback>}
+          {saveError && (
+            <Feedback kind="error">{translate(saveError)}</Feedback>
+          )}
           <BookForm
             categories={categories}
             busy={saving}
-            submitLabel="Create book"
+            submitLabel={t("Create book")}
             onSubmit={createBook}
             onCancel={() => setCreating(false)}
           />
@@ -184,19 +188,19 @@ export function CatalogPage({
         }}
       >
         <div className="catalog-field">
-          <label htmlFor="catalog-search">Title or author</label>
+          <label htmlFor="catalog-search">{t("Title or author")}</label>
           <input
             id="catalog-search"
             type="search"
             maxLength={200}
-            placeholder="Search books..."
+            placeholder={t("Search books...")}
             value={draft.q}
             onChange={(event) => setDraft({ ...draft, q: event.target.value })}
           />
         </div>
 
         <div className="catalog-field">
-          <label htmlFor="catalog-category">Category</label>
+          <label htmlFor="catalog-category">{t("Category")}</label>
           <select
             id="catalog-category"
             value={draft.categoryId}
@@ -204,7 +208,7 @@ export function CatalogPage({
               setDraft({ ...draft, categoryId: event.target.value })
             }
           >
-            <option value="">All categories</option>
+            <option value="">{t("All categories")}</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
@@ -214,7 +218,7 @@ export function CatalogPage({
         </div>
 
         <div className="catalog-field">
-          <label htmlFor="catalog-sort">Sort by</label>
+          <label htmlFor="catalog-sort">{t("Sort by")}</label>
           <select
             id="catalog-sort"
             value={draft.sort}
@@ -222,15 +226,15 @@ export function CatalogPage({
               setDraft({ ...draft, sort: event.target.value })
             }
           >
-            <option value="title">Title A-Z</option>
-            <option value="-title">Title Z-A</option>
-            <option value="-createdAt">Newest first</option>
-            <option value="createdAt">Oldest first</option>
+            <option value="title">{t("Title A-Z")}</option>
+            <option value="-title">{t("Title Z-A")}</option>
+            <option value="-createdAt">{t("Newest first")}</option>
+            <option value="createdAt">{t("Oldest first")}</option>
           </select>
         </div>
 
         <Button type="submit" busy={loading}>
-          Search
+          {t("Search")}
         </Button>
         {staff && (
           <label className="checkbox-field" htmlFor="catalog-archived">
@@ -242,16 +246,16 @@ export function CatalogPage({
                 setDraft({ ...draft, includeArchived: event.target.checked })
               }
             />
-            Include archived
+            {t("Include archived")}
           </label>
         )}
       </form>
 
-      {loading && <Feedback kind="loading">Loading books...</Feedback>}
+      {loading && <Feedback kind="loading">{t("Loading books...")}</Feedback>}
 
       {!loading && error && (
         <div className="panel">
-          <Feedback kind="error">{error}</Feedback>
+          <Feedback kind="error">{translate(error)}</Feedback>
           <Button
             onClick={() => {
               setLoading(true);
@@ -259,18 +263,20 @@ export function CatalogPage({
               setAttempt((value) => value + 1);
             }}
           >
-            Try again
+            {t("Try again")}
           </Button>
         </div>
       )}
 
       {!loading && !error && result && (
         <>
-          <p aria-live="polite">{result.pagination.total} books found</p>
+          <p aria-live="polite">
+            {t("{count} books found", { count: result.pagination.total })}
+          </p>
 
           {result.data.length === 0 ? (
             <p className="panel">
-              No books found. Try another search or category.
+              {t("No books found. Try another search or category.")}
             </p>
           ) : (
             <div className="catalog-grid">
@@ -278,12 +284,14 @@ export function CatalogPage({
                 <article key={book.id} className="panel catalog-card">
                   <span className="badge">
                     {categories.find((item) => item.id === book.categoryId)
-                      ?.name ?? "Book"}
+                      ?.name ?? t("Book")}
                   </span>
                   <h2>{book.title}</h2>
-                  {book.archivedAt && <span className="badge">Archived</span>}
+                  {book.archivedAt && (
+                    <span className="badge">{t("Archived")}</span>
+                  )}
                   <p className="catalog-author">{book.author}</p>
-                  <p>{book.description || "No description available."}</p>
+                  <p>{book.description || t("No description available.")}</p>
                   <BookDetails
                     bookId={book.id}
                     title={book.title}
@@ -292,9 +300,9 @@ export function CatalogPage({
                   {onNavigate && (
                     <Button
                       onClick={() => onNavigate(`/books/${book.id}`)}
-                      aria-label={`View ${book.title}`}
+                      aria-label={t("View {title}", { title: book.title })}
                     >
-                      Open book
+                      {t("Open book")}
                     </Button>
                   )}
                 </article>

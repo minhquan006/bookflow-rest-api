@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/language";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useAuth } from "../auth/AuthContext";
@@ -10,6 +11,7 @@ import { errorMessage } from "./types";
 import type { Category, PaginationInfo } from "./types";
 
 export function CategoriesPage() {
+  const { t, translate } = useTranslation();
   const { user, api } = useAuth();
   const staff = user?.role === "LIBRARIAN" || user?.role === "ADMIN";
   const [categories, setCategories] = useState<Category[]>([]);
@@ -116,23 +118,23 @@ export function CategoriesPage() {
   if (!staff)
     return (
       <Feedback kind="error">
-        Catalog management is available to librarians and administrators.
+        {t("Catalog management is available to librarians and administrators.")}
       </Feedback>
     );
   return (
     <div className="stack">
       <div>
-        <p className="eyebrow">Catalog management</p>
-        <h1>Categories</h1>
+        <p className="eyebrow">{t("Catalog management")}</p>
+        <h1>{t("Categories")}</h1>
         <p className="lead">
-          Organize books with clear, unique names and slugs.
+          {t("Organize books with clear, unique names and slugs.")}
         </p>
       </div>
-      {error && <Feedback kind="error">{error}</Feedback>}
-      {message && <Feedback kind="success">{message}</Feedback>}
+      {error && <Feedback kind="error">{translate(error)}</Feedback>}
+      {message && <Feedback kind="success">{translate(message)}</Feedback>}
       {editing ? (
         <section className="panel stack" aria-labelledby="category-form-title">
-          <h2 id="category-form-title">Edit category</h2>
+          <h2 id="category-form-title">{t("Edit category")}</h2>
           <form
             onSubmit={(event) => {
               void submit(event);
@@ -141,7 +143,7 @@ export function CategoriesPage() {
           >
             <div className="form-grid">
               <FormField
-                label="Category name"
+                label={t("Category name")}
                 value={name}
                 required
                 maxLength={100}
@@ -149,18 +151,18 @@ export function CategoriesPage() {
                 onChange={(event) => setName(event.target.value)}
               />
               <FormField
-                label="Category slug"
+                label={t("Category slug")}
                 value={slug}
                 required
                 maxLength={100}
-                hint="Lowercase words separated by hyphens."
+                hint={t("Lowercase words separated by hyphens.")}
                 disabled={saving}
                 onChange={(event) => setSlug(event.target.value)}
               />
             </div>
             <div className="action-row">
               <Button type="submit" busy={saving}>
-                Save category
+                {t("Save category")}
               </Button>
               <Button
                 disabled={saving}
@@ -170,7 +172,7 @@ export function CategoriesPage() {
                   setSlug("");
                 }}
               >
-                Cancel editing
+                {t("Cancel editing")}
               </Button>
             </div>
           </form>
@@ -179,21 +181,21 @@ export function CategoriesPage() {
         <CategoryForm onCreate={create} />
       )}
       <section className="panel stack" aria-labelledby="category-list-title">
-        <h2 id="category-list-title">All categories</h2>
+        <h2 id="category-list-title">{t("All categories")}</h2>
         {loading ? (
-          <Feedback kind="loading">Loading categories…</Feedback>
+          <Feedback kind="loading">{t("Loading categories…")}</Feedback>
         ) : categories.length === 0 ? (
           <Feedback kind="empty">
-            No categories yet. Add one to start building the catalog.
+            {t("No categories yet. Add one to start building the catalog.")}
           </Feedback>
         ) : (
           <div className="table-scroll">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Slug</th>
-                  <th scope="col">Actions</th>
+                  <th scope="col">{t("Name")}</th>
+                  <th scope="col">{t("Slug")}</th>
+                  <th scope="col">{t("Actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -212,23 +214,26 @@ export function CategoriesPage() {
                             setError("");
                           }}
                         >
-                          Edit {category.name}
+                          {t("Edit {name}", { name: category.name })}
                         </Button>
                         <Button
                           disabled={saving}
                           onClick={() => setConfirmDelete(category.id)}
                         >
-                          Delete {category.name}
+                          {t("Delete {name}", { name: category.name })}
                         </Button>
                       </div>
                       {confirmDelete === category.id && (
                         <div
                           role="group"
-                          aria-label={`Confirm deleting ${category.name}`}
+                          aria-label={t("Confirm deleting {name}", {
+                            name: category.name,
+                          })}
                         >
                           <p>
-                            Delete this category? Categories referenced by books
-                            cannot be deleted.
+                            {t(
+                              "Delete this category? Categories referenced by books cannot be deleted.",
+                            )}
                           </p>
                           <div className="action-row">
                             <Button
@@ -237,13 +242,13 @@ export function CategoriesPage() {
                                 void remove(category.id);
                               }}
                             >
-                              Confirm delete
+                              {t("Confirm delete")}
                             </Button>
                             <Button
                               disabled={saving}
                               onClick={() => setConfirmDelete(null)}
                             >
-                              Keep category
+                              {t("Keep category")}
                             </Button>
                           </div>
                         </div>
@@ -264,7 +269,9 @@ export function CategoriesPage() {
             setPage(next);
           }}
         />
-        <p className="muted">{pagination.total} categories</p>
+        <p className="muted">
+          {t("{count} categories", { count: pagination.total })}
+        </p>
       </section>
     </div>
   );
