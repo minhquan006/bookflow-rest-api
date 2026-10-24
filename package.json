@@ -25,7 +25,8 @@
     "db:test:create": "node scripts/create-test-db.mjs",
     "check": "npm run lint && npm run typecheck && npm run build && npm test && npm run contract:check && npm run format:check",
     "compose": "node scripts/compose.mjs",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "benchmark": "npm --prefix server run benchmark"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "13.1.0",

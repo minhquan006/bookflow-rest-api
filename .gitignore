@@ -163,5 +163,8 @@ test-results/
 # Local database files
 postgres-data/
 
+# Postman environments containing local credentials
+postman/*.private.postman_environment.json
+
 # macOS
 .DS_Store

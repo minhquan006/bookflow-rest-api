@@ -1,11 +1,11 @@
 # Hợp đồng API dùng chung
 
 Nguồn máy đọc là [`openapi.yaml`](openapi.yaml); các quyết định nghiệp vụ gốc ở
-[`PROJECT_BLUEPRINT.md`](PROJECT_BLUEPRINT.md). Auth/Users và Catalog/Copies đã triển khai; Loans/Admin được bàn giao ở phần tiếp theo. Không coi endpoint đã có trong OpenAPI là đã có mã nghiệp vụ.
+[`PROJECT_BLUEPRINT.md`](PROJECT_BLUEPRINT.md). Auth/Users, Catalog/Copies và Loans/Dashboard/Audit đã triển khai trong bản ghép giữ mã Catalog của Tú. Không coi endpoint đã có trong OpenAPI là đã có mã nghiệp vụ.
 
 ## Trạng thái triển khai
 
-| Phần                          | Trạng thái trong nền móng                                        |
+| Phần                          | Trạng thái trong bản tích hợp                                    |
 | ----------------------------- | ---------------------------------------------------------------- |
 | `GET /health/live`            | Liveness của tiến trình                                          |
 | `GET /health/ready`           | Kiểm tra kết nối DB và migration hiện tại; chưa sẵn sàng trả 503 |
@@ -13,13 +13,13 @@ Nguồn máy đọc là [`openapi.yaml`](openapi.yaml); các quyết định ngh
 | `GET /openapi.yaml`, `/docs/` | Tải contract và Swagger UI                                       |
 | Auth/Users                    | Đã triển khai và kiểm thử trên PostgreSQL thật                   |
 | Catalog/Copies                | Đã triển khai; có ETag/If-Match và phân quyền staff              |
-| Loans, Dashboard/Audit        | Contract đã chốt; bàn giao ở phần tiếp theo                      |
+| Loans, Dashboard/Audit        | Đã triển khai; kiểm thử transaction, RBAC và ownership           |
 
-Mỗi operation có `x-implementation-status: implemented` hoặc `planned`.
-Endpoint nghiệp vụ chưa có router trả lỗi 404 chung, không có dữ liệu giả mô phỏng
-đăng nhập, mượn sách hay quyền truy cập. Chủ module phải cập nhật trạng thái
-OpenAPI trong cùng PR hiện thực và kiểm thử endpoint. Hạ tầng dùng chung
-(validation, JWT/RBAC, transaction, lỗi và logging) không thay thế logic nghiệp vụ.
+Các operation hiện tại có `x-implementation-status: implemented` và router
+nghiệp vụ thực tế. Trạng thái này mô tả source tích hợp, không xác nhận các PR
+đã merge vào main; xem [IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md).
+Endpoint ngoài contract trả404 chung. Khi đổi contract, cập nhật trạng thái và
+test cùng PR; schema hoặc ví dụ JSON không thay thế bằng chứng chạy.
 
 ## Quy ước giao tiếp
 
@@ -134,14 +134,21 @@ thành 409 phù hợp, không gửi nguyên lỗi PostgreSQL cho client.
 
 ## Dùng OpenAPI và Postman
 
-Từ root chạy `npm run contract:check` để kiểm tra contract. Khi API chạy,
-`/docs/` hiển thị Swagger UI; các route gắn `planned` chỉ để đọc/thiết kế,
-chưa dùng làm bằng chứng chức năng thành công.
+Từ root chạy `npm run contract:check` để kiểm tra OpenAPI và JSON các collection.
+Khi API chạy, `/docs/` hiển thị Swagger UI. Kiểm tra schema hợp lệ không thay thế
+kiểm thử HTTP/DB/browser của endpoint.
 
 Import environment `postman/BookFlow.local.postman_environment.json` và collection
-`postman/BookFlow.postman_collection.json`. Collection này chỉ chạy smoke nền móng,
-readiness yêu cầu DB đã migrate. `BookFlow.planned.postman_collection.json` là ví dụ
-riêng cho nghiệp vụ **chưa hiện thực**; chọn request sau khi module tương ứng merge.
+`postman/BookFlow.postman_collection.json` để chạy smoke nền móng; readiness
+yêu cầu DB đã migrate. `BookFlow.catalog.postman_collection.json` giữ kiểm tra
+Catalog hiện có của Tú. `BookFlow.business.postman_collection.json` chạy tuần tự
+20 request nghiệp vụ sau khi đủ ba gói, gồm refresh/CSRF, ETag và mượn–trả.
+`BookFlow.planned.postman_collection.json` là bộ ví dụ lịch sử, không phải báo cáo
+trạng thái hiện tại. Xem [Postman README](../postman/README.md).
 Nhập password/token vào biến local của Postman, không commit environment đã xuất
 kèm giá trị thật. Trình Postman tự quản cookie; Origin/CSRF của refresh phải khớp
 môi trường dùng thực tế.
+
+Audit Catalog giữ các action uppercase đã có của Tú; Loans/Auth dùng action
+được định nghĩa trong module. Bộ lọc Audit nhận chính xác action lưu trong DB;
+không đổi tên hàng lịch sử hoặc suy ra action từ label giao diện.

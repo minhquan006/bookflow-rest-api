@@ -1,12 +1,12 @@
-# Business operations are planned contracts, not completed implementations.
+# Implementation status describes the integrated delivery; see validation evidence.
 openapi: 3.1.0
 info:
   title: BookFlow REST API
   version: 0.1.0
   description:
     "Development contract for the BookFlow foundation. Operations marked x-implementation-status:
-    planned are agreed targets and currently return the generic 404 until their owners implement them.
-    Operations and Auth/Users endpoints are implemented. Catalog and Loans are separate delivery stages.
+    implemented have source and tests in the integrated delivery.
+    Operations, Auth/Users, Catalog/Copies, Loans, Dashboard and Audit are implemented.
     See IMPLEMENTATION_STATUS.md for verified capabilities."
 servers:
   - url: /
@@ -1186,7 +1186,7 @@ paths:
       summary: Borrow one available copy
       tags:
         - Loans
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -1245,7 +1245,7 @@ paths:
       summary: List visible loan history
       tags:
         - Loans
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -1297,7 +1297,7 @@ paths:
       summary: Read a visible loan
       tags:
         - Loans
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -1336,7 +1336,7 @@ paths:
       summary: Create or read the unique return confirmation
       tags:
         - Loans
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -1393,7 +1393,7 @@ paths:
       summary: Read aggregate staff statistics
       tags:
         - Administration
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:
@@ -1431,7 +1431,7 @@ paths:
       summary: Read audit events
       tags:
         - Administration
-      x-implementation-status: planned
+      x-implementation-status: implemented
       security:
         - bearerAuth: []
       responses:

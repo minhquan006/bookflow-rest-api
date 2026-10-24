@@ -1,0 +1,705 @@
+{
+  "info": {
+    "name": "BookFlow — Business workflow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run after all three delivery packages are integrated. Enter seeded adminPassword locally; never export secrets. The runner creates synthetic member/category/book/copy and preserves returned loan history."
+  },
+  "item": [
+    {
+      "name": "01 Register synthetic member",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\": \"Postman Member\", \"email\": \"{{runEmail}}\", \"password\": \"{{runPassword}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const id=pm.variables.replaceIn(\"{{$guid}}\"); pm.collectionVariables.set(\"runId\",id);pm.collectionVariables.set(\"runEmail\",\"postman-\"+id+\"@bookflow.test\");pm.collectionVariables.set(\"runPassword\",\"Synthetic-Postman-\"+id);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\",()=>pm.response.to.have.status(201));",
+              "pm.test(\"MEMBER and safe DTO\",()=>{const u=pm.response.json().data;pm.expect(u.role).to.eql(\"MEMBER\");pm.expect(u).not.to.have.property(\"passwordHash\");});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Administrator login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"{{adminEmail}}\", \"password\": \"{{adminPassword}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"Access token issued\",()=>pm.expect(pm.response.json().data.accessToken).to.be.a(\"string\"));",
+              "pm.collectionVariables.set(\"adminAccessToken\",pm.response.json().data.accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Create category",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/categories",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Postman {{runId}}\", \"slug\": \"postman-{{runId}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\",()=>pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"wfCategoryId\",pm.response.json().data.id);",
+              "pm.test(\"Location header\",()=>pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/api/v1/categories/\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Create book",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/books",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"categoryId\": \"{{wfCategoryId}}\", \"isbn\": null, \"title\": \"Postman Book {{runId}}\", \"author\": \"Synthetic Author\", \"description\": \"Synthetic workflow data.\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\",()=>pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"wfBookId\",pm.response.json().data.id);pm.collectionVariables.set(\"wfBookEtag\",pm.response.headers.get(\"ETag\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Add physical copy",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/books/{{wfBookId}}/copies",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"barcode\": \"PM-{{runId}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\",()=>pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"wfCopyId\",pm.response.json().data.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Read public metadata",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/v1/books/{{wfBookId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"ETag metadata\",()=>pm.expect(pm.response.headers.get(\"ETag\")).to.eql(pm.collectionVariables.get(\"wfBookEtag\")));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Conditional GET",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "If-None-Match",
+            "value": "{{wfBookEtag}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/books/{{wfBookId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 304\",()=>pm.response.to.have.status(304));",
+              "pm.test(\"No304body\",()=>pm.expect(pm.response.text()).to.eql(\"\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Reject stale update",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          },
+          {
+            "key": "If-Match",
+            "value": "\"stale\""
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/books/{{wfBookId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\": \"Stale write\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 412\",()=>pm.response.to.have.status(412));",
+              "pm.test(\"Stale conflict\",()=>pm.expect(pm.response.json().code).to.eql(\"VERSION_MISMATCH\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Accept versioned update",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          },
+          {
+            "key": "If-Match",
+            "value": "{{wfBookEtag}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/books/{{wfBookId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\": \"Postman Revised {{runId}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.collectionVariables.set(\"wfBookEtag\",pm.response.headers.get(\"ETag\"));",
+              "pm.test(\"Version increased\",()=>pm.expect(pm.response.json().data.version).to.eql(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Member login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"{{runEmail}}\", \"password\": \"{{runPassword}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "const s=pm.response.json().data;pm.collectionVariables.set(\"memberAccessToken\",s.accessToken);pm.collectionVariables.set(\"memberCsrf\",s.csrfToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Refresh member session",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Origin",
+            "value": "{{frontendOrigin}}"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{memberCsrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/refresh",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "const s=pm.response.json().data;pm.collectionVariables.set(\"memberAccessToken\",s.accessToken);pm.collectionVariables.set(\"memberCsrf\",s.csrfToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Borrow a book",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{memberAccessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/loans",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"bookId\": \"{{wfBookId}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\",()=>pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"wfLoanId\",pm.response.json().data.id);",
+              "pm.test(\"Unreturned loan\",()=>pm.expect(pm.response.json().data.returnedAt).to.eql(null));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 Ownership and history",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{memberAccessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/loans/{{wfLoanId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"Correct book\",()=>pm.expect(pm.response.json().data.bookId).to.eql(pm.collectionVariables.get(\"wfBookId\")));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 Member cannot return",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{memberAccessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/loans/{{wfLoanId}}/return",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\",()=>pm.response.to.have.status(403));",
+              "pm.test(\"Role denied\",()=>pm.expect(pm.response.json().code).to.eql(\"FORBIDDEN\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 Staff return",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/loans/{{wfLoanId}}/return",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.collectionVariables.set(\"returnedAt\",pm.response.json().data.returnedAt);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 Return idempotency",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/loans/{{wfLoanId}}/return",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"Same return timestamp\",()=>pm.expect(pm.response.json().data.returnedAt).to.eql(pm.collectionVariables.get(\"returnedAt\")));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 Staff dashboard",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/dashboard"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"Aggregate counts\",()=>{const d=pm.response.json().data;pm.expect(d.activeBooks).to.be.a(\"number\");pm.expect(d.overdueLoans).to.be.a(\"number\");});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 Admin audit",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/audit-logs?action=loan.returned&limit=100"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"Return audit present\",()=>pm.expect(pm.response.json().data.some(e=>e.entityId===pm.collectionVariables.get(\"wfLoanId\"))).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 Archive returned book",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          },
+          {
+            "key": "If-Match",
+            "value": "{{wfBookEtag}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/books/{{wfBookId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\",()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 Member logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Origin",
+            "value": "{{frontendOrigin}}"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{memberCsrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/logout",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\",()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

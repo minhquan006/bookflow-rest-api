@@ -233,6 +233,27 @@ export function BookDetailPage({
       setSaving(false);
     }
   }
+  async function borrow() {
+    setSaving(true);
+    setError("");
+    setMessage("");
+    try {
+      await api.request("/loans", { method: "POST", json: { bookId } });
+      setMessage(
+        "Book borrowed successfully. You can review its due date in My loans.",
+      );
+      reload();
+    } catch (cause) {
+      setError(
+        cause instanceof ApiError
+          ? errorMessage(cause)
+          : "The borrowing result could not be confirmed. Check My loans before trying again.",
+      );
+      reload();
+    } finally {
+      setSaving(false);
+    }
+  }
   async function addCopy(event: FormEvent) {
     event.preventDefault();
     if (!barcode.trim()) return;
@@ -331,7 +352,31 @@ export function BookDetailPage({
                 </div>
               )}
             </dl>
-            {!staff && <p className="muted">Borrowing is coming soon.</p>}
+            {!currentBook.archivedAt && (
+              <div className="action-row">
+                {!user && (
+                  <Button onClick={() => onNavigate("/login")}>
+                    Sign in to borrow
+                  </Button>
+                )}
+                {user?.role === "MEMBER" && (
+                  <>
+                    <Button
+                      busy={saving}
+                      disabled={loading || available === null || available < 1}
+                      onClick={() => {
+                        void borrow();
+                      }}
+                    >
+                      Borrow this book
+                    </Button>
+                    <Button onClick={() => onNavigate("/loans")}>
+                      My loans
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
             {staff && !currentBook.archivedAt && (
               <div className="action-row">
                 <Button
