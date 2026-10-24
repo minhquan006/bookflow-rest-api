@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/language";
 import { Button } from "./Button";
 
 export function Pagination({
@@ -11,23 +12,24 @@ export function Pagination({
   onPageChange: (page: number) => void;
   busy?: boolean;
 }) {
+  const { t } = useTranslation();
   if (totalPages < 1) return null;
   return (
-    <nav className="pagination" aria-label="Pagination">
+    <nav className="pagination" aria-label={t("Pagination")}>
       <Button
         disabled={page <= 1 || busy}
         onClick={() => onPageChange(page - 1)}
       >
-        Previous
+        {t("Previous")}
       </Button>
       <span aria-live="polite">
-        Page {page} of {totalPages}
+        {t("Page {page} of {totalPages}", { page, totalPages })}
       </span>
       <Button
         disabled={page >= totalPages || busy}
         onClick={() => onPageChange(page + 1)}
       >
-        Next
+        {t("Next")}
       </Button>
     </nav>
   );

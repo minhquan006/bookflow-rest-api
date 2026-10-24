@@ -23,6 +23,12 @@ Xem [bàn giao](docs/TEAM_HANDOFF.md), [trạng thái](docs/IMPLEMENTATION_STATU
 và [kiểm chứng Loans v2](docs/LOANS_VALIDATION.md). Các kết quả chuẩn bị ngày
 21/10 trong [FULL_VALIDATION](docs/FULL_VALIDATION.md) là bằng chứng lịch sử.
 
+## Ngôn ngữ giao diện
+
+Chọn **Language / Ngôn ngữ** ở đầu trang để chuyển giữa **English** và
+**Tiếng Việt**. Lựa chọn được lưu trên trình duyệt, không làm mất phiên đăng nhập
+hay nội dung biểu mẫu đang nhập. Xem [hướng dẫn ngôn ngữ](docs/LANGUAGES.md).
+
 ## Cài và chạy dev
 
 Yêu cầu: **Node 24.19.0** (`.nvmrc`), npm 11, PostgreSQL 17 hoặc Docker

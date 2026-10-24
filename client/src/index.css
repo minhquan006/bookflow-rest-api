@@ -715,3 +715,18 @@ legend {
 .checkbox-field input {
   min-height: unset;
 }
+
+.language-selector {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.language-selector select {
+  min-height: 36px;
+  padding: 6px 10px;
+}
+:lang(vi) .hero-panel h1 {
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}

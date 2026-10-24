@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/language";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
@@ -17,6 +18,7 @@ export function LoansPage({
 }: {
   onNavigate?: (path: string) => void;
 } = {}) {
+  const { t, translate, locale } = useTranslation();
   const { user, loading: authLoading, api } = useAuth();
   const staff = user?.role === "LIBRARIAN" || user?.role === "ADMIN";
   const viewer = user ? `${user.id}:${user.role}` : "anonymous";
@@ -41,7 +43,7 @@ export function LoansPage({
   const [confirmationViewer, setConfirmationViewer] = useState("");
   const [returnBusy, setReturnBusy] = useState(false);
   const [returnError, setReturnError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [returnedAt, setReturnedAt] = useState("");
 
   useEffect(() => {
     currentViewer.current = viewer;
@@ -53,7 +55,7 @@ export function LoansPage({
     setConfirmationViewer("");
     setReturnError("");
     setReturnBusy(false);
-    setNotice("");
+    setReturnedAt("");
     return () => detailRequest.current?.abort();
   }, [viewer]);
 
@@ -132,7 +134,7 @@ export function LoansPage({
     const requestViewer = viewer;
     setReturnBusy(true);
     setReturnError("");
-    setNotice("");
+    setReturnedAt("");
     try {
       const { data } = await api.request<{ data: LoanReturn }>(
         `/loans/${confirmId}/return`,
@@ -149,9 +151,7 @@ export function LoansPage({
           : previous,
       );
       setConfirmId(null);
-      setNotice(
-        `Return confirmed at ${formatLibraryDate(data.returnedAt)} (Vietnam time).`,
-      );
+      setReturnedAt(data.returnedAt);
       setRefresh((value) => value + 1);
     } catch (failure) {
       if (currentViewer.current !== requestViewer) return;
@@ -166,14 +166,14 @@ export function LoansPage({
   }
 
   if (authLoading)
-    return <Feedback kind="loading">Restoring your session…</Feedback>;
+    return <Feedback kind="loading">{t("Restoring your session…")}</Feedback>;
   if (!user)
     return (
       <section className="panel stack">
-        <h1>My loans</h1>
-        <p>Sign in to view your borrowing history.</p>
+        <h1>{t("My loans")}</h1>
+        <p>{t("Sign in to view your borrowing history.")}</p>
         {onNavigate && (
-          <Button onClick={() => onNavigate("/login")}>Sign in</Button>
+          <Button onClick={() => onNavigate("/login")}>{t("Sign in")}</Button>
         )}
       </section>
     );
@@ -182,22 +182,22 @@ export function LoansPage({
     <div className="stack">
       <header className="section-heading">
         <div>
-          <h1>{staff ? "Library loans" : "My loans"}</h1>
+          <h1>{staff ? t("Library loans") : t("My loans")}</h1>
           <p className="muted">
             {staff
-              ? "Review borrowing activity and confirm returned copies."
-              : "Track your current books and borrowing history."}{" "}
-            Dates are shown in Vietnam time (UTC+7).
+              ? t("Review borrowing activity and confirm returned copies.")
+              : t("Track your current books and borrowing history.")}{" "}
+            {t("Dates are shown in Vietnam time (UTC+7).")}
           </p>
         </div>
         <Button busy={busy} onClick={() => setRefresh((value) => value + 1)}>
-          Refresh loans
+          {t("Refresh loans")}
         </Button>
       </header>
-      <section className="panel stack" aria-label="Loan history">
+      <section className="panel stack" aria-label={t("Loan history")}>
         <div className="toolbar">
           <label className="form-field">
-            <span>Loan status</span>
+            <span>{t("Loan status")}</span>
             <select
               value={status}
               onChange={(event) => {
@@ -205,39 +205,45 @@ export function LoansPage({
                 setPage(1);
               }}
             >
-              <option value="">All loans</option>
-              <option value="ACTIVE">Active</option>
-              <option value="OVERDUE">Overdue</option>
-              <option value="RETURNED">Returned</option>
+              <option value="">{t("All loans")}</option>
+              <option value="ACTIVE">{t("Active")}</option>
+              <option value="OVERDUE">{t("Overdue")}</option>
+              <option value="RETURNED">{t("Returned")}</option>
             </select>
           </label>
           <p className="muted">
-            {collection ? `${collection.pagination.total} loans` : ""}
+            {collection
+              ? t("{count} loans", { count: collection.pagination.total })
+              : ""}
           </p>
         </div>
-        {error && <Feedback kind="error">{error}</Feedback>}
-        {busy && <Feedback kind="loading">Loading loans…</Feedback>}
-        {notice && confirmationViewer === viewer && (
-          <Feedback kind="success">{notice}</Feedback>
+        {error && <Feedback kind="error">{translate(error)}</Feedback>}
+        {busy && <Feedback kind="loading">{t("Loading loans…")}</Feedback>}
+        {returnedAt && confirmationViewer === viewer && (
+          <Feedback kind="success">
+            {t("Return confirmed at {date} (Vietnam time).", {
+              date: formatLibraryDate(returnedAt, locale),
+            })}
+          </Feedback>
         )}
         {collection && !busy && !error && collection.data.length === 0 && (
-          <Feedback kind="empty">No loans match this filter.</Feedback>
+          <Feedback kind="empty">{t("No loans match this filter.")}</Feedback>
         )}
         {collection && collection.data.length > 0 && (
           <div className="table-scroll">
             <table className="data-table">
               <caption className="sr-only">
-                {staff ? "All library loans" : "Your loans"}
+                {staff ? t("All library loans") : t("Your loans")}
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Loan</th>
-                  <th scope="col">Book</th>
-                  {staff && <th scope="col">Borrower</th>}
-                  <th scope="col">Borrowed</th>
-                  <th scope="col">Due</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Actions</th>
+                  <th scope="col">{t("Loan")}</th>
+                  <th scope="col">{t("Book")}</th>
+                  {staff && <th scope="col">{t("Borrower")}</th>}
+                  <th scope="col">{t("Borrowed")}</th>
+                  <th scope="col">{t("Due")}</th>
+                  <th scope="col">{t("Status")}</th>
+                  <th scope="col">{t("Actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -246,7 +252,9 @@ export function LoansPage({
                     <th scope="row">
                       <Button
                         onClick={() => void loadDetail(loan.id)}
-                        aria-label={`View loan ${shortId(loan.id)}`}
+                        aria-label={t("View loan {id}", {
+                          id: shortId(loan.id),
+                        })}
                       >
                         {shortId(loan.id)}
                       </Button>
@@ -255,7 +263,9 @@ export function LoansPage({
                       {onNavigate ? (
                         <Button
                           onClick={() => onNavigate(`/books/${loan.bookId}`)}
-                          aria-label={`View book ${shortId(loan.bookId)}`}
+                          aria-label={t("View book {id}", {
+                            id: shortId(loan.bookId),
+                          })}
                         >
                           {shortId(loan.bookId)}
                         </Button>
@@ -266,13 +276,13 @@ export function LoansPage({
                     {staff && (
                       <td title={loan.userId}>{shortId(loan.userId)}</td>
                     )}
-                    <td>{formatLibraryDate(loan.borrowedAt)}</td>
-                    <td>{formatLibraryDate(loan.dueAt)}</td>
+                    <td>{formatLibraryDate(loan.borrowedAt, locale)}</td>
+                    <td>{formatLibraryDate(loan.dueAt, locale)}</td>
                     <td>
                       <span
                         className={`badge ${loanStatus(loan) === "Overdue" ? "badge--danger" : ""}`}
                       >
-                        {loanStatus(loan)}
+                        {translate(loanStatus(loan))}
                       </span>
                     </td>
                     <td>
@@ -283,11 +293,13 @@ export function LoansPage({
                             setConfirmId(loan.id);
                             setConfirmationViewer(viewer);
                             setReturnError("");
-                            setNotice("");
+                            setReturnedAt("");
                           }}
-                          aria-label={`Return loan ${shortId(loan.id)}`}
+                          aria-label={t("Return loan {id}", {
+                            id: shortId(loan.id),
+                          })}
                         >
-                          Return copy
+                          {t("Return copy")}
                         </Button>
                       ) : loan.returnedAt ? (
                         "Return recorded"
@@ -315,63 +327,67 @@ export function LoansPage({
           className="panel stack"
           aria-labelledby="return-confirmation-title"
         >
-          <h2 id="return-confirmation-title">Confirm this return?</h2>
+          <h2 id="return-confirmation-title">{t("Confirm this return?")}</h2>
           <p>
-            Confirm that the library has received the copy for loan{" "}
-            {shortId(confirmId)}. The server records the return time and staff
-            account.
+            {t(
+              "Confirm that the library has received the copy for loan {id}. The server records the return time and staff account.",
+              { id: shortId(confirmId) },
+            )}
           </p>
           {returnError && (
             <Feedback kind="error">
-              {returnError}
+              {translate(returnError)}
               <p>
-                If the connection failed, refresh the history before trying
-                again.
+                {t(
+                  "If the connection failed, refresh the history before trying again.",
+                )}
               </p>
             </Feedback>
           )}
           <div className="toolbar">
             <Button busy={returnBusy} onClick={() => void confirmReturn()}>
-              Confirm return
+              {t("Confirm return")}
             </Button>
             <Button disabled={returnBusy} onClick={() => setConfirmId(null)}>
-              Cancel
+              {t("Cancel")}
             </Button>
           </div>
         </section>
       )}
       {detailViewer === viewer && (detail || detailBusy || detailError) && (
         <section className="panel stack" aria-labelledby="loan-details-title">
-          <h2 id="loan-details-title">Loan details</h2>
+          <h2 id="loan-details-title">{t("Loan details")}</h2>
           {detailBusy && (
-            <Feedback kind="loading">Loading loan details…</Feedback>
+            <Feedback kind="loading">{t("Loading loan details…")}</Feedback>
           )}
-          {detailError && <Feedback kind="error">{detailError}</Feedback>}
+          {detailError && (
+            <Feedback kind="error">{translate(detailError)}</Feedback>
+          )}
           {detail && (
             <dl className="detail-list">
-              <dt>Loan ID</dt>
+              <dt>{t("Loan ID")}</dt>
               <dd>{detail.id}</dd>
-              <dt>Book ID</dt>
+              <dt>{t("Book ID")}</dt>
               <dd>{detail.bookId}</dd>
-              <dt>Copy ID</dt>
+              <dt>{t("Copy ID")}</dt>
               <dd>{detail.copyId}</dd>
               {staff && (
                 <>
-                  <dt>Borrower ID</dt>
+                  <dt>{t("Borrower ID")}</dt>
                   <dd>{detail.userId}</dd>
                 </>
               )}
-              <dt>Borrowed</dt>
-              <dd>{formatLibraryDate(detail.borrowedAt)}</dd>
-              <dt>Due</dt>
-              <dd>{formatLibraryDate(detail.dueAt)}</dd>
-              <dt>Status</dt>
-              <dd>{loanStatus(detail)}</dd>
+              <dt>{t("Borrowed")}</dt>
+              <dd>{formatLibraryDate(detail.borrowedAt, locale)}</dd>
+              <dt>{t("Due")}</dt>
+              <dd>{formatLibraryDate(detail.dueAt, locale)}</dd>
+              <dt>{t("Status")}</dt>
+              <dd>{translate(loanStatus(detail))}</dd>
               {detail.returnedAt && (
                 <>
-                  <dt>Returned</dt>
-                  <dd>{formatLibraryDate(detail.returnedAt)}</dd>
-                  <dt>Confirmed by</dt>
+                  <dt>{t("Returned")}</dt>
+                  <dd>{formatLibraryDate(detail.returnedAt, locale)}</dd>
+                  <dt>{t("Confirmed by")}</dt>
                   <dd>{detail.returnedBy}</dd>
                 </>
               )}

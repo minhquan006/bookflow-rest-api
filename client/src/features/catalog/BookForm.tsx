@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/language";
 import { useId, useState } from "react";
 import type { FormEvent } from "react";
 import { Button } from "../../components/Button";
@@ -21,6 +22,7 @@ export function BookForm({
   onSubmit: (input: BookInput) => Promise<void>;
   onCancel: () => void;
 }) {
+  const { t, translate } = useTranslation();
   const categoryId = useId();
   const descriptionId = useId();
   const [values, setValues] = useState<BookInput>(() => ({
@@ -64,11 +66,11 @@ export function BookForm({
         void submit(event);
       }}
       className="stack"
-      aria-label={initial ? "Edit book metadata" : "Create book"}
+      aria-label={initial ? t("Edit book metadata") : t("Create book")}
     >
       <div className="form-grid">
         <FormField
-          label="Title"
+          label={t("Title")}
           value={values.title}
           onChange={(event) => update("title", event.target.value)}
           required
@@ -76,7 +78,7 @@ export function BookForm({
           disabled={busy}
         />
         <FormField
-          label="Author"
+          label={t("Author")}
           value={values.author}
           onChange={(event) => update("author", event.target.value)}
           required
@@ -84,15 +86,15 @@ export function BookForm({
           disabled={busy}
         />
         <FormField
-          label="ISBN"
+          label={t("ISBN")}
           value={values.isbn ?? ""}
           onChange={(event) => update("isbn", event.target.value || null)}
           maxLength={13}
-          hint="ISBN-10 or ISBN-13, without hyphens. Optional."
+          hint={t("ISBN-10 or ISBN-13, without hyphens. Optional.")}
           disabled={busy}
         />
         <div className="form-field">
-          <label htmlFor={categoryId}>Category</label>
+          <label htmlFor={categoryId}>{t("Category")}</label>
           <select
             id={categoryId}
             value={values.categoryId}
@@ -100,7 +102,7 @@ export function BookForm({
             required
             disabled={busy}
           >
-            <option value="">Choose a category</option>
+            <option value="">{t("Choose a category")}</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
@@ -110,7 +112,7 @@ export function BookForm({
         </div>
       </div>
       <div className="form-field">
-        <label htmlFor={descriptionId}>Description</label>
+        <label htmlFor={descriptionId}>{t("Description")}</label>
         <textarea
           id={descriptionId}
           value={values.description}
@@ -122,7 +124,7 @@ export function BookForm({
       </div>
       {validation && (
         <p role="alert" className="field-error">
-          {validation}
+          {translate(validation)}
         </p>
       )}
       <div className="action-row">
@@ -131,10 +133,10 @@ export function BookForm({
           busy={busy}
           disabled={blocked || categories.length === 0}
         >
-          {submitLabel}
+          {translate(submitLabel)}
         </Button>
         <Button onClick={onCancel} disabled={busy}>
-          Cancel
+          {t("Cancel")}
         </Button>
       </div>
     </form>

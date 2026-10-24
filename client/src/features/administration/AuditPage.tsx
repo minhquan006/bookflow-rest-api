@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/language";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Button } from "../../components/Button";
@@ -29,6 +30,7 @@ function filterTimestamp(value: string) {
 }
 
 export function AuditPage() {
+  const { t, translate, locale } = useTranslation();
   const { user, loading: authLoading, api } = useAuth();
   const permitted = user?.role === "ADMIN";
   const [draft, setDraft] = useState<Filters>(emptyFilters);
@@ -105,11 +107,11 @@ export function AuditPage() {
   }
 
   if (authLoading)
-    return <Feedback kind="loading">Restoring your session…</Feedback>;
+    return <Feedback kind="loading">{t("Restoring your session…")}</Feedback>;
   if (!permitted)
     return (
       <Feedback kind="error">
-        Only administrators can view audit events.
+        {t("Only administrators can view audit events.")}
       </Feedback>
     );
 
@@ -117,20 +119,21 @@ export function AuditPage() {
     <div className="stack">
       <header className="section-heading">
         <div>
-          <h1>Audit events</h1>
+          <h1>{t("Audit events")}</h1>
           <p className="muted">
-            Review who changed library resources. Times use Vietnam time
-            (UTC+7).
+            {t(
+              "Review who changed library resources. Times use Vietnam time (UTC+7).",
+            )}
           </p>
         </div>
         <Button busy={busy} onClick={() => setRefresh((value) => value + 1)}>
-          Refresh events
+          {t("Refresh events")}
         </Button>
       </header>
-      <section className="panel stack" aria-label="Audit filters">
+      <section className="panel stack" aria-label={t("Audit filters")}>
         <form className="form-grid" onSubmit={applyFilters}>
           <FormField
-            label="Action"
+            label={t("Action")}
             placeholder="loan.created"
             value={draft.action}
             maxLength={100}
@@ -139,15 +142,15 @@ export function AuditPage() {
             }
           />
           <FormField
-            label="Actor ID"
-            placeholder="User UUID"
+            label={t("Actor ID")}
+            placeholder={t("User UUID")}
             value={draft.actorId}
             onChange={(event) =>
               setDraft((value) => ({ ...value, actorId: event.target.value }))
             }
           />
           <FormField
-            label="From (Vietnam time)"
+            label={t("From (Vietnam time)")}
             type="datetime-local"
             value={draft.from}
             onChange={(event) =>
@@ -155,7 +158,7 @@ export function AuditPage() {
             }
           />
           <FormField
-            label="To (Vietnam time, exclusive)"
+            label={t("To (Vietnam time, exclusive)")}
             type="datetime-local"
             value={draft.to}
             onChange={(event) =>
@@ -164,7 +167,7 @@ export function AuditPage() {
           />
           <div className="toolbar">
             <Button type="submit" busy={busy}>
-              Apply filters
+              {t("Apply filters")}
             </Button>
             <Button
               disabled={busy}
@@ -175,40 +178,46 @@ export function AuditPage() {
                 setPage(1);
               }}
             >
-              Clear filters
+              {t("Clear filters")}
             </Button>
           </div>
         </form>
-        {filterError && <Feedback kind="error">{filterError}</Feedback>}
+        {filterError && (
+          <Feedback kind="error">{translate(filterError)}</Feedback>
+        )}
       </section>
-      {error && <Feedback kind="error">{error}</Feedback>}
-      {busy && <Feedback kind="loading">Loading audit events…</Feedback>}
+      {error && <Feedback kind="error">{translate(error)}</Feedback>}
+      {busy && <Feedback kind="loading">{t("Loading audit events…")}</Feedback>}
       {collection && (
-        <section className="panel stack" aria-label="Audit results">
-          <p className="muted">{collection.pagination.total} events</p>
+        <section className="panel stack" aria-label={t("Audit results")}>
+          <p className="muted">
+            {t("{count} events", { count: collection.pagination.total })}
+          </p>
           {collection.data.length === 0 ? (
             <Feedback kind="empty">
-              No audit events match these filters.
+              {t("No audit events match these filters.")}
             </Feedback>
           ) : (
             <div className="table-scroll">
               <table className="data-table">
-                <caption className="sr-only">Resource audit events</caption>
+                <caption className="sr-only">
+                  {t("Resource audit events")}
+                </caption>
                 <thead>
                   <tr>
-                    <th scope="col">Time</th>
-                    <th scope="col">Action</th>
-                    <th scope="col">Actor</th>
-                    <th scope="col">Resource</th>
-                    <th scope="col">Request ID</th>
+                    <th scope="col">{t("Time")}</th>
+                    <th scope="col">{t("Action")}</th>
+                    <th scope="col">{t("Actor")}</th>
+                    <th scope="col">{t("Resource")}</th>
+                    <th scope="col">{t("Request ID")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {collection.data.map((event) => (
                     <tr key={event.id}>
-                      <td>{formatLibraryDate(event.occurredAt)}</td>
+                      <td>{formatLibraryDate(event.occurredAt, locale)}</td>
                       <th scope="row">{event.action}</th>
-                      <td>{event.actorId ?? "System"}</td>
+                      <td>{event.actorId ?? t("System")}</td>
                       <td>
                         {event.entityType}
                         <br />

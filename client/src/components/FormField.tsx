@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/language";
 import { useId } from "react";
 import type { InputHTMLAttributes } from "react";
 type FormFieldProps = InputHTMLAttributes<HTMLInputElement> & {
@@ -13,6 +14,7 @@ export function FormField({
   id: providedId,
   ...props
 }: FormFieldProps) {
+  const { translate } = useTranslation();
   const generatedId = useId();
   const id = providedId ?? generatedId;
   const descriptionId = `${id}-description`;
@@ -27,7 +29,7 @@ export function FormField({
       />
       {(error || hint) && (
         <p id={descriptionId} className={error ? "field-error" : "field-hint"}>
-          {error ?? hint}
+          {translate(error ?? hint ?? "")}
         </p>
       )}
     </div>

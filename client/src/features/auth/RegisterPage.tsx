@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/language";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Button } from "../../components/Button";
@@ -11,6 +12,7 @@ export function RegisterPage({
 }: {
   onNavigate: (path: string) => void;
 }) {
+  const { t, translate } = useTranslation();
   const { register } = useAuth();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -50,24 +52,25 @@ export function RegisterPage({
   if (created)
     return (
       <section className="panel auth-panel">
-        <h1>Account created</h1>
+        <h1>{t("Account created")}</h1>
         <Feedback kind="success">
-          Your member account is ready. Sign in to start borrowing.
+          {t("Your member account is ready. Sign in to start borrowing.")}
         </Feedback>
         <Button onClick={() => onNavigate("/login")}>
-          Continue to sign in
+          {t("Continue to sign in")}
         </Button>
       </section>
     );
   return (
     <section className="panel auth-panel" aria-labelledby="register-title">
-      <p className="eyebrow">Join the library</p>
-      <h1 id="register-title">Create account</h1>
+      <p className="eyebrow">{t("Join the library")}</p>
+      <h1 id="register-title">{t("Create account")}</h1>
       <p className="muted">
-        New accounts receive the Member role. Staff access is assigned by an
-        administrator.
+        {t(
+          "New accounts receive the Member role. Staff access is assigned by an administrator.",
+        )}
       </p>
-      {error && <Feedback kind="error">{error}</Feedback>}
+      {error && <Feedback kind="error">{translate(error)}</Feedback>}
       <form
         onSubmit={(event) => {
           void submit(event);
@@ -76,7 +79,7 @@ export function RegisterPage({
         className="form-stack"
       >
         <FormField
-          label="Full name"
+          label={t("Full name")}
           autoComplete="name"
           required
           maxLength={120}
@@ -85,7 +88,7 @@ export function RegisterPage({
           error={errors.fullName}
         />
         <FormField
-          label="Email"
+          label={t("Email")}
           type="email"
           autoComplete="email"
           required
@@ -95,19 +98,19 @@ export function RegisterPage({
           error={errors.email}
         />
         <FormField
-          label="Password"
+          label={t("Password")}
           type="password"
           autoComplete="new-password"
           required
           minLength={12}
           maxLength={128}
-          hint="Use at least 12 characters."
+          hint={t("Use at least 12 characters.")}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           error={errors.password}
         />
         <FormField
-          label="Confirm password"
+          label={t("Confirm password")}
           type="password"
           autoComplete="new-password"
           required
@@ -117,17 +120,17 @@ export function RegisterPage({
           error={errors.confirmation}
         />
         <Button type="submit" busy={busy}>
-          {busy ? "Creating account…" : "Create account"}
+          {busy ? t("Creating account…") : t("Create account")}
         </Button>
       </form>
       <p>
-        Already registered?{" "}
+        {t("Already registered?")}{" "}
         <button
           type="button"
           className="text-button"
           onClick={() => onNavigate("/login")}
         >
-          Sign in
+          {t("Sign in")}
         </button>
       </p>
     </section>

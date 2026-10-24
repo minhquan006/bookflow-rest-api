@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/language";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useAuth } from "../auth/AuthContext";
@@ -20,13 +21,14 @@ function CopyRow({
   busy: boolean;
   onUpdate: (id: string, condition: Copy["conditionStatus"]) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [condition, setCondition] = useState(copy.conditionStatus);
   return (
     <tr>
       <td>{copy.barcode}</td>
       <td>
         <label className="sr-only" htmlFor={`condition-${copy.id}`}>
-          Condition for {copy.barcode}
+          {t("Condition for {barcode}", { barcode: copy.barcode })}
         </label>
         <select
           id={`condition-${copy.id}`}
@@ -36,9 +38,9 @@ function CopyRow({
           }
           disabled={busy}
         >
-          <option value="AVAILABLE">Available for service</option>
-          <option value="MAINTENANCE">Maintenance</option>
-          <option value="RETIRED">Retired</option>
+          <option value="AVAILABLE">{t("Available for service")}</option>
+          <option value="MAINTENANCE">{t("Maintenance")}</option>
+          <option value="RETIRED">{t("Retired")}</option>
         </select>
       </td>
       <td>
@@ -48,7 +50,7 @@ function CopyRow({
             void onUpdate(copy.id, condition);
           }}
         >
-          Update condition
+          {t("Update condition")}
         </Button>
       </td>
     </tr>
@@ -62,6 +64,7 @@ export function BookDetailPage({
   bookId: string;
   onNavigate: (path: string) => void;
 }) {
+  const { t, translate } = useTranslation();
   const { user, api } = useAuth();
   const staff = user?.role === "LIBRARIAN" || user?.role === "ADMIN";
   const [book, setBook] = useState<Book | null>(null);
@@ -298,11 +301,15 @@ export function BookDetailPage({
     book?.id === bookId && (!book.archivedAt || staff) ? book : null;
   return (
     <div className="stack">
-      <Button onClick={() => onNavigate("/books")}>Back to catalog</Button>
-      {loading && <Feedback kind="loading">Loading book details…</Feedback>}
+      <Button onClick={() => onNavigate("/books")}>
+        {t("Back to catalog")}
+      </Button>
+      {loading && (
+        <Feedback kind="loading">{t("Loading book details…")}</Feedback>
+      )}
       {error && (
         <Feedback kind="error">
-          <p>{error}</p>
+          <p>{translate(error)}</p>
           {!currentBook && (
             <Button
               onClick={() => {
@@ -310,40 +317,45 @@ export function BookDetailPage({
                 reload(true);
               }}
             >
-              Retry book
+              {t("Retry book")}
             </Button>
           )}
         </Feedback>
       )}
-      {message && <Feedback kind="success">{message}</Feedback>}
+      {message && <Feedback kind="success">{translate(message)}</Feedback>}
       {currentBook && (
         <>
           <section className="panel stack" aria-labelledby="book-title">
             <div className="section-heading">
               <div>
-                <p className="eyebrow">Book details</p>
+                <p className="eyebrow">{t("Book details")}</p>
                 <h1 id="book-title">{currentBook.title}</h1>
-                <p className="lead">By {currentBook.author}</p>
+                <p className="lead">
+                  {t("By {author}", { author: currentBook.author })}
+                </p>
               </div>
               <span className="badge">
                 {currentBook.archivedAt
-                  ? "Archived"
-                  : `${available ?? "…"} available ${available === 1 ? "copy" : "copies"}`}
+                  ? t("Archived")
+                  : t("{count} available {copies}", {
+                      count: available ?? "…",
+                      copies: available === 1 ? "copy" : "copies",
+                    })}
               </span>
             </div>
-            <p>{currentBook.description || "No description available."}</p>
+            <p>{currentBook.description || t("No description available.")}</p>
             <dl className="detail-grid">
               <div>
-                <dt>ISBN</dt>
-                <dd>{currentBook.isbn ?? "Not assigned"}</dd>
+                <dt>{t("ISBN")}</dt>
+                <dd>{currentBook.isbn ?? t("Not assigned")}</dd>
               </div>
               <div>
-                <dt>Metadata version</dt>
+                <dt>{t("Metadata version")}</dt>
                 <dd>{currentBook.version}</dd>
               </div>
               {staff && (
                 <div>
-                  <dt>Category</dt>
+                  <dt>{t("Category")}</dt>
                   <dd>
                     {categories.find(
                       (category) => category.id === currentBook.categoryId,
@@ -356,7 +368,7 @@ export function BookDetailPage({
               <div className="action-row">
                 {!user && (
                   <Button onClick={() => onNavigate("/login")}>
-                    Sign in to borrow
+                    {t("Sign in to borrow")}
                   </Button>
                 )}
                 {user?.role === "MEMBER" && (
@@ -368,10 +380,10 @@ export function BookDetailPage({
                         void borrow();
                       }}
                     >
-                      Borrow this book
+                      {t("Borrow this book")}
                     </Button>
                     <Button onClick={() => onNavigate("/loans")}>
-                      My loans
+                      {t("My loans")}
                     </Button>
                   </>
                 )}
@@ -387,21 +399,26 @@ export function BookDetailPage({
                     setError("");
                   }}
                 >
-                  Edit metadata
+                  {t("Edit metadata")}
                 </Button>
                 <Button
                   disabled={saving}
                   onClick={() => setArchiveConfirm(true)}
                 >
-                  Archive book
+                  {t("Archive book")}
                 </Button>
               </div>
             )}
             {staff && archiveConfirm && (
-              <div className="stack" role="group" aria-label="Confirm archive">
+              <div
+                className="stack"
+                role="group"
+                aria-label={t("Confirm archive")}
+              >
                 <p>
-                  Archive this book? It will be hidden from the public catalog.
-                  Existing history is kept.
+                  {t(
+                    "Archive this book? It will be hidden from the public catalog. Existing history is kept.",
+                  )}
                 </p>
                 <div className="action-row">
                   <Button
@@ -410,13 +427,13 @@ export function BookDetailPage({
                       void archive();
                     }}
                   >
-                    Confirm archive
+                    {t("Confirm archive")}
                   </Button>
                   <Button
                     disabled={saving}
                     onClick={() => setArchiveConfirm(false)}
                   >
-                    Keep book active
+                    {t("Keep book active")}
                   </Button>
                 </div>
               </div>
@@ -424,15 +441,16 @@ export function BookDetailPage({
           </section>
           {staff && editing && !currentBook.archivedAt && (
             <section className="panel stack" aria-labelledby="edit-book-title">
-              <h2 id="edit-book-title">Edit book metadata</h2>
+              <h2 id="edit-book-title">{t("Edit book metadata")}</h2>
               {conflict && (
                 <Feedback kind="error">
                   <p>
-                    Your draft has been kept. Compare it with the latest version
-                    above.
+                    {t(
+                      "Your draft has been kept. Compare it with the latest version above.",
+                    )}
                   </p>
                   <Button onClick={() => setConflict(false)}>
-                    I reviewed the latest version
+                    {t("I reviewed the latest version")}
                   </Button>
                 </Feedback>
               )}
@@ -441,7 +459,7 @@ export function BookDetailPage({
                 categories={categories}
                 busy={saving}
                 blocked={conflict}
-                submitLabel="Save book"
+                submitLabel={t("Save book")}
                 onSubmit={updateMetadata}
                 onCancel={() => setEditing(false)}
               />
@@ -449,19 +467,20 @@ export function BookDetailPage({
           )}
           {staff && (
             <section className="panel stack" aria-labelledby="copies-title">
-              <h2 id="copies-title">Physical copies</h2>
+              <h2 id="copies-title">{t("Physical copies")}</h2>
               <p className="muted">
-                “Available for service” describes physical condition. Live
-                borrowing availability is shown separately.
+                {t(
+                  "“Available for service” describes physical condition. Live borrowing availability is shown separately.",
+                )}
               </p>
               {copies.length ? (
                 <div className="table-scroll">
                   <table className="data-table">
                     <thead>
                       <tr>
-                        <th scope="col">Barcode</th>
-                        <th scope="col">Condition</th>
-                        <th scope="col">Action</th>
+                        <th scope="col">{t("Barcode")}</th>
+                        <th scope="col">{t("Condition")}</th>
+                        <th scope="col">{t("Action")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -479,7 +498,7 @@ export function BookDetailPage({
               ) : (
                 !loading && (
                   <Feedback kind="empty">
-                    No physical copies have been added.
+                    {t("No physical copies have been added.")}
                   </Feedback>
                 )
               )}
@@ -489,7 +508,11 @@ export function BookDetailPage({
                 busy={saving || loading}
                 onPageChange={setCopiesPage}
               />
-              <p className="muted">{copiesPagination.total} physical copies</p>
+              <p className="muted">
+                {t("{count} physical copies", {
+                  count: copiesPagination.total,
+                })}
+              </p>
               {!currentBook.archivedAt && (
                 <form
                   onSubmit={(event) => {
@@ -498,7 +521,7 @@ export function BookDetailPage({
                   className="toolbar"
                 >
                   <FormField
-                    label="New copy barcode"
+                    label={t("New copy barcode")}
                     value={barcode}
                     maxLength={64}
                     required
@@ -506,7 +529,7 @@ export function BookDetailPage({
                     disabled={saving}
                   />
                   <Button type="submit" busy={saving}>
-                    Add copy
+                    {t("Add copy")}
                   </Button>
                 </form>
               )}

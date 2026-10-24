@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+import { useTranslation } from "../../i18n/language";
+import { useEffect, useState } from "react";
 import { api } from "../../lib/http";
 import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
@@ -23,6 +24,7 @@ function BookDetailContent({
   bookId: string;
   client: Pick<typeof api, "request">;
 }) {
+  const { t, translate } = useTranslation();
   const [state, setState] = useState<DetailState>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
 
@@ -72,14 +74,14 @@ function BookDetailContent({
   }
 
   if (state.status === "loading") {
-    return <Feedback kind="loading">Loading book details...</Feedback>;
+    return <Feedback kind="loading">{t("Loading book details...")}</Feedback>;
   }
 
   if (state.status === "error") {
     return (
       <div>
-        <Feedback kind="error">{state.message}</Feedback>
-        <Button onClick={reload}>Retry details</Button>
+        <Feedback kind="error">{translate(state.message)}</Feedback>
+        <Button onClick={reload}>{t("Retry details")}</Button>
       </div>
     );
   }
@@ -87,17 +89,17 @@ function BookDetailContent({
   return (
     <div>
       <dl>
-        <dt>ISBN</dt>
-        <dd>{state.book.isbn ?? "Not provided"}</dd>
-        <dt>Description</dt>
-        <dd>{state.book.description || "No description available."}</dd>
-        <dt>Available copies</dt>
+        <dt>{t("ISBN")}</dt>
+        <dd>{state.book.isbn ?? t("Not provided")}</dd>
+        <dt>{t("Description")}</dt>
+        <dd>{state.book.description || t("No description available.")}</dd>
+        <dt>{t("Available copies")}</dt>
         <dd aria-live="polite">{state.availableCopies}</dd>
       </dl>
       {state.availableCopies === 0 && (
-        <p>No copies are currently available for borrowing.</p>
+        <p>{t("No copies are currently available for borrowing.")}</p>
       )}
-      <Button onClick={reload}>Refresh availability</Button>
+      <Button onClick={reload}>{t("Refresh availability")}</Button>
     </div>
   );
 }
@@ -111,6 +113,7 @@ export function BookDetails({
   title: string;
   client?: Pick<typeof api, "request">;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const contentId = `book-details-${bookId}`;
 
@@ -119,10 +122,13 @@ export function BookDetails({
       <Button
         aria-expanded={open}
         aria-controls={contentId}
-        aria-label={`${open ? "Hide" : "View"} details for ${title}`}
+        aria-label={t(
+          open ? "Hide details for {title}" : "View details for {title}",
+          { title },
+        )}
         onClick={() => setOpen((value) => !value)}
       >
-        {open ? "Hide details" : "View details"}
+        {open ? t("Hide details") : t("View details")}
       </Button>
       <div id={contentId} hidden={!open}>
         {open && <BookDetailContent bookId={bookId} client={client} />}
