@@ -1,7 +1,8 @@
 # Phân công cải thiện chất lượng BookFlow
 
-Ngày lập: **30/10/2026**. Đây là kế hoạch công việc phần mềm sau review, chưa
-phải danh sách thay đổi đã thực hiện hoặc kết quả kiểm thử mới.
+Ngày lập: **30/10/2026**. Đây là kế hoạch công việc phần mềm sau review.
+Các cập nhật triển khai trong workspace được ghi riêng; kế hoạch ban đầu
+không phải bằng chứng đã hoàn thành hoặc đã merge.
 
 Mục tiêu: sửa lỗi đã tái hiện, hoàn thiện luồng sử dụng và tăng độ tin cậy của
 hợp đồng API. Phạm vi gồm source, kiểm thử và tài liệu kỹ thuật chạy ứng dụng.
@@ -50,8 +51,14 @@ trước khi nhóm quyết định merge. Không đặt chỉ tiêu số commit.
 
 ### Q1 Giữ trạng thái khi đổi ngôn ngữ
 
-**Vấn đề:** `App.tsx` dùng role đã dịch trong React key của Catalog và trang
+**Vấn đề lúc review:** `App.tsx` dùng role đã dịch trong React key của Catalog và trang
 chi tiết sách. Đổi ngôn ngữ làm component được tạo lại và mất state.
+
+**Cập nhật workspace:** logic route đã chuyển sang `client/src/app/AppRouter.tsx`,
+key dùng `user.id` và role gốc. Hai regression tests trong
+`client/tests/navigation.test.tsx` tái hiện mất bộ lọc của MEMBER và mất bản nháp
+của LIBRARIAN: thất bại trước sửa, đạt sau sửa. Chưa coi toàn bộ Q1 hoàn tất
+trước khi đối chiếu đủ checklist và có review của nhóm.
 
 **Công việc:**
 
@@ -61,7 +68,7 @@ chi tiết sách. Đổi ngôn ngữ làm component được tạo lại và m�
 3. Thêm test ở cấp `App` với người đã đăng nhập; giữ các test đổi ngôn ngữ ở
    trang đăng ký hiện có.
 
-**File chính:** `client/src/App.tsx`, `client/tests/language.test.tsx`,
+**File chính:** `client/src/app/AppRouter.tsx`, `client/tests/navigation.test.tsx`, `client/tests/language.test.tsx`,
 `client/tests/catalog.test.tsx`, `tests/e2e/language.spec.ts`.
 
 **Tiêu chí hoàn thành:**
@@ -71,7 +78,7 @@ chi tiết sách. Đổi ngôn ngữ làm component được tạo lại và m�
 - [ ] Staff đang thêm/sửa sách hoặc nhập barcode vẫn giữ form và nội dung.
 - [ ] Không phát sinh mutation hoặc submit form do đổi ngôn ngữ.
 - [ ] Đổi tài khoản/quyền vẫn loại bỏ dữ liệu của người xem trước.
-- [ ] Có regression test thất bại trên source trước sửa và đạt sau sửa.
+- [x] Có regression test thất bại trên source trước sửa và đạt sau sửa.
 
 **Kiểm tra:** `npm run check`, E2E ngôn ngữ/Catalog liên quan. Không cần chạy
 DB integration chỉ vì thay đổi định danh component.
@@ -160,7 +167,7 @@ cần thống nhất cách cấu hình khi máy dùng cổng riêng.
    có một helper tải riêng bên ngoài.
 
 **File chính:** `client/vite.config.ts`, `scripts/dev.mjs`,
-`client/src/App.tsx` phần link tài liệu, `.env.example` phù hợp,
+`client/src/app/AppLayout.tsx` phần link tài liệu, `.env.example` phù hợp,
 `playwright.config.ts` nếu cấu hình test cần thay đổi.
 
 **Tiêu chí hoàn thành:** trang web, API, health và Swagger cùng trỏ tới
@@ -169,7 +176,7 @@ Mac giữ 5433/3100/5174; E2E external dùng đúng base URL. Chỉ ghi nhận c
 hình thực sự đã chạy, không suy ra mọi profile đều đạt.
 
 **Kiểm tra:** `npm run check`, smoke HTTP mục tiêu và E2E liên quan. Sau Q1
-được tích hợp, cập nhật nhánh trước khi sửa phần dùng chung trong `App.tsx`.
+được tích hợp, cập nhật nhánh trước khi sửa phần dùng chung trong `app/`.
 
 ### T2 Catalog có phân trang hợp lý và trạng thái trong URL
 
@@ -187,7 +194,7 @@ hình thực sự đã chạy, không suy ra mọi profile đều đạt.
    của staff. Backend vẫn là nơi thực thi phân quyền.
 
 **File chính:** `client/src/features/catalog/CatalogPage.tsx`, phần điều hướng
-trong `client/src/App.tsx`, `BookDetailPage.tsx`, helper query khi cần,
+trong `client/src/app/AppRouter.tsx`, `BookDetailPage.tsx`, helper query khi cần,
 `client/tests/CatalogPage.test.tsx`, `client/tests/catalog.test.tsx`, E2E Catalog.
 
 **Tiêu chí hoàn thành:**
@@ -326,13 +333,13 @@ trong integration. E2E chỉ cần khi có thay đổi frontend/tích hợp liê
    cập nhật A1/Q3. Helper A3 có thể chuẩn bị từ trước.
 5. **Đồng bộ tài liệu kỹ thuật:** Tú hoàn tất T3 theo kết quả thật của các PR.
 
-| File/phần dùng chung           | Cách phối hợp                                                                                             |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `client/src/App.tsx`           | Quân sửa key trong Q1; Tú sửa link và điều hướng trong T1/T2 sau khi cập nhật Q1. Review giữ cả hai phần. |
-| `client/src/i18n/vi.ts`        | Người thay UI thêm key cần thiết, dùng diff nhỏ và cập nhật nhánh; giữ nguyên nội dung người dùng.        |
-| `docs/openapi.yaml` và Postman | An phụ trách A1/A3; Quân phối hợp phần 405 của Q3 trước khi sửa.                                          |
-| `tests/e2e/language.spec.ts`   | Quân phụ trách Q1; Tú bổ sung assertion URL/filter sau khi cập nhật thay đổi đó.                          |
-| Validation lịch sử             | Không sửa số cũ thành số mới; bổ sung mốc và môi trường mới khi thật sự chạy.                             |
+| File/phần dùng chung           | Cách phối hợp                                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `client/src/app/`              | AppRouter giữ key/Q1 và chọn trang; AppLayout giữ link tài liệu/T1; usePath giữ điều hướng/T2. Review đủ các phần. |
+| `client/src/i18n/vi.ts`        | Người thay UI thêm key cần thiết, dùng diff nhỏ và cập nhật nhánh; giữ nguyên nội dung người dùng.                 |
+| `docs/openapi.yaml` và Postman | An phụ trách A1/A3; Quân phối hợp phần 405 của Q3 trước khi sửa.                                                   |
+| `tests/e2e/language.spec.ts`   | Quân phụ trách Q1; Tú bổ sung assertion URL/filter sau khi cập nhật thay đổi đó.                                   |
+| Validation lịch sử             | Không sửa số cũ thành số mới; bổ sung mốc và môi trường mới khi thật sự chạy.                                      |
 
 Các thành viên làm trên checkout/nhánh của mình rồi review bằng PR. Trong
 workspace dùng chung, không thao tác checkout hoặc sửa cùng file đồng thời.
@@ -374,14 +381,14 @@ chụp token/password. Người review đối chiếu các checkbox của task t
 
 ## Theo dõi tiến độ
 
-| Mã  | Trạng thái ban đầu | Bằng chứng cần bổ sung khi thực hiện                                   |
-| --- | ------------------ | ---------------------------------------------------------------------- |
-| Q1  | Chưa thực hiện     | Commit, regression mất state, check và E2E                             |
-| Q2  | Chưa thực hiện     | Commit, test CSRF cũ, browser nhiều tab, bằng chứng thu hồi phiên      |
-| Q3  | Chưa thực hiện     | Commit, ma trận route/method/quyền, OpenAPI/Postman                    |
-| T1  | Chưa thực hiện     | Commit, cấu hình thực sự đã chạy, HTTP/E2E liên quan                   |
-| T2  | Chưa thực hiện     | Commit, test URL/Back/Forward/pagination và E2E                        |
-| T3  | Chưa thực hiện     | Diff tài liệu, mốc Git đã đối chiếu, format/link                       |
-| A1  | Chưa thực hiện     | Commit, DTO, ma trận quyền và DB integration                           |
-| A2  | Chưa thực hiện     | Commit, UI EN/VI, xác nhận trả, regression phân trang và E2E           |
-| A3  | Chưa thực hiện     | Commit, operation/status đã bao phủ và ca validator từ chối schema sai |
+| Mã  | Trạng thái hiện tại                           | Bằng chứng cần bổ sung khi thực hiện                                           |
+| --- | --------------------------------------------- | ------------------------------------------------------------------------------ |
+| Q1  | Đã sửa key trong workspace; chờ review đầy đủ | Hai regression component tests đạt; bổ sung commit, checklist và E2E liên quan |
+| Q2  | Chưa thực hiện                                | Commit, test CSRF cũ, browser nhiều tab, bằng chứng thu hồi phiên              |
+| Q3  | Chưa thực hiện                                | Commit, ma trận route/method/quyền, OpenAPI/Postman                            |
+| T1  | Chưa thực hiện                                | Commit, cấu hình thực sự đã chạy, HTTP/E2E liên quan                           |
+| T2  | Chưa thực hiện                                | Commit, test URL/Back/Forward/pagination và E2E                                |
+| T3  | Chưa thực hiện                                | Diff tài liệu, mốc Git đã đối chiếu, format/link                               |
+| A1  | Chưa thực hiện                                | Commit, DTO, ma trận quyền và DB integration                                   |
+| A2  | Chưa thực hiện                                | Commit, UI EN/VI, xác nhận trả, regression phân trang và E2E                   |
+| A3  | Chưa thực hiện                                | Commit, operation/status đã bao phủ và ca validator từ chối schema sai         |

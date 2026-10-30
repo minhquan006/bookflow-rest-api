@@ -25,14 +25,3 @@ export type Copy = {
   conditionStatus: "AVAILABLE" | "MAINTENANCE" | "RETIRED";
   createdAt: string;
 };
-export type PaginationInfo = {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-};
-export function errorMessage(error: unknown): string {
-  return error instanceof Error
-    ? error.message
-    : "The request could not be completed. Please try again.";
-}

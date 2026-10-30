@@ -10,10 +10,11 @@ storage is unavailable, switching still works for the current visit.
 The translation covers navigation, public pages, authentication, account and user
 administration, catalog/category/copy management, loans/returns, dashboard, audit
 filters, pagination, accessibility labels and known error/validation messages.
-Changing language keeps the session. Review found a state-preservation defect
-for signed-in users on Catalog and book-detail screens: a translated role is
-included in their React key, so changing language resets filters and drafts.
-This remains open as Q1 in [the improvement plan](QUALITY_IMPROVEMENT_PLAN.md).
+Changing language keeps the session. AppRouter now uses the user ID and canonical
+role in React keys, preserving Catalog filters and book-detail drafts when language
+changes. Two component regression tests reproduce the earlier resets and pass with
+this fix. The broader Q1 acceptance checklist and team review remain tracked in
+[the improvement plan](QUALITY_IMPROVEMENT_PLAN.md).
 Other outstanding language work includes untranslated return instructions in
 loan rows (A2). The existing test evidence does not establish full coverage.
 Library dates use the selected locale and always retain Vietnam's UTC+7 timezone.
@@ -33,7 +34,8 @@ named placeholders instead of concatenating translated fragments. Use `translate
 only for known canonical messages or status labels coming from state/API helpers;
 never pass book or user content to it. Store canonical messages or timestamps in
 state so existing feedback also updates when the language changes. Pass the chosen
-locale to `formatLibraryDate`; do not change timestamps sent to the API.
+locale to `formatLibraryDate` in `client/src/lib/datetime.ts`; do not change
+timestamps sent to the API.
 
 ## Validation
 

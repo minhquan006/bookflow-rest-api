@@ -1,0 +1,59 @@
+.connection {
+  margin-bottom: 40px;
+}
+
+.hero-panel {
+  background: linear-gradient(115deg, #e3eedf, #f1f4e8);
+  border: 1px solid #d6e2cf;
+  border-radius: 20px;
+  padding: clamp(24px, 4vw, 48px);
+  margin-bottom: 24px;
+}
+
+.hero-panel h1 {
+  font-family: Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(38px, 5vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+
+.hero-panel .lead {
+  max-width: 530px;
+  margin: 18px 0 24px;
+}
+
+.overview-cards {
+  margin-bottom: 28px;
+}
+
+.overview-cards h2 {
+  font-size: 18px;
+}
+
+.overview-cards p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.step-number {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--accent);
+  background: #eaf1e5;
+  border-radius: 50%;
+  padding: 8px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 640px) {
+  .hero-panel h1 {
+    font-size: 40px;
+  }
+}
+
+:lang(vi) .hero-panel h1 {
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}

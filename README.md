@@ -25,10 +25,9 @@ và [kiểm chứng Loans v2](docs/LOANS_VALIDATION.md). Các kết quả chuẩ
 ## Ngôn ngữ giao diện
 
 Chọn **Language / Ngôn ngữ** ở đầu trang để chuyển giữa **English** và
-**Tiếng Việt**. Lựa chọn được lưu trên trình duyệt. Review đã xác định lỗi mất
-bộ lọc/bản nháp ở Catalog và trang chi tiết sách khi người đã đăng nhập đổi
-ngôn ngữ; xem [hướng dẫn](docs/LANGUAGES.md) và
-[kế hoạch sửa lỗi](docs/QUALITY_IMPROVEMENT_PLAN.md).
+**Tiếng Việt**. Lựa chọn được lưu trên trình duyệt. Router dùng ID và role gốc
+để giữ bộ lọc/bản nháp khi đổi ngôn ngữ; xem [hướng dẫn](docs/LANGUAGES.md)
+và phạm vi kiểm chứng trong [kế hoạch cải thiện](docs/QUALITY_IMPROVEMENT_PLAN.md).
 
 ## Cài và chạy dev
 
@@ -149,6 +148,7 @@ Catalog và business hiện có.
 
 `server/src/modules` và `client/src/features` chứa phần theo module;
 `shared`, `middleware`, `components`, `lib` dùng chung. Đọc
+[mục lục tài liệu và cấu trúc hiện tại](docs/README.md) và
 [CONTRIBUTING](CONTRIBUTING.md): controller → service → repository, SQL tham số
 hóa, một DB client xuyên transaction, migration đã merge bất biến.
 

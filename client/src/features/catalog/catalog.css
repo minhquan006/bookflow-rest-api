@@ -1,4 +1,39 @@
-﻿.catalog {
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 18px;
+}
+
+.book-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.book-card h2 {
+  font-family: Georgia, serif;
+  font-size: 23px;
+}
+
+.book-card .button {
+  margin-top: auto;
+}
+
+.book-card p {
+  margin: 0 0 12px;
+}
+
+.book-card small {
+  color: var(--muted);
+}
+
+.book-description {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.catalog {
   display: grid;
   gap: 1rem;
 }

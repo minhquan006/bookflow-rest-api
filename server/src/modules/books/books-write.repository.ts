@@ -1,5 +1,5 @@
-﻿import type { PoolClient } from "pg";
-import type { CreateBookInput } from "./books-write.schema.js";
+import type { PoolClient } from "pg";
+import type { CreateBookInput } from "./books.schema.js";
 
 type CreatedBook = {
   id: string;

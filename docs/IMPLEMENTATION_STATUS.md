@@ -13,8 +13,6 @@ không có nghĩa toàn bộ kiểm thử lịch sử đã được chạy lại
 
 ## Lỗi và cải thiện còn mở
 
-- Đổi ngôn ngữ ở Catalog/book detail khi đã đăng nhập làm reset state do
-  React key dùng role đã dịch (Q1).
 - Refresh/logout có thể dùng CSRF trong RAM đã cũ khi tab khác đổi cookie (Q2).
 - Loan rows còn hai nhãn tiếng Anh chưa gọi hàm dịch (A2).
 - Link Swagger dev ép cổng 3000; cấu hình cổng và trải nghiệm phân trang cần
@@ -25,12 +23,23 @@ không có nghĩa toàn bộ kiểm thử lịch sử đã được chạy lại
 Xem [phân công chi tiết](QUALITY_IMPROVEMENT_PLAN.md). Đánh dấu hoàn thành
 chỉ khi đã sửa, kiểm tra và review, không dựa trên việc đã lập kế hoạch.
 
+Trong workspace, App đã được tách thành router/layout/Home; tiện ích frontend
+dùng chung và tên router backend đã thống nhất. React key hiện dùng role gốc
+để tránh reset state khi đổi ngôn ngữ. Hai regression component tests cho bộ
+lọc MEMBER và bản nháp LIBRARIAN đã thất bại trước sửa, đạt sau sửa. Checklist
+Q1 đầy đủ và review của nhóm vẫn cần xác nhận; thay đổi workspace chưa xác
+nhận đã merge vào main. Xem [cấu trúc hiện tại](README.md).
+
 ## Bằng chứng
 
 Validation trong repository ghi các giai đoạn riêng. Kết quả cloud, Mac và
 GitHub Actions phải phân biệt. Bộ test Auth/Language chọn lọc đã chạy trong
 review gồm 18 test đạt; 5 ca bổ sung tái hiện các lỗi ở trên. Đây là component
 checks với HTTP mô phỏng, không phải lần DB integration hoặc E2E mới.
+
+Đợt tái tổ chức sau đó đã chạy check (66 backend + 82 frontend), 105 integration
+và 24 E2E desktop/mobile, tất cả đạt trên Mac. Phạm vi, lệnh chạy và giới hạn
+được ghi tại [mục kiểm chứng cấu trúc](README.md#kiểm-chứng-đợt-tái-tổ-chức).
 
 Giữ nguyên [FULL_VALIDATION](FULL_VALIDATION.md),
 [LOANS_VALIDATION](LOANS_VALIDATION.md), [BENCHMARK](BENCHMARK.md) và evidence

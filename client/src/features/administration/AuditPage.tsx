@@ -6,7 +6,8 @@ import { Feedback } from "../../components/Feedback";
 import { FormField } from "../../components/FormField";
 import { Pagination } from "../../components/Pagination";
 import { useAuth } from "../auth/AuthContext";
-import { formatLibraryDate, type PageInfo } from "../loans/types";
+import { formatLibraryDate } from "../../lib/datetime";
+import type { PaginatedCollection } from "../../lib/pagination";
 
 type AuditEvent = {
   id: string;
@@ -17,7 +18,7 @@ type AuditEvent = {
   requestId: string;
   occurredAt: string;
 };
-type AuditCollection = { data: AuditEvent[]; pagination: PageInfo };
+type AuditCollection = PaginatedCollection<AuditEvent>;
 type Filters = { action: string; actorId: string; from: string; to: string };
 const emptyFilters: Filters = { action: "", actorId: "", from: "", to: "" };
 

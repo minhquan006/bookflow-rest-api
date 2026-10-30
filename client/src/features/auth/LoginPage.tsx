@@ -5,7 +5,8 @@ import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
 import { FormField } from "../../components/FormField";
 import { useAuth } from "./AuthContext";
-import { errorMessage, fieldErrors, validEmail } from "./forms";
+import { errorMessage, fieldErrors } from "../../lib/errors";
+import { validEmail } from "./forms";
 
 export function LoginPage({
   onNavigate,

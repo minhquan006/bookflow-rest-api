@@ -22,8 +22,10 @@ hướng dẫn áp dụng lại vào main hiện tại.
 
 [Kế hoạch cải thiện chất lượng](QUALITY_IMPROVEMENT_PLAN.md) chia Q1–Q3,
 T1–T3 và A1–A3, có phạm vi, phụ thuộc, kiểm thử và review chéo. Các lỗi đã
-xác định gồm mất state Catalog/book detail khi đổi ngôn ngữ, CSRF cũ ở nhiều
-tab và nhãn trả sách chưa dịch. Kế hoạch không đồng nghĩa đã sửa xong.
+xác định gồm CSRF cũ ở nhiều tab và nhãn trả sách chưa dịch. Lỗi React key làm
+mất state khi đổi ngôn ngữ đã sửa trong workspace khi tách AppRouter, có hai
+component regression tests; Q1 vẫn cần review theo đủ tiêu chí của kế hoạch.
+Xem [cấu trúc mã nguồn và mục lục tài liệu](README.md) trước khi sửa import.
 
 ## Bắt đầu làm việc
 

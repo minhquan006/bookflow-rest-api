@@ -7,8 +7,9 @@ import { Feedback } from "../../components/Feedback";
 import { FormField } from "../../components/FormField";
 import { Pagination } from "../../components/Pagination";
 import { CategoryForm } from "./CategoryForm";
-import { errorMessage } from "./types";
-import type { Category, PaginationInfo } from "./types";
+import { errorMessage } from "../../lib/errors";
+import type { PaginationInfo } from "../../lib/pagination";
+import type { Category } from "./types";
 
 export function CategoriesPage() {
   const { t, translate } = useTranslation();

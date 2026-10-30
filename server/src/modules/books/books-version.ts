@@ -24,3 +24,7 @@ export function expectedVersion(id: string, ifMatch: string | undefined) {
 
   return version;
 }
+
+export function bookETag(id: string, version: number) {
+  return `"book-${id}-v${version}"`;
+}

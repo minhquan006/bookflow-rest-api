@@ -1,3 +1,5 @@
+import type { PaginatedCollection } from "../../lib/pagination";
+
 export type Loan = {
   id: string;
   userId: string;
@@ -15,29 +17,11 @@ export type LoanReturn = {
   returnedBy: string;
 };
 
-export type PageInfo = {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-};
-
-export type LoanCollection = { data: Loan[]; pagination: PageInfo };
+export type LoanCollection = PaginatedCollection<Loan>;
 
 export function loanStatus(loan: Loan, at = Date.now()) {
   if (loan.returnedAt) return "Returned";
   return new Date(loan.dueAt).getTime() < at ? "Overdue" : "Active";
-}
-
-export function formatLibraryDate(
-  value: string,
-  locale: "en-GB" | "vi-VN" = "en-GB",
-) {
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Ho_Chi_Minh",
-  }).format(new Date(value));
 }
 
 export function shortId(value: string) {
