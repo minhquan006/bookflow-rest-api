@@ -17,7 +17,6 @@ if (ids.some((id) => !id) || new Set(ids).size !== ids.length) {
 }
 for (const filename of [
   "BookFlow.postman_collection.json",
-  "BookFlow.planned.postman_collection.json",
   "BookFlow.catalog.postman_collection.json",
   "BookFlow.business.postman_collection.json",
   "BookFlow.local.postman_environment.json",

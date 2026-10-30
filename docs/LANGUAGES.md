@@ -10,7 +10,12 @@ storage is unavailable, switching still works for the current visit.
 The translation covers navigation, public pages, authentication, account and user
 administration, catalog/category/copy management, loans/returns, dashboard, audit
 filters, pagination, accessibility labels and known error/validation messages.
-Changing language preserves the session, current form input, filters and page.
+Changing language keeps the session. Review found a state-preservation defect
+for signed-in users on Catalog and book-detail screens: a translated role is
+included in their React key, so changing language resets filters and drafts.
+This remains open as Q1 in [the improvement plan](QUALITY_IMPROVEMENT_PLAN.md).
+Other outstanding language work includes untranslated return instructions in
+loan rows (A2). The existing test evidence does not establish full coverage.
 Library dates use the selected locale and always retain Vietnam's UTC+7 timezone.
 
 Book titles, descriptions, category names, user names and emails remain exactly as

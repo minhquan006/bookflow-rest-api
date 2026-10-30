@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "BookFlow \u2014 Foundation smoke",
-    "description": "Executable checks for implemented foundation endpoints only. Start PostgreSQL, run migrations, start API, select BookFlow.local environment, and run this collection. Business features are in a separate planned collection.",
+    "name": "BookFlow — Foundation smoke",
+    "description": "Executable checks for implemented foundation endpoints only. Start PostgreSQL, run migrations, start API, select BookFlow.local environment, and run this collection. Catalog and complete business workflows are provided in their respective collections.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

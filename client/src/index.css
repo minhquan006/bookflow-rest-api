@@ -142,10 +142,6 @@ a {
   color: #214d36;
   font-weight: 650;
 }
-.nav-note {
-  font-size: 10px;
-  font-weight: 400;
-}
 .sidebar-note {
   margin-top: 32px;
   font-size: 12px;
@@ -335,9 +331,6 @@ footer {
   .sidebar nav button {
     padding: 10px;
     font-size: 12px;
-  }
-  .nav-note {
-    display: none;
   }
   main {
     padding: 32px 20px;
