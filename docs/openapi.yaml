@@ -1850,11 +1850,39 @@ components:
     Loan:
       type: object
       additionalProperties: false
+      description: >-
+        Current book title and copy barcode, including archived books in visible history;
+        these are not borrowing-time snapshots. borrower is present for LIBRARIAN/ADMIN only
+        and omitted for MEMBER. Existing IDs and ownership rules are unchanged.
       properties:
         id: *id015
         userId: *id015
         bookId: *id015
         copyId: *id015
+        book:
+          type: object
+          additionalProperties: false
+          properties:
+            id: *id015
+            title:
+              type: string
+          required: [id, title]
+        copy:
+          type: object
+          additionalProperties: false
+          properties:
+            id: *id015
+            barcode:
+              type: string
+          required: [id, barcode]
+        borrower:
+          type: object
+          additionalProperties: false
+          properties:
+            id: *id015
+            fullName:
+              type: string
+          required: [id, fullName]
         borrowedAt: *id016
         dueAt: *id016
         returnedAt: &id025
@@ -1872,6 +1900,8 @@ components:
         - userId
         - bookId
         - copyId
+        - book
+        - copy
         - borrowedAt
         - dueAt
         - returnedAt

@@ -1,3 +1,4 @@
+import { expectOpenApi } from "./helpers/openapi.js";
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import { Router } from "express";
@@ -129,6 +130,7 @@ describe("Loans HTTP integration", () => {
   it("borrows an available copy with the exact DTO, Location, fourteen-day duration and matching audit", async () => {
     const response = await borrow();
     expect(response.status).toBe(201);
+    expectOpenApi("createLoan", 201, response);
     const loan = response.body.data;
     expect(Object.keys(loan).sort()).toEqual(
       [
@@ -136,6 +138,8 @@ describe("Loans HTTP integration", () => {
         "userId",
         "bookId",
         "copyId",
+        "book",
+        "copy",
         "borrowedAt",
         "dueAt",
         "returnedAt",
@@ -165,6 +169,86 @@ describe("Loans HTTP integration", () => {
         action: "loan.created",
       },
     ]);
+  });
+  it("returns current book/copy identity including archived history, and borrower identity only to staff", async () => {
+    const loan = await borrowDirect(books[0]!);
+    await borrowDirect(books[1]!, members[1]);
+    await returnLoan(loan.id);
+    await pool.query(
+      "UPDATE books SET title='Current archived title',archived_at=now() WHERE id=$1",
+      [loan.bookId],
+    );
+    await pool.query(
+      "UPDATE users SET full_name='Current Borrower' WHERE id=$1",
+      [loan.userId],
+    );
+    const barcode = (
+      await pool.query("SELECT barcode FROM book_copies WHERE id=$1", [
+        loan.copyId,
+      ])
+    ).rows[0].barcode;
+    for (const actor of [members[0]!, staff, administrator]) {
+      const detail = await request(app)
+        .get(`/api/v1/loans/${loan.id}`)
+        .set("Authorization", authorization[actor.id]!);
+      expectOpenApi("getLoan", 200, detail);
+      expect(detail.body.data.book).toEqual({
+        id: loan.bookId,
+        title: "Current archived title",
+      });
+      expect(detail.body.data.copy).toEqual({ id: loan.copyId, barcode });
+      if (actor.role === "MEMBER")
+        expect(detail.body.data).not.toHaveProperty("borrower");
+      else
+        expect(detail.body.data.borrower).toEqual({
+          id: loan.userId,
+          fullName: "Current Borrower",
+        });
+      const list = await request(app)
+        .get("/api/v1/loans?status=RETURNED&limit=1")
+        .set("Authorization", authorization[actor.id]!);
+      expectOpenApi("listLoans", 200, list);
+      expect(list.body.data).toEqual([detail.body.data]);
+      expect(list.body.pagination).toEqual({
+        page: 1,
+        limit: 1,
+        total: 1,
+        totalPages: 1,
+      });
+      expect(JSON.stringify(list.body)).not.toMatch(/password|token|email/i);
+    }
+    const hidden = await request(app)
+      .get(`/api/v1/loans/${loan.id}`)
+      .set("Authorization", authorization[members[1]!.id]!);
+    expectOpenApi("getLoan", 404, hidden);
+    const own = await request(app)
+      .get("/api/v1/loans")
+      .set("Authorization", authorization[members[1]!.id]!);
+    expectOpenApi("listLoans", 200, own);
+    expect(own.body.pagination.total).toBe(1);
+    expect(
+      own.body.data.every(
+        (item: { userId: string; borrower?: unknown }) =>
+          item.userId === members[1]!.id && !item.borrower,
+      ),
+    ).toBe(true);
+    const anonymous = await request(app).get(`/api/v1/loans/${loan.id}`);
+    expectOpenApi("getLoan", 401, anonymous);
+    expectOpenApi("returnLoan", 403, await returnLoan(loan.id, members[0]!));
+  });
+  it("rejects malformed loan responses using the actual OpenAPI schema", async () => {
+    const response = await borrow();
+    expectOpenApi("createLoan", 201, response);
+    const missing = structuredClone(response.body);
+    delete missing.data.book;
+    expect(() =>
+      expectOpenApi("createLoan", 201, { ...response, body: missing }),
+    ).toThrow(/required/);
+    const invalid = structuredClone(response.body);
+    invalid.data.copy.barcode = 123;
+    expect(() =>
+      expectOpenApi("createLoan", 201, { ...response, body: invalid }),
+    ).toThrow(/string/);
   });
   it("rejects anonymous/staff borrowing and strict body mass assignment", async () => {
     expect(
@@ -262,6 +346,7 @@ describe("Loans HTTP integration", () => {
       .get("/api/v1/loans?limit=1&page=2")
       .set("Authorization", authorization[members[0]!.id]!);
     expect(own.status).toBe(200);
+    expectOpenApi("listLoans", 200, own);
     expect(own.body.data).toHaveLength(1);
     expect(own.body.pagination).toEqual({
       page: 2,
@@ -273,6 +358,7 @@ describe("Loans HTTP integration", () => {
     const all = await request(app)
       .get("/api/v1/loans")
       .set("Authorization", authorization[staff.id]!);
+    expectOpenApi("listLoans", 200, all);
     expect(all.body.pagination.total).toBe(3);
     await returnLoan(first.id);
     const returned = await request(app)
@@ -320,7 +406,9 @@ describe("Loans HTTP integration", () => {
       returnLoan(loan.id, administrator),
     ]);
     expect(first.status).toBe(200);
+    expectOpenApi("returnLoan", 200, first);
     expect(second.status).toBe(200);
+    expectOpenApi("returnLoan", 200, second);
     expect(second.body).toEqual(first.body);
     expect([staff.id, administrator.id]).toContain(first.body.data.returnedBy);
     expect((await returnLoan(loan.id)).body).toEqual(first.body);

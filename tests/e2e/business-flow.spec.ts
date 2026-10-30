@@ -144,6 +144,16 @@ test("member borrows and staff returns the copy, with dashboard and audit eviden
       exact: true,
     })
     .click();
+  const confirmation = page.getByRole("region", {
+    name: label("Confirm this return?", "Xác nhận đã nhận lại sách?"),
+  });
+  await expect(confirmation.getByText(title, { exact: true })).toBeVisible();
+  await expect(
+    confirmation.getByText(`LOAN-${suffix}`, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    confirmation.getByText(`Borrower ${suffix}`, { exact: true }),
+  ).toBeVisible();
   await page
     .getByRole("button", {
       name: label("Confirm return", "Xác nhận trả sách"),

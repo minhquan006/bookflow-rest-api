@@ -9,19 +9,29 @@ type LoanRow = {
   user_id: string;
   book_id: string;
   copy_id: string;
+  book_title: string;
+  copy_barcode: string;
+  borrower_name: string;
   borrowed_at: Date;
   due_at: Date;
   returned_at: Date | null;
   returned_by: string | null;
 };
-const loanSelection = `SELECT l.id,l.user_id,c.book_id,l.copy_id,l.borrowed_at,l.due_at,l.returned_at,l.returned_by
-  FROM loans l JOIN book_copies c ON c.id=l.copy_id`;
+const loanSelection = `SELECT l.id,l.user_id,c.book_id,l.copy_id,l.borrowed_at,l.due_at,l.returned_at,l.returned_by,
+  b.title AS book_title,c.barcode AS copy_barcode,u.full_name AS borrower_name
+  FROM loans l JOIN book_copies c ON c.id=l.copy_id
+  JOIN books b ON b.id=c.book_id JOIN users u ON u.id=l.user_id`;
 
-export const loanDto = (row: LoanRow): Loan => ({
+export const loanDto = (row: LoanRow, actor: Principal): Loan => ({
   id: row.id,
   userId: row.user_id,
   bookId: row.book_id,
   copyId: row.copy_id,
+  book: { id: row.book_id, title: row.book_title },
+  copy: { id: row.copy_id, barcode: row.copy_barcode },
+  ...(actor.role === "MEMBER"
+    ? {}
+    : { borrower: { id: row.user_id, fullName: row.borrower_name } }),
   borrowedAt: row.borrowed_at.toISOString(),
   dueAt: row.due_at.toISOString(),
   returnedAt: row.returned_at?.toISOString() ?? null,
@@ -110,16 +120,16 @@ export async function insertLoanAudit(
 export async function findLoan(
   client: QueryClient,
   id: string,
-  actor?: Principal,
+  actor: Principal,
 ) {
   const values: string[] = [id];
-  const ownerFilter = actor?.role === "MEMBER" ? " AND l.user_id=$2" : "";
-  if (actor?.role === "MEMBER") values.push(actor.id);
+  const ownerFilter = actor.role === "MEMBER" ? " AND l.user_id=$2" : "";
+  if (actor.role === "MEMBER") values.push(actor.id);
   const result = await client.query<LoanRow>(
     `${loanSelection} WHERE l.id=$1${ownerFilter}`,
     values,
   );
-  return result.rows[0] ? loanDto(result.rows[0]) : null;
+  return result.rows[0] ? loanDto(result.rows[0], actor) : null;
 }
 export async function listLoanRows(
   client: QueryClient,
@@ -146,7 +156,10 @@ export async function listLoanRows(
     `${loanSelection}${where} ORDER BY l.borrowed_at DESC,l.id DESC LIMIT $${values.length - 1} OFFSET $${values.length}`,
     values,
   );
-  return { data: rows.rows.map(loanDto), total: count.rows[0]!.total };
+  return {
+    data: rows.rows.map((row) => loanDto(row, actor)),
+    total: count.rows[0]!.total,
+  };
 }
 export async function findCopyForLoan(client: PoolClient, id: string) {
   return (
