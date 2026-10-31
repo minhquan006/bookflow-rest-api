@@ -1,8 +1,11 @@
+import { readDevConfig } from "./scripts/dev-config.ts";
 import { defineConfig, devices } from "@playwright/test";
 import { existsSync } from "node:fs";
 import { loadEnvFile } from "node:process";
 
 if (existsSync(".env")) loadEnvFile(".env");
+
+const dev = readDevConfig();
 
 const executablePath =
   process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??
@@ -16,7 +19,7 @@ export default defineConfig({
   workers: 2,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5173",
+    baseURL: process.env.E2E_BASE_URL ?? dev.webOrigin,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     launchOptions: executablePath ? { executablePath } : {},
@@ -33,14 +36,15 @@ export default defineConfig({
     : [
         {
           command: "npm --prefix server run dev",
-          env: { AUTH_RATE_LIMIT_MAX: "100" },
-          url: "http://127.0.0.1:3000/health/ready",
+          env: { ...dev.env, AUTH_RATE_LIMIT_MAX: "100" },
+          url: `${dev.apiOrigin}/health/ready`,
           reuseExistingServer: !process.env.CI,
           timeout: 30_000,
         },
         {
           command: "npm --prefix client run dev -- --host 127.0.0.1",
-          url: "http://127.0.0.1:5173",
+          env: dev.env,
+          url: dev.webOrigin,
           reuseExistingServer: !process.env.CI,
           timeout: 30_000,
         },

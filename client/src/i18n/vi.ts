@@ -1,4 +1,5 @@
 export const vi = {
+  "Books per page": "Số sách mỗi trang",
   "A little more discovery.": "Thêm một chút khám phá.",
   "A snapshot of the library. Refresh after borrowing or returning books.":
     "Tổng quan hoạt động thư viện. Làm mới sau khi mượn hoặc trả sách.",

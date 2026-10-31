@@ -1,26 +1,16 @@
-# Trạng thái triển khai và tích hợp
+# Current implementation status
 
-Nền hiện tại là `main` tại `50e2dc4`. Auth/Users đã merge qua PR #4;
-Catalog/Copies đã merge qua PR #5, gồm bản sửa review `118d20f`.
+Baseline: `main@d3d614f`, verified on 30/10/2026. PRs #4–#7 are merged:
+Auth/Users, Catalog/Copies, Loans/Dashboard/Audit, and English/Vietnamese UI.
+Source implementation does not establish fresh test or deployment results.
 
-| Gói                   | Phụ trách       | Trạng thái                                                                                                |
-| --------------------- | --------------- | --------------------------------------------------------------------------------------------------------- |
-| Auth/Users            | Quân — 52400227 | Đã merge vào main; register/login, refresh/CSRF, users/RBAC và UI                                         |
-| Catalog/Copies        | Tú — 52400252   | Đã merge vào main; category/book/copy, availability, ETag/If-Match và UI                                  |
-| Loans/Dashboard/Audit | An — 52400258   | Gói v2 đã áp dụng trên `feat/an-loans-5commits`; API/UI/test có trong nhánh, chờ review và CI trước merge |
+Tú's T1–T3 changes are uncommitted/unpushed on `feat/tu-quality-improvements`:
+shared dev ports/proxy, Catalog URL/page sizes and current documentation.
+See [handoff](TU_QUALITY_HANDOFF.md) for actual checks and limits.
+The minimal raw-role viewer key overlaps Q1 and requires Quân's review.
+Q2/Q3 and A1–A3 remain separate work in the [plan](QUALITY_IMPROVEMENT_PLAN.md).
 
-Gói An v2 dùng chính xác nền `50e2dc4`, không dùng lại bundle/patch An cũ.
-Năm bước được chạy riêng, kiểm tra và push từng commit. Kết quả thực thi cloud
-ở [LOANS_VALIDATION](LOANS_VALIDATION.md); mỗi bước chạy check, integration và
-E2E. Giao diện Borrow/My loans chỉ bật ở bước 4, cùng màn hình Loans thực tế.
-
-Code/test và quá trình áp dụng, review, kiểm thử có AI hỗ trợ. Git identity của
-An được giữ nguyên; điều này không có nghĩa An tự viết hoặc đã tự review từng
-dòng mã. An cần đọc và giải thích phần tiếp nhận; Quân review độc lập trước merge.
-Không đồng nhất kết quả cloud với GitHub Actions hoặc nghiệm thu trên máy thứ hai.
-
-Các kết quả chuẩn bị ngày 21/10 trong FULL_VALIDATION và một số tệp evidence là
-lịch sử. Các nhánh/bundle cũ không còn là hướng dẫn tiếp nhận gói v2.
-
-Báo cáo Word/PDF tiếng Anh, slide và video vẫn cần nhóm hoàn thiện bằng bằng
-chứng thật. Hạn được ghi trong tài liệu nhóm: **30/10/2026**, chưa có giờ cụ thể.
+[FULL_VALIDATION](FULL_VALIDATION.md), [LOANS_VALIDATION](LOANS_VALIDATION.md)
+and [CATALOG_VALIDATION](CATALOG_VALIDATION.md) retain historical results.
+Old bundles are not current setup instructions. Windows, macOS hardware, CI
+and later commits require their own evidence. Reports/slides/video remain separate.

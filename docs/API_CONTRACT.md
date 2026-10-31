@@ -16,8 +16,8 @@ Nguồn máy đọc là [`openapi.yaml`](openapi.yaml); các quyết định ngh
 | Loans, Dashboard/Audit        | Đã triển khai; kiểm thử transaction, RBAC và ownership           |
 
 Các operation hiện tại có `x-implementation-status: implemented` và router
-nghiệp vụ thực tế. Trạng thái này mô tả source tích hợp, không xác nhận các PR
-đã merge vào main; xem [IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md).
+nghiệp vụ thực tế. PR #4–#7 đã merge trên nền main d3d614f; trạng thái source không thay
+bằng chứng kiểm thử mới. Xem [IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md).
 Endpoint ngoài contract trả404 chung. Khi đổi contract, cập nhật trạng thái và
 test cùng PR; schema hoặc ví dụ JSON không thay thế bằng chứng chạy.
 

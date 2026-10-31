@@ -1,3 +1,27 @@
+# Current BookFlow handoff
+
+Baseline `main@d3d614f` includes merged PRs #4 Auth, #5 Catalog, #6 Loans and
+#7 Vietnamese. Do not apply old handoff bundles to this source.
+Read [README](../README.md), [blueprint](PROJECT_BLUEPRINT.md),
+[status](IMPLEMENTATION_STATUS.md), [dev profiles](DEV_PROFILES.md) and
+[Tú's T1–T3 evidence](TU_QUALITY_HANDOFF.md).
+
+Use Node 24.19.0/npm 11; install root/client/server from lockfiles. Setup preserves
+existing env files. Start DB, build server, migrate/seed/create test DB, then
+run check and E2E as in README. Preserve existing DB, services and local work.
+Windows users use npm.cmd/npx.cmd and record their own actual results.
+
+Quân owns Auth/platform; Tú owns Catalog/Copies/UI; An owns Loans/Dashboard/Audit.
+Quân reviews T1/T3 and Q1 overlap; An reviews T2; Tú reviews Q1/A2.
+See [quality plan reference](QUALITY_IMPROVEMENT_PLAN.md). Changes stay
+uncommitted/unpushed until Tú decides. AI assistance does not replace owner review.
+
+Old validation remains historical; reporting/slides/video remain group work.
+The old handoff below is preserved for reference, not current setup instructions.
+
+<details>
+<summary>Historical handoff before PR #6/#7 - do not reapply</summary>
+
 # Bàn giao các phần BookFlow
 
 Đề tài 1 — RESTful Web Services, môn 503073. Đọc [README](../README.md),
@@ -91,3 +115,5 @@ Các test cạnh tranh/rollback dùng PostgreSQL thật và schema cô lập tro
 
 Xem [REQUIREMENTS_TRACEABILITY](REQUIREMENTS_TRACEABILITY.md). Hoàn thành source
 không đồng nghĩa hoàn thành bộ bài nộp hoặc bảo đảm mức điểm.
+
+</details>

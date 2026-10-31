@@ -15,13 +15,12 @@ Bản tích hợp trong workspace đã triển khai phần ứng dụng P0/P1 c�
   hàng, return idempotency, dashboard staff và audit ADMIN.
 - UI theo role, Swagger/OpenAPI, Postman, test DB/browser, Docker/Nginx và CI.
 
-Auth/Users (PR #4) và Catalog/Copies (PR #5, gồm bản sửa `118d20f`) đã merge
-vào `main` tại mốc `50e2dc4`. Nhánh `feat/an-loans-5commits` áp dụng gói
-`an-loans-v2` trên đúng nền này; phần Loans chờ review và CI trước khi merge.
-Backend và public components Catalog của Tú được giữ lại.
-Xem [bàn giao](docs/TEAM_HANDOFF.md), [trạng thái](docs/IMPLEMENTATION_STATUS.md)
-và [kiểm chứng Loans v2](docs/LOANS_VALIDATION.md). Các kết quả chuẩn bị ngày
-21/10 trong [FULL_VALIDATION](docs/FULL_VALIDATION.md) là bằng chứng lịch sử.
+Auth/Users (PR #4), Catalog/Copies (PR #5), Loans/Dashboard/Audit (PR #6,
+`7221e9e`) và tiếng Việt (PR #7, `d3d614f`) đã merge vào main.
+Không áp lại gói bàn giao cũ. Xem [bàn giao](docs/TEAM_HANDOFF.md),
+[trạng thái](docs/IMPLEMENTATION_STATUS.md) và
+[kiểm tra T1–T3](docs/TU_QUALITY_HANDOFF.md).
+Các tài liệu validation cũ giữ nguyên bằng chứng lịch sử tại mốc đã ghi.
 
 ## Ngôn ngữ giao diện
 
@@ -51,9 +50,18 @@ JWT/password local ngẫu nhiên. Chạy lại giữ file hiện hữu. Khi sử
 đồng bộ root `.env` và `server/.env`, rồi restart. Thay `.env` không đổi password
 của volume PostgreSQL đã tồn tại. Không đặt secret trong `VITE_*`.
 
-Frontend dùng **5173**, API **3000**. Vite proxy `/api` tới API; giữ PORT=3000
-nếu chưa sửa proxy. `Ctrl+C` dừng dev, DB vẫn chạy. Có thể chạy riêng bằng
-`npm --prefix server run dev` và `npm --prefix client run dev`.
+Mặc định DB **5432**, API **3000**, frontend **5173**. Root `.env` cấu hình
+`HOST`, `PORT` và `WEB_PORT` cho dev, Vite và Playwright; biến môi trường
+process được ưu tiên. Frontend proxy `/api`, `/docs`, `/openapi.yaml` và
+`/health` về cùng API; link Swagger là `/docs/`.
+Dev kiểm tra cổng trước, Vite dùng strict port; Ctrl+C dừng tiến trình do
+launcher tạo. Không dừng dịch vụ khác để lấy cổng.
+
+Checkout mới trên máy Mac của Quân dùng `npm run setup:mac` cho DB **5433**,
+API **3100**, web **5174**. Setup giữ file cấu hình đã có, không chuyển profile
+hoặc đổi password volume. Nếu cấu hình đã có, đồng bộ root/server `.env`,
+hai URL DB và `ALLOWED_ORIGINS` theo [profile dev](docs/DEV_PROFILES.md).
+Có thể chạy riêng server/client; giữ cấu hình root/server nhất quán.
 
 Nếu dùng PostgreSQL có sẵn, bỏ bước Docker DB và chỉnh `DATABASE_URL`,
 `TEST_DATABASE_URL`. DB test phải có tên kết thúc `_test`. Lệnh npm/Compose
@@ -73,7 +81,7 @@ npm run smoke
 ```
 
 Web dùng **8080**. Nginx phục vụ React, proxy API/docs/health; API không publish
-cổng host. API và Nginx chạy bằng user không phải root. DB chỉ bind loopback 5432.
+cổng host. API và Nginx chạy bằng user không phải root. DB chỉ bind loopback tại POSTGRES_PORT (mặc định 5432).
 Compose này dành cho demo local, dùng `NODE_ENV=development` để seed. Triển khai
 công khai cần HTTPS, cấu hình production và tài khoản riêng.
 
@@ -110,7 +118,7 @@ npm run smoke
 npm run benchmark
 ```
 
-`check` chạy lint, source/test typecheck, hai build, unit/HTTP/component tests,
+`check` chạy lint, source/test typecheck, hai build, test dev tooling và unit/HTTP/component tests,
 contract và format. Integration dùng PostgreSQL thật với schema ngẫu nhiên trong
 DB `_test`, chỉ xóa schema của suite; không reset DB dev. Playwright kiểm tra
 session, catalog, mượn–trả, dashboard/audit và Swagger ở desktop/mobile.
@@ -125,7 +133,8 @@ server với ngưỡng 100 cho nhiều browser context; test bảo mật vẫn k
 định. Server được tái sử dụng giữ cấu hình lúc khởi động. Test liên tiếp có thể
 cần restart với cấu hình test; không bỏ rate limit để làm test đạt.
 
-Xem [FULL_VALIDATION](docs/FULL_VALIDATION.md) cho kết quả và phần chưa xác nhận,
+Xem [TU_QUALITY_HANDOFF](docs/TU_QUALITY_HANDOFF.md) cho kết quả T1–T3;
+[FULL_VALIDATION](docs/FULL_VALIDATION.md) giữ kết quả lịch sử và giới hạn,
 [BENCHMARK](docs/BENCHMARK.md) cho số đo thật và giới hạn.
 
 ## API và Postman
@@ -138,7 +147,7 @@ Xem [FULL_VALIDATION](docs/FULL_VALIDATION.md) cho kết quả và phần chưa 
 | `GET /docs/`        | Swagger UI                                |
 | `GET /openapi.yaml` | OpenAPI 3.1                               |
 
-Trong dev, health/docs dùng API 3000; frontend chỉ proxy `/api`. Docker phục vụ
+Trong dev, frontend proxy cả API/docs/OpenAPI/health theo cùng cấu hình. Docker phục vụ
 cả API/docs/health qua web 8080. [Postman README](postman/README.md) hướng dẫn smoke,
 20-request business workflow, `baseUrl`, `frontendOrigin`, password và cookie/CSRF.
 Collection `planned` là bộ ví dụ lịch sử, không thay thế workflow đã kiểm chứng.

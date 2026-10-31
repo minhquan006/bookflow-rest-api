@@ -1,6 +1,14 @@
+import { useBrowserLocation } from "../../lib/navigation";
+import {
+  CATALOG_PAGE_SIZES,
+  catalogHref,
+  catalogSearch,
+  readCatalogQuery,
+} from "./catalogQuery";
+import type { CatalogFilters } from "./catalogQuery";
 import { useTranslation } from "../../i18n/language";
 import { BookDetails } from "./BookDetails";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../../lib/http";
 import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
@@ -20,36 +28,44 @@ type Collection<T> = {
   };
 };
 
-type Filters = {
-  q: string;
-  categoryId: string;
-  sort: string;
-  includeArchived: boolean;
-};
-
-const initialFilters: Filters = {
-  q: "",
-  categoryId: "",
-  sort: "title",
-  includeArchived: false,
-};
-
 export function CatalogPage({
   client = api,
   user,
   onNavigate,
 }: {
   client?: Pick<typeof api, "request">;
-  user?: { role: "MEMBER" | "LIBRARIAN" | "ADMIN" } | null;
+  user?: { id?: string; role: "MEMBER" | "LIBRARIAN" | "ADMIN" } | null;
   onNavigate?: (path: string) => void;
 } = {}) {
   const { t, translate } = useTranslation();
   const staff = user?.role === "LIBRARIAN" || user?.role === "ADMIN";
-  const [draft, setDraft] = useState(initialFilters);
-  const [filters, setFilters] = useState(initialFilters);
-  const [page, setPage] = useState(1);
+  const { path, search, navigate } = useBrowserLocation();
+  const query = readCatalogQuery(search, staff);
+  const { page, limit, q, categoryId, sort, includeArchived } = query;
+  const queryString = catalogSearch(query);
+  const viewer = `${user?.id ?? "anonymous"}:${user?.role ?? "guest"}`;
+  const requestKey = `${viewer}:${queryString}`;
+  const [draft, setDraft] = useState<CatalogFilters>(() => ({
+    q,
+    categoryId,
+    sort,
+    includeArchived,
+  }));
+  const [resultKey, setResultKey] = useState("");
+  useEffect(() => {
+    setDraft({ q, categoryId, sort, includeArchived });
+  }, [q, categoryId, sort, includeArchived]);
+  useEffect(() => {
+    if (path === "/books" && search !== queryString)
+      navigate(`/books${queryString}`, true, false);
+  }, [path, search, queryString, navigate]);
   const [attempt, setAttempt] = useState(0);
   const [categories, setCategories] = useState<Category[]>([]);
+  const categoryCache = useRef<{
+    viewer: string;
+    client: typeof client;
+    data: Category[];
+  } | null>(null);
   const [result, setResult] = useState<Collection<Book> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -59,32 +75,40 @@ export function CatalogPage({
 
   useEffect(() => {
     const controller = new AbortController();
+    setLoading(true);
+    setError("");
 
     async function load() {
       try {
-        const query = new URLSearchParams({
-          page: String(page),
-          limit: "2",
-          sort: filters.sort,
-        });
-        if (filters.q) query.set("q", filters.q);
-        if (filters.categoryId) query.set("categoryId", filters.categoryId);
-        if (staff && filters.includeArchived)
-          query.set("includeArchived", "true");
-
         const books = await client.request<Collection<Book>>(
-          `/books?${query.toString()}`,
+          `/books${queryString}`,
           { signal: controller.signal },
         );
 
-        const allCategories = await loadAllCategories(
-          client,
-          controller.signal,
-        );
+        if (controller.signal.aborted) return;
+        const lastPage = Math.max(1, books.pagination.totalPages);
+        if (page > lastPage) {
+          navigate(
+            catalogHref({
+              ...readCatalogQuery(queryString, staff),
+              page: lastPage,
+            }),
+            true,
+            false,
+          );
+          return;
+        }
+        const allCategories =
+          categoryCache.current?.viewer === viewer &&
+          categoryCache.current.client === client
+            ? categoryCache.current.data
+            : await loadAllCategories(client, controller.signal);
 
         if (!controller.signal.aborted) {
           setResult(books);
+          setResultKey(requestKey);
           setCategories(allCategories);
+          categoryCache.current = { viewer, client, data: allCategories };
           setError("");
           setLoading(false);
         }
@@ -99,12 +123,12 @@ export function CatalogPage({
 
     void load();
     return () => controller.abort();
-  }, [client, filters, page, attempt, staff]);
+  }, [client, queryString, requestKey, page, attempt, staff, navigate, viewer]);
 
   function changePage(nextPage: number) {
     setLoading(true);
     setError("");
-    setPage(nextPage);
+    navigate(catalogHref({ ...query, page: nextPage }), false, false);
   }
 
   async function createBook(input: BookInput) {
@@ -119,7 +143,7 @@ export function CatalogPage({
       setCreating(false);
       setLoading(true);
       setAttempt((value) => value + 1);
-      onNavigate?.(`/books/${response.data.id}`);
+      onNavigate?.(`/books/${response.data.id}${queryString}`);
     } catch (cause) {
       setSaveError(
         cause instanceof Error ? cause.message : "Could not create book.",
@@ -183,8 +207,12 @@ export function CatalogPage({
           event.preventDefault();
           setLoading(true);
           setError("");
-          setPage(1);
-          setFilters({ ...draft, q: draft.q.trim() });
+          navigate(
+            catalogHref({ ...query, ...draft, q: draft.q.trim(), page: 1 }),
+            false,
+            false,
+          );
+          setAttempt((value) => value + 1);
         }}
       >
         <div className="catalog-field">
@@ -233,6 +261,30 @@ export function CatalogPage({
           </select>
         </div>
 
+        <div className="catalog-field">
+          <label htmlFor="catalog-page-size">{t("Books per page")}</label>
+          <select
+            id="catalog-page-size"
+            value={limit}
+            onChange={(event) => {
+              navigate(
+                catalogHref({
+                  ...query,
+                  limit: Number(event.target.value),
+                  page: 1,
+                }),
+                false,
+                false,
+              );
+            }}
+          >
+            {CATALOG_PAGE_SIZES.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+        </div>
         <Button type="submit" busy={loading}>
           {t("Search")}
         </Button>
@@ -251,7 +303,9 @@ export function CatalogPage({
         )}
       </form>
 
-      {loading && <Feedback kind="loading">{t("Loading books...")}</Feedback>}
+      {(loading || (!error && resultKey !== requestKey)) && (
+        <Feedback kind="loading">{t("Loading books...")}</Feedback>
+      )}
 
       {!loading && error && (
         <div className="panel">
@@ -260,6 +314,7 @@ export function CatalogPage({
             onClick={() => {
               setLoading(true);
               setError("");
+              categoryCache.current = null;
               setAttempt((value) => value + 1);
             }}
           >
@@ -268,7 +323,7 @@ export function CatalogPage({
         </div>
       )}
 
-      {!loading && !error && result && (
+      {!loading && !error && resultKey === requestKey && result && (
         <>
           <p aria-live="polite">
             {t("{count} books found", { count: result.pagination.total })}
@@ -299,7 +354,9 @@ export function CatalogPage({
                   />
                   {onNavigate && (
                     <Button
-                      onClick={() => onNavigate(`/books/${book.id}`)}
+                      onClick={() =>
+                        onNavigate(`/books/${book.id}${queryString}`)
+                      }
                       aria-label={t("View {title}", { title: book.title })}
                     >
                       {t("Open book")}

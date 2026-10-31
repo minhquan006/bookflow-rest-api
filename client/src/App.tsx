@@ -1,3 +1,4 @@
+import { useBrowserLocation } from "./lib/navigation";
 import { LanguageSelector } from "./components/LanguageSelector";
 import { useTranslation } from "./i18n/language";
 import { LanguageProvider } from "./i18n/LanguageProvider";
@@ -15,22 +16,6 @@ import { AuditPage } from "./features/administration/AuditPage";
 import { Button } from "./components/Button";
 import { Feedback } from "./components/Feedback";
 import { ApiError } from "./lib/http";
-
-function usePath() {
-  const [path, setPath] = useState(window.location.pathname);
-  useEffect(() => {
-    const changed = () => setPath(window.location.pathname);
-    window.addEventListener("popstate", changed);
-    return () => window.removeEventListener("popstate", changed);
-  }, []);
-  function navigate(next: string) {
-    if (!next.startsWith("/") || next.startsWith("//")) return;
-    window.history.pushState(null, "", next);
-    setPath(next.split("?")[0] || "/");
-    window.scrollTo?.({ top: 0 });
-  }
-  return { path, navigate };
-}
 
 function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
   const { t, translate } = useTranslation();
@@ -140,9 +125,9 @@ function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
 
 function Workspace() {
   const { t, translate } = useTranslation();
-  const { path, navigate } = usePath();
+  const { path, navigate } = useBrowserLocation();
   const { user, loading, logout, sessionError, api } = useAuth();
-  const viewer = user ? `${user.id}:${translate(user.role)}` : "anonymous";
+  const viewer = user ? `${user.id}:${user.role}` : "anonymous";
   const [logoutError, setLogoutError] = useState("");
   const staff = user?.role === "ADMIN" || user?.role === "LIBRARIAN";
   const links = [
@@ -354,9 +339,7 @@ function Workspace() {
           </p>
           <a
             className="sidebar-docs"
-            href={
-              import.meta.env.DEV ? "http://127.0.0.1:3000/docs/" : "/docs/"
-            }
+            href="/docs/"
             target="_blank"
             rel="noreferrer"
           >
