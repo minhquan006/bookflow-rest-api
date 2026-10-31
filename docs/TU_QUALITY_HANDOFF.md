@@ -1,7 +1,9 @@
 # T1-T3 - Tu quality handoff
 
 Base `origin/main@d3d614f`; source checked on 30/10/2026 in the Linux cloud workspace.
-Branch `feat/tu-quality-improvements`. No commit/push at the user's request.
+Branch `feat/tu-quality-improvements`. Implementation commit `49d7070` was
+pushed for review in [PR #11](https://github.com/minhquan006/bookflow-rest-api/pull/11).
+The initial cloud checks below were performed before that commit.
 
 - T1: shared HOST/PORT/WEB_PORT; proxy API/docs/OpenAPI/health; relative Swagger;
   strict ports; Mac profile 5433/3100/5174; preserve existing env/data/processes.
@@ -64,5 +66,5 @@ This timestamp records the documentation update, not the test start time.
 These results supplement the earlier Linux evidence.
 Mac hardware, CI, PostgreSQL integration tests and a full API/Nginx container
 rebuild are not established by these Windows runs.
-Manual UI review and launcher Ctrl+C shutdown are not yet confirmed by the
-supplied logs. No commit or push was performed by these verification commands.
+After Ctrl+C on Windows, no listeners remained on ports 3000 and 5173.
+Manual UI review remains unconfirmed. No commit or push was performed by these verification commands.

@@ -4,6 +4,8 @@ COPY client/package*.json ./
 RUN --mount=type=secret,id=npm_ca \
     if [ -f /run/secrets/npm_ca ]; then NODE_EXTRA_CA_CERTS=/run/secrets/npm_ca npm ci; else npm ci; fi
 COPY client/ ./
+COPY package.json /app/package.json
+COPY scripts/dev-config.ts /app/scripts/dev-config.ts
 RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:1.28.0-alpine

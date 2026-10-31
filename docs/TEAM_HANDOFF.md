@@ -13,8 +13,9 @@ Windows users use npm.cmd/npx.cmd and record their own actual results.
 
 Quân owns Auth/platform; Tú owns Catalog/Copies/UI; An owns Loans/Dashboard/Audit.
 Quân reviews T1/T3 and Q1 overlap; An reviews T2; Tú reviews Q1/A2.
-See [quality plan reference](QUALITY_IMPROVEMENT_PLAN.md). Changes stay
-uncommitted/unpushed until Tú decides. AI assistance does not replace owner review.
+See [quality plan reference](QUALITY_IMPROVEMENT_PLAN.md). Implementation commit `49d7070` is pushed in
+[PR #11](https://github.com/minhquan006/bookflow-rest-api/pull/11).
+It has not been merged into main. AI assistance does not replace owner review.
 
 Old validation remains historical; reporting/slides/video remain group work.
 The old handoff below is preserved for reference, not current setup instructions.
