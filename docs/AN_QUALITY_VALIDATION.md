@@ -121,3 +121,40 @@ Mac 5433/3100/5174, container builds, benchmarks, Newman execution and GitHub Ac
 were not validated by this work. Historical evidence was not rewritten. Codex
 assisted implementation/testing; An should read and explain the change. Human
 review remains pending: Quân for A1/A3, Tú for A2. Merge remains a team decision.
+
+## PR #10 review follow-up (31/10/2026, UTC+7)
+
+Quân's review of `afc05ae` identified two frontend response-validation defects:
+a one-element `returnedBy` array was coerced into a UUID string by the regex,
+and `Date.parse` normalized impossible dates such as February 30. These are
+mock-response robustness cases, not evidence that the backend emits such data.
+
+`client/src/features/loans/response.ts` now guards an `unknown` response before
+narrowing it to `LoanReturn`. It checks `returnedBy` is a string before its UUID
+pattern. Timestamp validation checks the written calendar date (including the
+Gregorian leap-year/century rules), time and offset ranges before parsing the
+instant. Valid offsets, fractional seconds and lowercase RFC 3339 separators
+remain supported. A different staff member's original return confirmation is
+accepted without substituting the current account or changing its timestamp.
+
+The expanded Loans component suite failed **7 cases, with 23 passing**, before
+the fix (exit 1); all **30 passed** afterward (exit 0). Cases cover an array,
+null/numeric staff IDs, February 30, February 29 in non-leap years including
+1900, April 31, invalid clock/offset hours, and valid leap days including 2000.
+Rejected responses leave confirmation open, display the refresh-history guidance
+and make only one PUT request. Positive cases also check the displayed original
+staff identity and return time.
+
+New cloud checks, all exit 0:
+
+- `npm run check`: **67 server + 101 client tests**, lint, type checks, builds,
+  contract/spec/Postman and formatting checks passed.
+- `npm run test:e2e -- tests/e2e/business-flow.spec.ts`: **2 passed**, desktop EN
+  and mobile VI borrowing/return flows against the actual API and database.
+- `git diff --check`: passed.
+
+No backend, schema, contract or dependency changes were needed. The DB integration
+suite, container checks and remaining browser specs were not rerun for this
+frontend-only follow-up. GitHub Actions for the new head have not been verified.
+`main` remains `d3d614f`, with PR #9 still unmerged; this follow-up does not claim
+that the two PRs have been integrated or independently approved.

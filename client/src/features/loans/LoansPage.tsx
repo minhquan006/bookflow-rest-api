@@ -1,3 +1,4 @@
+import { isLoanReturnResponse } from "./response";
 import { useTranslation } from "../../i18n/language";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../../components/Button";
@@ -10,7 +11,6 @@ import {
   shortId,
   type Loan,
   type LoanCollection,
-  type LoanReturn,
 } from "./types";
 
 export function LoansPage({
@@ -142,30 +142,20 @@ export function LoansPage({
     setReturnError("");
     setReturnedAt("");
     try {
-      const response = await api.request<{ data: LoanReturn }>(
+      const response = await api.request<unknown>(
         `/loans/${confirmId}/return`,
         { method: "PUT", json: {} },
       );
-      const data = response?.data;
       if (
         currentViewer.current !== requestViewer ||
         viewerGeneration.current !== requestGeneration
       )
         return;
-      if (
-        data?.loanId !== confirmId ||
-        !/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(
-          data.returnedBy,
-        ) ||
-        typeof data.returnedAt !== "string" ||
-        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(
-          data.returnedAt,
-        ) ||
-        !Number.isFinite(Date.parse(data.returnedAt))
-      )
+      if (!isLoanReturnResponse(response, confirmId))
         throw new Error(
           "The return response could not be verified. Refresh the history before trying again.",
         );
+      const { data } = response;
       setDetail((previous) =>
         previous?.id === data.loanId
           ? {

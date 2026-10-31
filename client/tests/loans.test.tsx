@@ -438,6 +438,24 @@ describe("loan history", () => {
 
   it.each([
     null,
+    ...[
+      { returnedBy: [staffId] },
+      { returnedBy: null },
+      { returnedBy: 123 },
+      { returnedAt: "2026-02-30T10:00:00.000Z" },
+      { returnedAt: "2025-02-29T10:00:00.000Z" },
+      { returnedAt: "1900-02-29T10:00:00+07:00" },
+      { returnedAt: "2026-04-31T10:00:00-04:00" },
+      { returnedAt: "2026-01-01T24:00:00Z" },
+      { returnedAt: "2026-01-01T10:00:00+24:00" },
+    ].map((invalid) => ({
+      data: {
+        loanId: activeLoan.id,
+        returnedAt: activeLoan.borrowedAt,
+        returnedBy: staffId,
+        ...invalid,
+      },
+    })),
     {
       data: {
         loanId: "different-loan",
@@ -479,6 +497,71 @@ describe("loan history", () => {
         "The return response could not be verified. Refresh the history before trying again.",
       );
       expect(screen.queryByText(/Return confirmed at/)).not.toBeInTheDocument();
+      const confirmation = screen.getByRole("region", {
+        name: "Confirm this return?",
+      });
+      expect(
+        within(confirmation).getByRole("button", { name: "Confirm return" }),
+      ).toBeEnabled();
+      expect(
+        within(confirmation).getByText(
+          "If the connection failed, refresh the history before trying again.",
+        ),
+      ).toBeInTheDocument();
+      expect(
+        mocks.request.mock.calls.filter(([path]) => path.endsWith("/return")),
+      ).toHaveLength(1);
+    },
+  );
+
+  it.each([
+    "2024-02-29T10:00:00.000Z",
+    "2000-02-29T00:15:30.123456+07:00",
+    "2024-02-29T23:59:59-04:00",
+    "2024-02-29t10:00:00z",
+  ])(
+    "accepts a valid timestamp %s and an earlier confirmation by different staff",
+    async (returnedAt) => {
+      mocks.user = { id: staffId, role: "LIBRARIAN" };
+      const originalStaff = "90000000-0000-4000-8000-000000000001";
+      mocks.request.mockImplementation((path: string) =>
+        Promise.resolve(
+          path.endsWith("/return")
+            ? {
+                data: {
+                  loanId: activeLoan.id,
+                  returnedAt,
+                  returnedBy: originalStaff,
+                },
+              }
+            : path.includes("?")
+              ? collection([activeLoan])
+              : { data: activeLoan },
+        ),
+      );
+      render(<LoansPage />);
+      await userEvent.click(
+        await screen.findByRole("button", { name: "View loan 30000000" }),
+      );
+      await screen.findByRole("heading", { name: "Loan details" });
+      await userEvent.click(
+        screen.getByRole("button", { name: "Return loan 30000000" }),
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: "Confirm return" }),
+      );
+      expect(await screen.findByText(/Return confirmed at/)).toHaveTextContent(
+        formatLibraryDate(returnedAt),
+      );
+      const detail = screen.getByRole("region", { name: "Loan details" });
+      expect(within(detail).getByText(originalStaff)).toBeInTheDocument();
+      expect(
+        within(detail).getByText(formatLibraryDate(returnedAt)),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("region", { name: "Confirm this return?" }),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       expect(
         mocks.request.mock.calls.filter(([path]) => path.endsWith("/return")),
       ).toHaveLength(1);
