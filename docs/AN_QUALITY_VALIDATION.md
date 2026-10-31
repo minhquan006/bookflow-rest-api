@@ -158,3 +158,39 @@ suite, container checks and remaining browser specs were not rerun for this
 frontend-only follow-up. GitHub Actions for the new head have not been verified.
 `main` remains `d3d614f`, with PR #9 still unmerged; this follow-up does not claim
 that the two PRs have been integrated or independently approved.
+
+## CI browser-project isolation (31/10/2026, UTC+7)
+
+For `d5617a8`, pull-request run
+[41212350110](https://github.com/minhquan006/bookflow-rest-api/actions/runs/41212350110)
+passed both quality and containers. Push run
+[41212344969](https://github.com/minhquan006/bookflow-rest-api/actions/runs/41212344969)
+passed containers but failed E2E: 23 passed and the mobile language test failed,
+including its retry. The PR's synthetic merge tree equals the branch tree. The
+public job page and supplied log screenshot do not show the detailed assertion or
+HTTP failure, so this record does not attribute that CI failure to HTTP 429.
+
+A fresh local run with CI settings and a newly created `_test` database passed
+all 24 tests together (exit 0). This confirms a passing execution, not the root
+cause of the failed hosted run. The temporary database was removed afterward;
+the development database was unchanged.
+
+The quality workflow now invokes desktop and mobile in separate Playwright runs,
+so each project starts a fresh API process under `CI=true`. This removes the
+shared cross-project request budget that previously produced an observed local
+HTTP 429 in the last mobile language case. The same 24 tests, assertions, retries,
+auth configuration and production/global rate limits remain. A failure in either
+invocation still fails the quality job and retains failure artifacts.
+
+The exact new commands were exercised sequentially against another freshly
+created and seeded test database, with the same CI settings:
+
+- `npm run test:e2e -- --project=chromium`: **12 passed**, exit 0.
+- `npm run test:e2e -- --project=mobile`: **12 passed**, exit 0.
+- Workflow YAML parsing and Prettier validation: passed.
+- `git diff --check`: passed.
+
+The temporary database was removed. This workflow-only follow-up does not rerun
+unrelated application unit/integration or container suites locally. A new hosted
+CI run is still required to verify the changed workflow; the failed run's detailed
+error and formal human approvals remain outstanding.
