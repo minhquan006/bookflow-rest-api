@@ -21,10 +21,13 @@ hướng dẫn áp dụng lại vào main hiện tại.
 ## Công việc tiếp theo
 
 [Kế hoạch cải thiện chất lượng](QUALITY_IMPROVEMENT_PLAN.md) chia Q1–Q3,
-T1–T3 và A1–A3, có phạm vi, phụ thuộc, kiểm thử và review chéo. Các lỗi đã
-xác định gồm CSRF cũ ở nhiều tab và nhãn trả sách chưa dịch. Lỗi React key làm
-mất state khi đổi ngôn ngữ đã sửa trong workspace khi tách AppRouter, có hai
-component regression tests; Q1 vẫn cần review theo đủ tiêu chí của kế hoạch.
+T1–T3 và A1–A3, có phạm vi, phụ thuộc, kiểm thử và review chéo.
+
+Phần Q1–Q3 đã được triển khai trên nhánh `fix/quan-session-http`, dựa trên
+PR #9 @ `40eb914`; chưa commit/push hoặc merge. Xem [kiểm chứng và bàn giao của
+Quân](QUAN_VALIDATION.md) cho phạm vi, kiểm thử và phần cần Tú/An review.
+PR #9 đã ready for review, PR #10 của An vẫn cần review/merge riêng. Công việc
+T1–T3 của Tú trong chat chưa được coi là source đã tích hợp từ GitHub.
 Xem [cấu trúc mã nguồn và mục lục tài liệu](README.md) trước khi sửa import.
 
 ## Bắt đầu làm việc

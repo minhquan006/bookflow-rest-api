@@ -36,7 +36,12 @@ test("member can register, sign in, restore the session and sign out", async ({
   expect(cookies.find((cookie) => cookie.name === "bookflow_csrf")?.path).toBe(
     "/",
   );
-  expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
+  expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([
+    "bookflow.session.revision",
+  ]);
+  const stored = await page.evaluate(() => JSON.stringify(localStorage));
+  expect(stored).not.toContain(email);
+  for (const cookie of cookies) expect(stored).not.toContain(cookie.value);
   expect(await page.evaluate(() => Object.keys(sessionStorage))).toEqual([]);
   await page.reload();
   await expect(page.getByRole("button", { name, exact: true })).toBeVisible();

@@ -21,6 +21,10 @@ const session = {
   csrfToken: "signed-csrf-token",
   user,
 };
+function sessionResponse(value = session) {
+  document.cookie = `bookflow_csrf=${value.csrfToken}; Path=/`;
+  return Response.json({ data: value });
+}
 const problem = (status: number, detail: string) =>
   Response.json(
     { type: "about:blank", title: "Request failed", status, detail },
@@ -37,7 +41,9 @@ function Probe() {
       <p>{auth.sessionError}</p>
       <button
         onClick={() => {
-          void auth.login("alex@example.test", "local-only-test-password");
+          void auth
+            .login("alex@example.test", "local-only-test-password")
+            .catch(() => {});
         }}
       >
         Test login
@@ -120,7 +126,7 @@ describe("memory-only authentication", () => {
       .fn<typeof fetch>()
       .mockImplementation(async (input) =>
         String(input).endsWith("/auth/refresh")
-          ? Response.json({ data: session })
+          ? sessionResponse()
           : Response.json({ data: user }),
       );
     vi.stubGlobal("fetch", fetcher);
@@ -151,8 +157,7 @@ describe("memory-only authentication", () => {
     const fetcher = vi
       .fn<typeof fetch>()
       .mockImplementation(async (input, init) => {
-        if (String(input).endsWith("/auth/login"))
-          return Response.json({ data: session });
+        if (String(input).endsWith("/auth/login")) return sessionResponse();
         if (String(input).endsWith("/auth/refresh"))
           return new Promise<Response>((resolve) => {
             complete = resolve;
@@ -186,7 +191,7 @@ describe("memory-only authentication", () => {
         fetcher.mock.calls.filter(([input]) =>
           String(input).endsWith("/users/me"),
         ),
-      ).toHaveLength(4),
+      ).toHaveLength(3),
     );
   });
 
@@ -195,7 +200,7 @@ describe("memory-only authentication", () => {
       .fn<typeof fetch>()
       .mockImplementation(async (input) =>
         String(input).endsWith("/auth/login")
-          ? Response.json({ data: session })
+          ? sessionResponse()
           : problem(401, "Expired access token"),
       );
     vi.stubGlobal("fetch", fetcher);
@@ -218,7 +223,7 @@ describe("memory-only authentication", () => {
       .fn<typeof fetch>()
       .mockImplementation(async (input) =>
         String(input).endsWith("/auth/login")
-          ? Response.json({ data: session })
+          ? sessionResponse()
           : problem(503, "Unavailable"),
       );
     vi.stubGlobal("fetch", fetcher);
@@ -241,8 +246,7 @@ describe("memory-only authentication", () => {
   it("never restores a logged-out identity from an earlier profile response", async () => {
     let complete!: (response: Response) => void;
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
-      if (String(input).endsWith("/auth/login"))
-        return Response.json({ data: session });
+      if (String(input).endsWith("/auth/login")) return sessionResponse();
       if (String(input).endsWith("/auth/logout"))
         return new Response(null, { status: 204 });
       return new Promise<Response>((resolve) => {
@@ -270,14 +274,12 @@ describe("memory-only authentication", () => {
     let finishProfile!: (response: Response) => void;
     let finishLogout!: (response: Response) => void;
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
-      if (String(input).endsWith("/auth/login"))
-        return Response.json({ data: session });
+      if (String(input).endsWith("/auth/login")) return sessionResponse();
       if (String(input).endsWith("/auth/logout"))
         return new Promise<Response>((resolve) => {
           finishLogout = resolve;
         });
-      if (String(input).endsWith("/auth/refresh"))
-        return Response.json({ data: session });
+      if (String(input).endsWith("/auth/refresh")) return sessionResponse();
       return new Promise<Response>((resolve) => {
         finishProfile = resolve;
       });
@@ -302,6 +304,7 @@ describe("memory-only authentication", () => {
       ),
     ).toHaveLength(0);
     expect(screen.getByText("Guest")).toBeInTheDocument();
+    await waitFor(() => expect(finishLogout).toBeTypeOf("function"));
     await act(async () => {
       finishLogout(new Response(null, { status: 204 }));
     });
@@ -335,13 +338,214 @@ describe("memory-only authentication", () => {
     });
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
+  it("reads a peer's new CSRF cookie inside the lock before refresh and logout", async () => {
+    let rotated = false;
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockImplementation(async (input, init) => {
+        if (String(input).endsWith("/auth/login")) return sessionResponse();
+        if (String(input).endsWith("/auth/refresh")) {
+          expect(new Headers(init?.headers).get("X-CSRF-Token")).toBe(
+            "peer-cookie",
+          );
+          rotated = true;
+          return sessionResponse({ ...session, csrfToken: "latest-cookie" });
+        }
+        if (String(input).endsWith("/auth/logout")) {
+          expect(new Headers(init?.headers).get("X-CSRF-Token")).toBe(
+            "another-peer-cookie",
+          );
+          return new Response(null, { status: 204 });
+        }
+        return rotated
+          ? Response.json({ data: user })
+          : problem(401, "Expired");
+      });
+    vi.stubGlobal("fetch", fetcher);
+    renderProbe();
+    await userEvent.click(screen.getByRole("button", { name: "Test login" }));
+    await screen.findByText(user.fullName);
+    document.cookie = "bookflow_csrf=peer-cookie; Path=/";
+    await userEvent.click(
+      screen.getByRole("button", { name: "Refresh profile" }),
+    );
+    await waitFor(() =>
+      expect(
+        fetcher.mock.calls.filter(([input]) =>
+          String(input).endsWith("/auth/refresh"),
+        ),
+      ).toHaveLength(1),
+    );
+    document.cookie = "bookflow_csrf=another-peer-cookie; Path=/";
+    await userEvent.click(screen.getByRole("button", { name: "Read twice" }));
+    expect(
+      fetcher.mock.calls.filter(([input]) =>
+        String(input).endsWith("/auth/refresh"),
+      ),
+    ).toHaveLength(1);
+    await userEvent.click(screen.getByRole("button", { name: "Test logout" }));
+    await waitFor(() =>
+      expect(
+        fetcher.mock.calls.some(([input]) =>
+          String(input).endsWith("/auth/logout"),
+        ),
+      ).toBe(true),
+    );
+    expect(screen.getByText("Guest")).toBeInTheDocument();
+    expect(Object.keys(localStorage)).toEqual(["bookflow.session.revision"]);
+    expect(localStorage.getItem("bookflow.session.revision")).toMatch(
+      /^signed-out:/,
+    );
+    expect(JSON.stringify(localStorage)).not.toContain(session.accessToken);
+    expect(JSON.stringify(localStorage)).not.toContain(session.csrfToken);
+    expect(JSON.stringify(localStorage)).not.toContain(user.email);
+  });
+
+  it("does not accept a late refresh after logout, and revokes its replacement cookie", async () => {
+    let finish!: (response: Response) => void;
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockImplementation(async (input, init) => {
+        if (String(input).endsWith("/auth/login")) return sessionResponse();
+        if (String(input).endsWith("/auth/refresh"))
+          return new Promise<Response>((resolve) => {
+            finish = resolve;
+          });
+        if (String(input).endsWith("/auth/logout")) {
+          expect(new Headers(init?.headers).get("X-CSRF-Token")).toBe(
+            "replacement-csrf",
+          );
+          return new Response(null, { status: 204 });
+        }
+        return problem(401, "Expired");
+      });
+    vi.stubGlobal("fetch", fetcher);
+    renderProbe();
+    await userEvent.click(screen.getByRole("button", { name: "Test login" }));
+    await screen.findByText(user.fullName);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Refresh profile" }),
+    );
+    await waitFor(() => expect(finish).toBeTypeOf("function"));
+    await userEvent.click(screen.getByRole("button", { name: "Test logout" }));
+    expect(await screen.findByText("Guest")).toBeInTheDocument();
+    await act(async () =>
+      finish(sessionResponse({ ...session, csrfToken: "replacement-csrf" })),
+    );
+    await waitFor(() =>
+      expect(
+        fetcher.mock.calls.filter(([input]) =>
+          String(input).endsWith("/auth/logout"),
+        ),
+      ).toHaveLength(1),
+    );
+    expect(screen.queryByText(user.fullName)).not.toBeInTheDocument();
+  });
+
+  it("discards a pending private response when a peer switches identity", async () => {
+    let finish!: (response: Response) => void;
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      if (String(input).endsWith("/auth/login")) return sessionResponse();
+      return new Promise<Response>((resolve) => {
+        finish = resolve;
+      });
+    });
+    vi.stubGlobal("fetch", fetcher);
+    renderProbe();
+    await userEvent.click(screen.getByRole("button", { name: "Test login" }));
+    await screen.findByText(user.fullName);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Refresh profile" }),
+    );
+    await waitFor(() => expect(finish).toBeTypeOf("function"));
+    await act(async () => {
+      localStorage.setItem("bookflow.session.revision", "active:other-account");
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "bookflow.session.revision" }),
+      );
+      finish(Response.json({ data: user }));
+    });
+    expect(screen.getByText("Guest")).toBeInTheDocument();
+    expect(
+      screen.getByText(/session changed in another tab/),
+    ).toBeInTheDocument();
+  });
+
+  it("clears the identity when a read discovers the refresh family is revoked", async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockImplementation(async (input) =>
+        String(input).endsWith("/auth/login")
+          ? sessionResponse()
+          : problem(401, "Session revoked"),
+      );
+    vi.stubGlobal("fetch", fetcher);
+    renderProbe();
+    await userEvent.click(screen.getByRole("button", { name: "Test login" }));
+    await screen.findByText(user.fullName);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Refresh profile" }),
+    );
+    expect(await screen.findByText("Guest")).toBeInTheDocument();
+    expect(
+      screen.getByText("Your session expired. Please sign in again."),
+    ).toBeInTheDocument();
+    expect(
+      fetcher.mock.calls.filter(([input]) =>
+        String(input).endsWith("/auth/refresh"),
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("keeps a failed logout signed out across reload even when cookies remain", async () => {
+    localStorage.setItem("bookflow.session.revision", "signed-out:previous");
+    document.cookie = "bookflow_csrf=old-cookie; Path=/";
+    const fetcher = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetcher);
+    renderProbe();
+    expect(await screen.findByText("Guest")).toBeInTheDocument();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when Web Locks are unavailable", async () => {
+    Object.defineProperty(navigator, "locks", {
+      configurable: true,
+      value: undefined,
+    });
+    document.cookie = "bookflow_csrf=old-cookie; Path=/";
+    const fetcher = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetcher);
+    renderProbe();
+    expect(
+      await screen.findByText(/Secure session coordination is unavailable/),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Guest")).toBeInTheDocument();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when site storage is blocked", async () => {
+    document.cookie = "bookflow_csrf=old-cookie; Path=/";
+    const storage = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("Blocked", "SecurityError");
+      });
+    const fetcher = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetcher);
+    renderProbe();
+    expect(
+      await screen.findByText(/Secure session coordination is unavailable/),
+    ).toBeInTheDocument();
+    expect(fetcher).not.toHaveBeenCalled();
+    storage.mockRestore();
+  });
 });
 
 describe("authentication forms", () => {
   it("signs in with normalized email and navigates to the catalog", async () => {
     const fetcher = vi
       .fn<typeof fetch>()
-      .mockResolvedValue(Response.json({ data: session }));
+      .mockImplementation(async () => sessionResponse());
     const navigate = vi.fn();
     vi.stubGlobal("fetch", fetcher);
     render(

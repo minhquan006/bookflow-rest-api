@@ -1,4 +1,8 @@
 export const vi = {
+  "Secure session coordination is unavailable. Use an up-to-date browser with site storage enabled over HTTPS or localhost.":
+    "Không thể đồng bộ phiên an toàn. Hãy dùng trình duyệt mới, cho phép lưu trữ của trang và truy cập bằng HTTPS hoặc localhost.",
+  "Your session changed in another tab. Please sign in again.":
+    "Phiên đăng nhập đã thay đổi ở tab khác. Vui lòng đăng nhập lại.",
   "A little more discovery.": "Thêm một chút khám phá.",
   "A snapshot of the library. Refresh after borrowing or returning books.":
     "Tổng quan hoạt động thư viện. Làm mới sau khi mượn hoặc trả sách.",

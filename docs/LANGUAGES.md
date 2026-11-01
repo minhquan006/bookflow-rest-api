@@ -4,7 +4,8 @@ BookFlow offers English and Vietnamese through the **Language / Ngôn ngữ** se
 in the header, including on mobile. English remains the default on a new browser.
 Choosing **Tiếng Việt** changes the current interface immediately; choosing **English**
 switches it back. The preference is saved as `bookflow.language` in localStorage and
-restored after reload. No authentication data is written to browser storage. If
+restored after reload. No credentials or profile data are written to browser storage; the session
+coordinator stores only an opaque revision marker. If
 storage is unavailable, switching still works for the current visit.
 
 The translation covers navigation, public pages, authentication, account and user
@@ -12,9 +13,12 @@ administration, catalog/category/copy management, loans/returns, dashboard, audi
 filters, pagination, accessibility labels and known error/validation messages.
 Changing language keeps the session. AppRouter now uses the user ID and canonical
 role in React keys, preserving Catalog filters and book-detail drafts when language
-changes. Two component regression tests reproduce the earlier resets and pass with
-this fix. The broader Q1 acceptance checklist and team review remain tracked in
-[the improvement plan](QUALITY_IMPROVEMENT_PLAN.md).
+changes. App tests cover search/category/sort/page, create/edit/barcode drafts and absence
+of language-triggered mutations. Identity/role changes clear the previous viewer's
+drafts; background restoration preserves typed sign-in credentials. Browser tests
+exercise the same language matrix with the real API. See
+[Quân's validation](QUAN_VALIDATION.md) for the exact workspace and results;
+peer review remains tracked in [the improvement plan](QUALITY_IMPROVEMENT_PLAN.md).
 Other outstanding language work includes untranslated return instructions in
 loan rows (A2). The existing test evidence does not establish full coverage.
 Library dates use the selected locale and always retain Vietnam's UTC+7 timezone.

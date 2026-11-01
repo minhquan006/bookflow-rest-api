@@ -11,7 +11,15 @@ không có nghĩa toàn bộ kiểm thử lịch sử đã được chạy lại
 | Loans/Dashboard/Audit | An — 52400258   | Đã merge PR #6; mượn–trả, transaction, dashboard/audit và UI |
 | English/Tiếng Việt    | Quân — 52400227 | Đã merge PR #7; selector, lưu lựa chọn và bản dịch           |
 
-## Lỗi và cải thiện còn mở
+## Q1–Q3 trong workspace ngày 01/11/2026
+
+Nhánh `fix/quan-session-http` dựa trên PR #9 @ `40eb914`, chưa commit/push/merge:
+Q1 giữ bộ lọc/form khi đổi ngôn ngữ và xóa state khi đổi danh tính/quyền; Q2
+phối hợp phiên nhiều tab, CSRF hiện tại và loại bỏ response cũ; Q3 trả 405/Allow
+với chính sách quyền và contract tương ứng. Kết quả cụ thể và giới hạn ở
+[QUAN_VALIDATION](QUAN_VALIDATION.md). Đây không phải trạng thái của main.
+
+## Lỗi và cải thiện còn mở trên main
 
 - Refresh/logout có thể dùng CSRF trong RAM đã cũ khi tab khác đổi cookie (Q2).
 - Loan rows còn hai nhãn tiếng Anh chưa gọi hàm dịch (A2).

@@ -51,3 +51,113 @@ test("language choice survives navigation and reload without losing form input",
   ).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
+
+test("signed-in member keeps applied search, category, sort and page across EN–VI–EN", async ({
+  page,
+  request,
+}) => {
+  const suffix = crypto.randomUUID().slice(0, 8);
+  const password = process.env.SEED_DEMO_PASSWORD;
+  if (!password)
+    throw new Error("SEED_DEMO_PASSWORD is required for language fixtures.");
+  const staff = await request.post("/api/v1/auth/login", {
+    data: { email: "librarian@bookflow.test", password },
+  });
+  expect(staff.status()).toBe(200);
+  const access = (await staff.json()).data.accessToken;
+  const headers = { Authorization: `Bearer ${access}` };
+  const categoryResponse = await request.post("/api/v1/categories", {
+    headers,
+    data: { name: `Language ${suffix}`, slug: `language-${suffix}` },
+  });
+  expect(categoryResponse.status()).toBe(201);
+  const category = (await categoryResponse.json()).data;
+  const member = {
+    fullName: `Language ${suffix}`,
+    email: `language-${suffix}@bookflow.test`,
+    password: `Test-passphrase-${suffix}`,
+  };
+  expect(
+    (await request.post("/api/v1/auth/register", { data: member })).status(),
+  ).toBe(201);
+  await page.goto("/login");
+  await page.getByLabel("Email", { exact: true }).fill(member.email);
+  await page.getByLabel("Password", { exact: true }).fill(member.password);
+  const initial = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/api/v1/books" &&
+      response.request().method() === "GET",
+  );
+  await page
+    .locator("form")
+    .getByRole("button", { name: "Sign in", exact: true })
+    .click();
+  const limit = (await (await initial).json()).pagination.limit as number;
+  // Derive fixture size from the actual page size, so T2 can change it independently.
+  for (let index = 0; index <= limit; index++) {
+    const created = await request.post("/api/v1/books", {
+      headers,
+      data: {
+        title: `Language ${suffix} ${String(index).padStart(3, "0")}`,
+        author: "Language Test",
+        categoryId: category.id,
+        isbn: null,
+        description: "Synthetic language fixture.",
+      },
+    });
+    expect(created.status()).toBe(201);
+  }
+  await page.getByLabel("Title or author").fill(`Language ${suffix}`);
+  await page.getByLabel("Category", { exact: true }).selectOption(category.id);
+  await page.getByLabel("Sort by").selectOption("-title");
+  await page.getByRole("button", { name: "Search", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Next", exact: true }),
+  ).toBeEnabled();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page.getByText("Page 2 of 2", { exact: true })).toBeVisible();
+  const titles = await page
+    .getByRole("article")
+    .getByRole("heading", { level: 2 })
+    .allTextContents();
+  expect(titles.length).toBeGreaterThan(0);
+  let writes = 0;
+  page.on("request", (request) => {
+    if (
+      ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) &&
+      !request.url().includes("/auth/")
+    )
+      writes++;
+  });
+  await page.getByLabel("Language", { exact: true }).selectOption("vi");
+  await expect(page.getByLabel("Tên sách hoặc tác giả")).toHaveValue(
+    `Language ${suffix}`,
+  );
+  await expect(page.getByLabel("Thể loại", { exact: true })).toHaveValue(
+    category.id,
+  );
+  await expect(page.getByLabel("Sắp xếp theo")).toHaveValue("-title");
+  await expect(page.getByText("Trang 2 / 2", { exact: true })).toBeVisible();
+  expect(
+    await page
+      .getByRole("article")
+      .getByRole("heading", { level: 2 })
+      .allTextContents(),
+  ).toEqual(titles);
+  await page.getByLabel("Ngôn ngữ", { exact: true }).selectOption("en");
+  await expect(page.getByLabel("Title or author")).toHaveValue(
+    `Language ${suffix}`,
+  );
+  await expect(page.getByLabel("Category", { exact: true })).toHaveValue(
+    category.id,
+  );
+  await expect(page.getByLabel("Sort by")).toHaveValue("-title");
+  await expect(page.getByText("Page 2 of 2", { exact: true })).toBeVisible();
+  expect(
+    await page
+      .getByRole("article")
+      .getByRole("heading", { level: 2 })
+      .allTextContents(),
+  ).toEqual(titles);
+  expect(writes).toBe(0);
+});
