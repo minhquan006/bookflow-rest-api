@@ -68,3 +68,11 @@ Mac hardware, CI, PostgreSQL integration tests and a full API/Nginx container
 rebuild are not established by these Windows runs.
 After Ctrl+C on Windows, no listeners remained on ports 3000 and 5173.
 Manual UI review remains unconfirmed. No commit or push was performed by these verification commands.
+
+## Cross-review Q1/A2 — 02/11/2026
+
+Đã bổ sung [báo cáo frontend độc lập](TU_FRONTEND_REVIEW.md) với SHA cụ thể của
+PR #9/#10, regression Q1, browser desktop/mobile EN/VI và API/DB test riêng cho A2.
+Đây là kết quả Linux mới, không thay bằng chứng Windows ở trên và không xác nhận
+bản ghép #9 + #10 + #11 đã hoạt động. Đợt kiểm chứng này diễn ra trước commit
+bộ review; không tự chuyển kết quả đó thành CI của commit phát hành sau này.
