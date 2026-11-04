@@ -194,6 +194,66 @@
           }
         }
       ]
+    },
+    {
+      "name": "Nested Swagger initialization must not exist: /docs/not-a-resource/swagger-ui-init.js",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/docs/not-a-resource/swagger-ui-init.js"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Unknown URI is 404\", () => pm.response.to.have.status(404));",
+              "pm.test(\"Correlated Problem Details\", () => { const body = pm.response.json(); pm.expect(body.code).to.eql(\"RESOURCE_NOT_FOUND\"); pm.expect(body.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nested Swagger initialization must not exist: /docs/a/b/swagger-ui-init.js",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/docs/a/b/swagger-ui-init.js"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Unknown URI is 404\", () => pm.response.to.have.status(404));",
+              "pm.test(\"Correlated Problem Details\", () => { const body = pm.response.json(); pm.expect(body.code).to.eql(\"RESOURCE_NOT_FOUND\"); pm.expect(body.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Swagger init rejects unsupported method",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/docs/swagger-ui-init.js"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 405\", () => pm.response.to.have.status(405));",
+              "pm.test(\"Allow\", () => pm.expect(pm.response.headers.get(\"Allow\")).to.eql(\"GET, HEAD, OPTIONS\"));"
+            ]
+          }
+        }
+      ]
     }
   ]
 }

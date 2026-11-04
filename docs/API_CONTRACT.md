@@ -96,14 +96,19 @@ csrfToken, user}}`; JWT chứa `sub/iss/aud/iat/exp`, thuật toán HS256 cấu 
    DB chỉ lưu hash; phát hiện reuse thu hồi family. Server kiểm tra chữ ký và
    ràng buộc phiên của CSRF token, không chỉ so sánh header/cookie. Tạo token
    bằng nguồn ngẫu nhiên mật mã; không nhận giá trị tùy ý làm bằng chứng.
-5. Frontend dùng Web Locks để tuần tự hóa request có phiên, login, refresh và
-   logout giữa các tab cùng origin. CSRF được đọc lại từ cookie sau khi lấy khóa;
+5. Frontend dùng Web Locks cho login, refresh và logout giữa các tab cùng origin.
+   Request nghiệp vụ dùng Bearer không giữ khóa trong lúc chờ header/body; epoch
+   và revision vẫn được kiểm tra trước gửi và sau khi đọc response để loại bỏ
+   dữ liệu thuộc phiên cũ. Một mutation treo không được chặn request logout.
+   CSRF được đọc lại từ cookie sau khi lấy khóa;
    GET/HEAD 401 được refresh/retry tối đa một lần, mutation không tự retry.
    Marker `bookflow.session.revision` chỉ chứa trạng thái và UUID ngẫu nhiên,
    không chứa token, cookie hoặc hồ sơ. Intent login/logout thông báo để tab khác
    xóa danh tính cũ ngay; response thuộc phiên cũ bị loại bỏ sau khi đọc body.
    Tab khác không tự đăng nhập theo tài khoản mới; reload mới khôi phục phiên hiện tại.
    Logout thất bại vẫn giữ marker signed-out để reload không tự phục hồi cookie cũ.
+   UI có nút thử lại thu hồi phiên, tồn tại sau reload nếu cookie còn. Retry kiểm
+   tra lại đúng revision dưới khóa, không thu hồi cookie của tài khoản mới ở tab khác.
    Khi thiếu Web Locks hoặc storage bị chặn, thao tác phiên bị từ chối với thông báo;
    xem Catalog và đổi ngôn ngữ vẫn dùng được. Cần trình duyệt mới và HTTPS/localhost.
    Logout phía server thu hồi family và xóa cookie đúng Path. Access token đã cấp
@@ -135,6 +140,9 @@ phải cập nhật handler, registry, OpenAPI/Postman và kiểm thử cùng nh
   MEMBER đọc loan người khác vẫn 404. Quy tắc này không xác nhận bản ghi tồn tại.
 - HEAD của GET giữ status/header và không có body; HEAD vào endpoint chỉ nhận
   POST trả 405 không body. OPTIONS giữ hành vi CORS 204 hiện có.
+  Script khởi tạo Swagger chỉ được phục vụ ở `/docs/swagger-ui-init.js` bằng
+  GET/HEAD; method sai trả 405, URL lồng cùng tên script vẫn 404. Static assets
+  Swagger ở cấp đầu vẫn được phục vụ. Đây là asset UI, không thêm business operation.
   `Access-Control-Allow-Methods` mô tả preflight toàn API; không thay cho Allow
   theo tài nguyên. Header Allow được expose cho frontend cross-origin.
 - CORS, rate limit và parse body có thể từ chối request trước method guard;

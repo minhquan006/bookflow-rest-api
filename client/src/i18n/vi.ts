@@ -268,6 +268,7 @@ export const vi = {
   "Sign in to view your borrowing history.":
     "Đăng nhập để xem lịch sử mượn sách của bạn.",
   "Sign out": "Đăng xuất",
+  "Retry sign out": "Thử đăng xuất lại",
   "Sign out failed.": "Đăng xuất thất bại.",
   "Signed out locally, but the server could not revoke the session. Reconnect and sign out again before leaving a shared device.":
     "Đã đăng xuất trên thiết bị nhưng máy chủ chưa thu hồi được phiên. Hãy kết nối lại và đăng xuất lần nữa trước khi rời thiết bị dùng chung.",

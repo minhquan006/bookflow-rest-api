@@ -56,7 +56,9 @@ chi tiết sách. Đổi ngôn ngữ làm component được tạo lại và m�
 
 **Cập nhật 01/11/2026:** nhánh `fix/quan-session-http` dựa trên PR #9 @ `40eb914`
 đã bổ sung đủ ma trận App/browser cho Q1, phối hợp phiên Q2 và HTTP Q3.
-Chưa commit/push/merge; kiểm chứng và review chéo xem [QUAN_VALIDATION](QUAN_VALIDATION.md).
+Đã commit/push thành PR #12 @ `fb7abcc`; Tú review Q1 chưa thấy blocker.
+Follow-up 03/11/2026 sửa hai P2 Q2/Q3 An nêu đang local, chờ push và review lại;
+kiểm chứng xem [QUAN_VALIDATION](QUAN_VALIDATION.md).
 Key dùng `user.id` và role gốc. Hai regression tests trước đó tái hiện lỗi và
 đạt sau sửa; bộ kiểm thử mới bao phủ thêm form, pagination, đổi tài khoản/quyền.
 Hoàn tất triển khai/kiểm thử không thay cho xác nhận review của Tú/An.
@@ -382,14 +384,15 @@ chụp token/password. Người review đối chiếu các checkbox của task t
 
 ## Theo dõi tiến độ
 
-| Mã  | Trạng thái hiện tại                         | Bằng chứng cần bổ sung khi thực hiện                                             |
-| --- | ------------------------------------------- | -------------------------------------------------------------------------------- |
-| Q1  | Đã triển khai/kiểm thử local; chờ Tú review | Ma trận App/browser và bàn giao trong QUAN_VALIDATION; chưa commit/merge         |
-| Q2  | Đã triển khai/kiểm thử local; chờ An review | Hai page cùng context, cạnh tranh phiên và thu hồi token thật; chưa commit/merge |
-| Q3  | Đã triển khai/kiểm thử local; chờ An review | Ma trận HTTP, OpenAPI 32 operations và Postman; chưa commit/merge                |
-| T1  | Tú báo đã làm local; chờ commit/PR          | Chưa có source remote để Quân xác nhận                                           |
-| T2  | Tú báo đã làm local; chờ commit/PR          | Cần review giao diện, URL/Back/Forward và pagination                             |
-| T3  | Tú báo đã làm local; chờ commit/PR          | Đối chiếu tài liệu sau khi tích hợp các PR                                       |
-| A1  | Có trên PR #10, chưa merge                  | Review DTO và quyền trên đúng head; kiểm thử tích hợp khi ghép                   |
-| A2  | Có trên PR #10, chưa merge                  | Giữ hồi quy response guard và EN/VI; review chéo của Tú                          |
-| A3  | Có trên PR #10, chưa merge                  | Ghép contract 405 của Q3; kiểm chứng lại runtime validator                       |
+| Mã  | Trạng thái hiện tại                          | Bằng chứng cần bổ sung khi thực hiện                                            |
+| --- | -------------------------------------------- | ------------------------------------------------------------------------------- |
+| Q1  | Tú review `fb7abcc`, chưa thấy blocker       | Giữ Q1 khi sửa follow-up và khi ghép T2; 16 test bổ sung vẫn ở nhánh Tú         |
+| Q2  | Đã sửa local P2 An nêu; chờ push/re-review   | Logout khi mutation treo trước/sau commit; retry sau 503/reload; epoch/revision |
+| Q3  | Đã sửa local nested init; chờ push/re-review | Hai URL lồng trả 404, init GET/HEAD và static assets còn hoạt động              |
+| T1  | Có trên PR #11 theo bàn giao của Tú          | Quân review cấu hình dev/proxy/cổng trên đúng head                              |
+| T2  | Có trên PR #11 theo bàn giao của Tú          | An review URL/Back/Forward/pagination; kiểm tra lại khi ghép Q1                 |
+| T3  | Có trên PR #11 theo bàn giao của Tú          | Quân review tài liệu, phân biệt trạng thái từng PR và bản tích hợp              |
+
+| A1 | Có trên PR #10, chưa merge | Review DTO và quyền trên đúng head; kiểm thử tích hợp khi ghép |
+| A2 | Có trên PR #10, chưa merge | Giữ hồi quy response guard và EN/VI; review chéo của Tú |
+| A3 | Có trên PR #10, chưa merge | Ghép contract 405 của Q3; kiểm chứng lại runtime validator |

@@ -124,6 +124,11 @@ paths:
     get:
       operationId: getApiDocs
       summary: Swagger UI
+      description: >-
+        Serves the documentation page and top-level static assets using GET/HEAD.
+        Initialization is served only at /docs/swagger-ui-init.js; an unsupported
+        method on that asset returns 405 with Allow. Unknown nested initialization
+        paths remain 404. Static assets are not additional business operations.
       tags:
         - Operations
       x-implementation-status: implemented

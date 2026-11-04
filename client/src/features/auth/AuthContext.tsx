@@ -48,8 +48,12 @@ type AuthState = {
   ) => Promise<void>;
   logout: () => Promise<void>;
   sessionError: string;
+  revocationPending: boolean;
+  retryLogout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
+const logoutFailure =
+  "Signed out locally, but the server could not revoke the session. Reconnect and sign out again before leaving a shared device.";
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
 export function readCsrfCookie() {
@@ -69,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [sessionError, setSessionError] = useState("");
+  const [revocationTarget, setRevocationTarget] = useState<string | null>(null);
   const token = useRef<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const refreshFlight = useRef<Promise<void> | null>(null);
@@ -89,7 +94,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     identity.current = null;
     clearTimeout(timer.current);
     timer.current = undefined;
-    if (mounted.current) setUser(null);
+    if (mounted.current) {
+      setUser(null);
+      setRevocationTarget(null);
+    }
   }, []);
 
   const acceptSession = useCallback((session: Session) => {
@@ -200,35 +208,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!token.current) return client.requestWithMetadata<T>(path, options);
       const expected = epoch.current;
       const expectedRevision = revision.current;
-      return withSessionLock(async () => {
+      assertCurrent(expected, expectedRevision);
+      options.signal?.throwIfAborted();
+      const sentToken = token.current;
+      try {
+        // Bearer requests do not rotate cookies. They must not hold the session lock
+        // while waiting for headers/body, otherwise a stalled mutation blocks logout.
+        const result = await client.requestWithMetadata<T>(path, options);
+        assertCurrent(expected, expectedRevision);
+        return result;
+      } catch (error) {
+        assertCurrent(expected, expectedRevision);
+        if (
+          !(error instanceof ApiError) ||
+          error.problem.status !== 401 ||
+          !["GET", "HEAD"].includes(options.method?.toUpperCase() ?? "GET") ||
+          options.signal?.aborted
+        )
+          throw error;
+        // Another read may already have refreshed the in-memory token.
+        if (token.current === sentToken) await refresh();
         assertCurrent(expected, expectedRevision);
         options.signal?.throwIfAborted();
-        try {
-          let result;
-          try {
-            result = await client.requestWithMetadata<T>(path, options);
-          } catch (error) {
-            assertCurrent(expected, expectedRevision);
-            if (
-              !(error instanceof ApiError) ||
-              error.problem.status !== 401 ||
-              !["GET", "HEAD"].includes(
-                options.method?.toUpperCase() ?? "GET",
-              ) ||
-              options.signal?.aborted
-            )
-              throw error;
-            await refreshUnlocked(expected, expectedRevision);
-            result = await client.requestWithMetadata<T>(path, options);
-          }
-          // The lock includes body parsing, preventing an old response reaching a new identity.
-          assertCurrent(expected, expectedRevision);
-          return result;
-        } catch (error) {
-          assertCurrent(expected, expectedRevision);
-          throw error;
-        }
-      });
+        const result = await client.requestWithMetadata<T>(path, options);
+        assertCurrent(expected, expectedRevision);
+        return result;
+      }
     };
     return {
       requestWithMetadata,
@@ -239,7 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return (await requestWithMetadata<T>(path, options)).data;
       },
     };
-  }, [assertCurrent, refreshUnlocked]);
+  }, [assertCurrent, refresh]);
 
   useEffect(() => {
     mounted.current = true;
@@ -266,7 +271,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .finally(() => {
             if (mounted.current) setLoading(false);
           });
-      } else setLoading(false);
+      } else {
+        if (readCsrfCookie() && revision.current?.startsWith("signed-out:")) {
+          setRevocationTarget(revision.current);
+          setSessionError(logoutFailure);
+        }
+        setLoading(false);
+      }
     } catch (error) {
       setLoading(false);
       setSessionError((error as Error).message);
@@ -315,15 +326,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [rawApi],
   );
 
-  const logout = useCallback(async () => {
-    const hadSession = Boolean(token.current || readCsrfCookie());
-    const expected = ++epoch.current;
-    clearSession();
-    const signedOut = `signed-out:${crypto.randomUUID()}`;
-    try {
-      publish(signedOut);
+  const revoke = useCallback(
+    async (expected: number, target: string, hadSession: boolean) => {
       await withSessionLock(async () => {
-        assertCurrent(expected, signedOut);
+        assertCurrent(expected, target);
         const csrfToken = readCsrfCookie();
         if (!csrfToken) {
           if (hadSession) throw new Error("No refresh session is available.");
@@ -335,17 +341,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           headers: { "X-CSRF-Token": csrfToken },
           signal: AbortSignal.timeout(15_000),
         });
-        assertCurrent(expected, signedOut);
+        assertCurrent(expected, target);
       });
-      if (mounted.current && epoch.current === expected) setSessionError("");
-    } catch {
-      if (epoch.current !== expected) return;
-      const message =
-        "Signed out locally, but the server could not revoke the session. Reconnect and sign out again before leaving a shared device.";
-      if (mounted.current) setSessionError(message);
-      throw new Error(message);
+      if (mounted.current && epoch.current === expected) {
+        setRevocationTarget(null);
+        setSessionError("");
+      }
+    },
+    [rawApi, assertCurrent],
+  );
+
+  const failedRevocation = useCallback((expected: number, target: string) => {
+    if (mounted.current && epoch.current === expected) {
+      if (revision.current === target) setRevocationTarget(target);
+      setSessionError(logoutFailure);
     }
-  }, [rawApi, clearSession, publish, assertCurrent]);
+    return new Error(logoutFailure);
+  }, []);
+
+  const logout = useCallback(async () => {
+    const hadSession = Boolean(token.current || readCsrfCookie());
+    const expected = ++epoch.current;
+    clearSession();
+    const target = `signed-out:${crypto.randomUUID()}`;
+    try {
+      publish(target);
+      await revoke(expected, target, hadSession);
+    } catch {
+      throw failedRevocation(expected, target);
+    }
+  }, [clearSession, publish, revoke, failedRevocation]);
+
+  const retryLogout = useCallback(async () => {
+    if (!revocationTarget) return;
+    if (
+      revision.current !== revocationTarget ||
+      readRevision() !== revocationTarget
+    )
+      throw new Error(sessionChangedError);
+    const expected = epoch.current;
+    try {
+      // Keep the failed intent: after another tab signs in, the marker check inside
+      // the lock rejects this retry instead of revoking the new account's cookie.
+      await revoke(expected, revocationTarget, true);
+    } catch {
+      throw failedRevocation(expected, revocationTarget);
+    }
+  }, [revocationTarget, revoke, failedRevocation]);
 
   const refreshProfile = useCallback(async () => {
     const expectedEpoch = epoch.current;
@@ -368,6 +410,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         sessionError,
+        revocationPending: revocationTarget !== null,
+        retryLogout,
         refreshProfile,
       }}
     >

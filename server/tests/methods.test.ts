@@ -119,6 +119,48 @@ describe("method negotiation on the composed application", () => {
       expect(response.headers.allow).toBeUndefined();
     }
   });
+  it.each([
+    "/docs/not-a-resource/swagger-ui-init.js",
+    "/docs/a/b/swagger-ui-init.js",
+  ])(
+    "does not serve Swagger initialization from an unknown nested path %s",
+    async (path) => {
+      const response = await request(application()).get(`${path}?cache=1`);
+      expect(response.status).toBe(404);
+      expect(response.headers["content-type"]).toContain(
+        "application/problem+json",
+      );
+      expect(response.body.code).toBe("RESOURCE_NOT_FOUND");
+    },
+  );
+  it("serves real Swagger assets and restricts initialization to GET/HEAD", async () => {
+    const app = application();
+    for (const asset of [
+      "swagger-ui.css",
+      "swagger-ui-bundle.js",
+      "swagger-ui-standalone-preset.js",
+      "favicon-32x32.png",
+    ]) {
+      expect((await request(app).get(`/docs/${asset}`)).status).toBe(200);
+    }
+    const init = await request(app).get("/docs/swagger-ui-init.js?cache=1");
+    expect(init.status).toBe(200);
+    expect(init.headers["content-type"]).toContain("javascript");
+    expect(init.text).toContain("/openapi.yaml");
+    const head = await request(app).head("/docs/swagger-ui-init.js");
+    expect(head.status).toBe(200);
+    expect(head.text).toBeUndefined();
+    const unsupported = await request(app).post("/docs/swagger-ui-init.js");
+    expect(unsupported.status).toBe(405);
+    expect(unsupported.headers.allow).toBe("GET, HEAD, OPTIONS");
+    expect(unsupported.body.code).toBe("METHOD_NOT_ALLOWED");
+    expect(
+      (await request(app).post("/docs/a/b/swagger-ui-init.js")).status,
+    ).toBe(404);
+    expect((await request(app).get("/docs").redirects(1)).text).toContain(
+      "swagger-ui",
+    );
+  });
   it("keeps GET, implicit HEAD, CORS OPTIONS and operation permissions", async () => {
     const app = application("MEMBER");
     expect((await request(app).get("/health/live")).status).toBe(200);

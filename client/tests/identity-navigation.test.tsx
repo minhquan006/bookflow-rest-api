@@ -43,6 +43,8 @@ it.each([
       register: vi.fn(),
       logout: vi.fn(),
       sessionError: "",
+      revocationPending: false,
+      retryLogout: vi.fn(),
       refreshProfile: vi.fn(),
     };
     vi.mocked(useAuth).mockReturnValue(state);

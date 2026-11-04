@@ -216,3 +216,201 @@ test("unsupported coordination leaves public browsing available and refuses sign
   );
   expect(authRequests).toBe(0);
 });
+
+for (const stage of ["before forwarding", "after commit"] as const) {
+  test(`a stalled mutation ${stage} does not block a peer's real logout`, async ({
+    page,
+    context,
+    request,
+  }) => {
+    const user = await account(request);
+    const password = process.env.SEED_DEMO_PASSWORD;
+    if (!password)
+      throw new Error("SEED_DEMO_PASSWORD is required for loan fixtures.");
+    const login = await request.post("/api/v1/auth/login", {
+      data: { email: "admin@bookflow.test", password },
+    });
+    expect(login.status()).toBe(200);
+    const headers = {
+      Authorization: `Bearer ${(await login.json()).data.accessToken}`,
+    };
+    const categories = await request.get("/api/v1/categories?limit=1");
+    const suffix = randomUUID().slice(0, 8);
+    const created = await request.post("/api/v1/books", {
+      headers,
+      data: {
+        categoryId: (await categories.json()).data[0].id,
+        title: `Stalled loan ${suffix}`,
+        author: "Session Test",
+        isbn: null,
+        description: "Synthetic stalled mutation fixture.",
+      },
+    });
+    expect(created.status()).toBe(201);
+    const book = (await created.json()).data;
+    expect(
+      (
+        await request.post(`/api/v1/books/${book.id}/copies`, {
+          headers,
+          data: { barcode: `STALL-${suffix}` },
+        })
+      ).status(),
+    ).toBe(201);
+    await signIn(page, user);
+    await page.goto(`/books/${book.id}`);
+    await expect(
+      page.getByRole("button", { name: "Borrow this book", exact: true }),
+    ).toBeVisible();
+    const peer = await context.newPage();
+    await peer.goto("/account");
+    await expect(
+      peer.getByRole("heading", { name: user.fullName, exact: true }),
+    ).toBeVisible();
+    let entered!: () => void;
+    let release!: () => void;
+    let finished!: () => void;
+    let loanId: string | undefined;
+    let writes = 0;
+    const started = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const done = new Promise<void>((resolve) => {
+      finished = resolve;
+    });
+    await page.route("**/api/v1/loans", async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      writes++;
+      try {
+        const response =
+          stage === "after commit" ? await route.fetch() : undefined;
+        if (response) {
+          expect(response.status()).toBe(201);
+          loanId = (await response.json()).data.id;
+        }
+        entered();
+        await gate;
+        if (response) await route.fulfill({ response });
+        else await route.abort();
+      } finally {
+        finished();
+      }
+    });
+    await page
+      .getByRole("button", { name: "Borrow this book", exact: true })
+      .click();
+    await started;
+    const cookies = await context.cookies();
+    const refresh = cookies.find(
+      (cookie) => cookie.name === "bookflow_refresh",
+    )!;
+    const csrf = cookies.find((cookie) => cookie.name === "bookflow_csrf")!;
+    try {
+      const logout = peer.waitForResponse(
+        (response) => response.url().endsWith("/auth/logout"),
+        { timeout: 5_000 },
+      );
+      await peer.getByRole("button", { name: "Sign out", exact: true }).click();
+      expect((await logout).status()).toBe(204);
+      const revoked = await request.post("/api/v1/auth/refresh", {
+        data: {},
+        headers: {
+          Origin: new URL(peer.url()).origin,
+          Cookie: `bookflow_refresh=${refresh.value}; bookflow_csrf=${csrf.value}`,
+          "X-CSRF-Token": decodeURIComponent(csrf.value),
+        },
+      });
+      expect(revoked.status()).toBe(401);
+    } finally {
+      release();
+      await done;
+    }
+    await expect(
+      page.getByRole("button", { name: user.fullName, exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByText(
+        "Book borrowed successfully. You can review its due date in My loans.",
+      ),
+    ).toHaveCount(0);
+    expect(writes).toBe(1);
+    if (stage === "after commit") {
+      expect(loanId).toBeDefined();
+      // A committed mutation remains committed; the client discards its late result.
+      expect(
+        (await request.get(`/api/v1/loans/${loanId}`, { headers })).status(),
+      ).toBe(200);
+    }
+    await signedOut(page);
+    await signedOut(peer);
+  });
+}
+
+test("failed server revocation stays retryable after reload and succeeds in EN/VI", async ({
+  page,
+  context,
+  request,
+}, testInfo) => {
+  const user = await account(request);
+  await signIn(page, user);
+  await page.goto("/account");
+  await expect(
+    page.getByRole("heading", { name: user.fullName, exact: true }),
+  ).toBeVisible();
+  const cookies = await context.cookies();
+  const refresh = cookies.find((cookie) => cookie.name === "bookflow_refresh")!;
+  const csrf = cookies.find((cookie) => cookie.name === "bookflow_csrf")!;
+  let attempts = 0;
+  let refreshes = 0;
+  page.on("request", (request) => {
+    if (request.url().endsWith("/auth/refresh")) refreshes++;
+  });
+  await page.route("**/api/v1/auth/logout", async (route) => {
+    attempts++;
+    if (attempts === 1)
+      await route.fulfill({
+        status: 503,
+        contentType: "application/problem+json",
+        body: JSON.stringify({ status: 503, title: "Unavailable" }),
+      });
+    else await route.continue();
+  });
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Retry sign out", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: user.fullName, exact: true }),
+  ).toHaveCount(0);
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Retry sign out", exact: true }),
+  ).toBeVisible();
+  let retryLabel = "Retry sign out";
+  if (testInfo.project.name === "mobile") {
+    await page.getByLabel("Language", { exact: true }).selectOption("vi");
+    retryLabel = "Thử đăng xuất lại";
+  }
+  expect(attempts).toBe(1);
+  const logout = page.waitForResponse((response) =>
+    response.url().endsWith("/auth/logout"),
+  );
+  await page.getByRole("button", { name: retryLabel, exact: true }).click();
+  expect((await logout).status()).toBe(204);
+  await expect(
+    page.getByRole("button", { name: retryLabel, exact: true }),
+  ).toHaveCount(0);
+  expect(attempts).toBe(2);
+  expect(refreshes).toBe(0);
+  const revoked = await request.post("/api/v1/auth/refresh", {
+    data: {},
+    headers: {
+      Origin: new URL(page.url()).origin,
+      Cookie: `bookflow_refresh=${refresh.value}; bookflow_csrf=${csrf.value}`,
+      "X-CSRF-Token": decodeURIComponent(csrf.value),
+    },
+  });
+  expect(revoked.status()).toBe(401);
+});

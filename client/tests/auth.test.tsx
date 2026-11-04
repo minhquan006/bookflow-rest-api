@@ -1,9 +1,11 @@
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider, useAuth } from "../src/features/auth/AuthContext";
 import { LoginPage } from "../src/features/auth/LoginPage";
+import { AppLayout } from "../src/app/AppLayout";
+import { LanguageProvider } from "../src/i18n/LanguageProvider";
 import { RegisterPage } from "../src/features/auth/RegisterPage";
 
 const user = {
@@ -191,7 +193,7 @@ describe("memory-only authentication", () => {
         fetcher.mock.calls.filter(([input]) =>
           String(input).endsWith("/users/me"),
         ),
-      ).toHaveLength(3),
+      ).toHaveLength(4),
     );
   });
 
@@ -218,6 +220,67 @@ describe("memory-only authentication", () => {
     ).toHaveLength(0);
   });
 
+  it.each(["headers", "body"])(
+    "revokes without waiting for a mutation's stalled %s",
+    async (stage) => {
+      let release!: () => void;
+      const fetcher = vi
+        .fn<typeof fetch>()
+        .mockImplementation(async (input) => {
+          if (String(input).endsWith("/auth/login")) return sessionResponse();
+          if (String(input).endsWith("/auth/logout"))
+            return new Response(null, { status: 204 });
+          if (stage === "headers")
+            return new Promise<Response>((resolve) => {
+              release = () =>
+                resolve(Response.json({ data: { id: "late-loan" } }));
+            });
+          return new Response(
+            new ReadableStream({
+              start(controller) {
+                controller.enqueue(new TextEncoder().encode('{"data":'));
+                release = () => {
+                  controller.enqueue(
+                    new TextEncoder().encode('{"id":"late-loan"}}'),
+                  );
+                  controller.close();
+                };
+              },
+            }),
+          );
+        });
+      vi.stubGlobal("fetch", fetcher);
+      renderProbe();
+      await userEvent.click(screen.getByRole("button", { name: "Test login" }));
+      await screen.findByText(user.fullName);
+      await userEvent.click(
+        screen.getByRole("button", { name: "Create loan" }),
+      );
+      await waitFor(() => expect(release).toBeTypeOf("function"));
+      try {
+        await userEvent.click(
+          screen.getByRole("button", { name: "Test logout" }),
+        );
+        await waitFor(() =>
+          expect(
+            fetcher.mock.calls.filter(([input]) =>
+              String(input).endsWith("/auth/logout"),
+            ),
+          ).toHaveLength(1),
+        );
+        expect(screen.getByText("Guest")).toBeInTheDocument();
+      } finally {
+        await act(async () => release());
+      }
+      expect(
+        fetcher.mock.calls.filter(([input]) =>
+          String(input).endsWith("/loans"),
+        ),
+      ).toHaveLength(1);
+      expect(screen.queryByText(user.fullName)).not.toBeInTheDocument();
+    },
+  );
+
   it("clears local authentication and explains server revocation failure on logout", async () => {
     const fetcher = vi
       .fn<typeof fetch>()
@@ -241,6 +304,112 @@ describe("memory-only authentication", () => {
     expect(new Headers(logout?.[1]?.headers).get("X-CSRF-Token")).toBe(
       session.csrfToken,
     );
+  });
+
+  it("keeps a visible retry after revocation fails, and clears it after success", async () => {
+    let attempts = 0;
+    let complete!: (response: Response) => void;
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      if (String(input).endsWith("/auth/login")) return sessionResponse();
+      if (String(input).endsWith("/auth/logout")) {
+        attempts++;
+        if (attempts === 1) return problem(503, "Unavailable");
+        return new Promise<Response>((resolve) => {
+          complete = resolve;
+        });
+      }
+      return Response.json({ data: user });
+    });
+    vi.stubGlobal("fetch", fetcher);
+    render(
+      <LanguageProvider>
+        <AuthProvider>
+          <AppLayout path="/" onNavigate={vi.fn()}>
+            <Probe />
+          </AppLayout>
+        </AuthProvider>
+      </LanguageProvider>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Test login" }));
+    await screen.findByRole("button", { name: user.fullName });
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    const retry = await screen.findByRole("button", { name: "Retry sign out" });
+    expect(screen.getByText("Guest")).toBeInTheDocument();
+    await userEvent.click(retry);
+    await waitFor(() => expect(attempts).toBe(2));
+    expect(retry).toBeDisabled();
+    await act(async () => complete(new Response(null, { status: 204 })));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "Retry sign out" }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByText(/server could not revoke/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("restores a revocation retry from a signed-out marker without restoring the user", async () => {
+    localStorage.setItem(
+      "bookflow.session.revision",
+      "signed-out:failed-attempt",
+    );
+    document.cookie = "bookflow_csrf=still-current; Path=/";
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetcher);
+    render(
+      <AuthProvider>
+        <AppLayout path="/" onNavigate={vi.fn()}>
+          Public page
+        </AppLayout>
+      </AuthProvider>,
+    );
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Retry sign out" }),
+    );
+    await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
+    expect(String(fetcher.mock.calls[0][0])).toMatch(/auth\/logout$/);
+    expect(
+      new Headers(fetcher.mock.calls[0][1]?.headers).get("X-CSRF-Token"),
+    ).toBe("still-current");
+  });
+
+  it("never lets an old revocation retry revoke a newer account", async () => {
+    localStorage.setItem(
+      "bookflow.session.revision",
+      "signed-out:failed-attempt",
+    );
+    document.cookie = "bookflow_csrf=still-current; Path=/";
+    let state!: ReturnType<typeof useAuth>;
+    function Capture() {
+      const auth = useAuth();
+      useEffect(() => {
+        state = auth;
+      }, [auth]);
+      return <Probe />;
+    }
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockImplementation(async () => sessionResponse());
+    vi.stubGlobal("fetch", fetcher);
+    render(
+      <AuthProvider>
+        <Capture />
+      </AuthProvider>,
+    );
+    const retry = state.retryLogout;
+    await act(async () => {
+      localStorage.setItem("bookflow.session.revision", "active:other-user");
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "bookflow.session.revision" }),
+      );
+    });
+    await expect(retry()).rejects.toThrow(/session changed/);
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(state.revocationPending).toBe(false);
+    expect(state.sessionError).toMatch(/session changed/);
   });
 
   it("never restores a logged-out identity from an earlier profile response", async () => {

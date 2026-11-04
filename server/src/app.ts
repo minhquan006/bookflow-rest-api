@@ -1,5 +1,4 @@
-import express from "express";
-import type { Router } from "express";
+import express, { Router } from "express";
 import helmet from "helmet";
 import cors from "cors";
 import { fileURLToPath } from "node:url";
@@ -89,7 +88,15 @@ export function createApp({
   app.get("/openapi.yaml", (_req, res) => {
     res.type("application/yaml").sendFile(contractPath);
   });
-  app.use("/docs", swaggerUi.serve);
+  const docsAssets = Router();
+  docsAssets.use(
+    createMethodGuard([
+      { path: "/swagger-ui-init.js", methods: ["GET"], visibility: "public" },
+    ]),
+  );
+  // swagger-ui-express matches init by suffix; only expose top-level assets.
+  docsAssets.get(["/", "/:asset"], swaggerUi.serve);
+  app.use("/docs", docsAssets);
   app.get(
     "/docs",
     swaggerUi.setup(undefined, {

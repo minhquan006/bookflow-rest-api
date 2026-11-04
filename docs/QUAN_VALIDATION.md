@@ -1,8 +1,10 @@
 # Q1–Q3 của Quân: triển khai và bàn giao review
 
-Ngày 01/11/2026, Mac arm64, Node 24.19.0/npm 11.17.0. Nhánh local
-`fix/quan-session-http` dựa trên PR #9 @ `40eb914`. Thay đổi chưa commit/push/merge;
-không coi đây là chức năng đã có trên main @ `d3d614f`.
+Bản Q1–Q3 ban đầu được kiểm chứng ngày 01/11/2026 trên Mac arm64,
+Node 24.19.0/npm 11.17.0, sau đó commit/push thành `fb7abcc` trong PR #12,
+dựa trên PR #9 @ `40eb914`. Ngày 03/11/2026 sửa hai P2 từ review Q2/Q3 của
+An trên cùng nhánh `fix/quan-session-http`; phần sửa follow-up còn local, chưa
+commit/push. Không coi đây là chức năng đã merge vào main.
 
 ## Q1 — Ngôn ngữ và state
 
@@ -21,8 +23,10 @@ không coi đây là chức năng đã có trên main @ `d3d614f`.
 
 ## Q2 — Phiên dùng chung giữa các tab
 
-`session-coordination.ts` dùng Web Locks cùng origin. Login, refresh, logout và
-request có access token cùng dùng khóa; khóa giữ đến sau khi đọc/parse body.
+`session-coordination.ts` dùng Web Locks cùng origin cho login, refresh và logout.
+Sau review An, Bearer request nghiệp vụ chạy ngoài khóa trong cả giai đoạn chờ
+header và đọc body; vẫn kiểm tra epoch/revision trước gửi và sau parse response.
+Một POST mượn treo không ngăn tab khác gửi logout để thu hồi refresh family.
 Access token ở RAM. CSRF header lấy từ cookie hiện tại sau khi nhận khóa. Khi
 tab khác rotate cookie, access token còn hạn vẫn dùng bình thường; không phát sinh
 rotation chỉ vì snapshot cookie khác. GET/HEAD 401 chỉ refresh/retry tối đa một lần; mutation không được tự retry.
@@ -39,6 +43,9 @@ Tab khác đổi tài khoản: tab đang mở trở về trạng thái chưa đ�
 khôi phục tài khoản hiện tại từ cookie chung. Logout lỗi vẫn giữ tombstone
 signed-out để reload không tự phục hồi cookie còn lại. Có thông báo khi server
 không thu hồi được phiên; signed-out local không được gọi là thu hồi server thành công.
+Nút Retry sign out / Thử đăng xuất lại vẫn có sau reload nếu signed-out marker
+và cookie còn. Nút khóa khi đang gửi; retry dùng lại intent cũ và kiểm tra revision
+bên trong Web Lock, không được thu hồi cookie của tài khoản mới ở tab khác.
 
 Yêu cầu trình duyệt mới, HTTPS/localhost, Web Locks và writable site storage.
 Không có cơ chế này thì từ chối thao tác phiên, không gửi auth request; Catalog
@@ -56,6 +63,12 @@ Browser tests dùng **hai page trong cùng context**, chia sẻ cookie, xác nh�
 4. Giữ response refresh đang bay, B logout; nhả response cũ không khôi phục A.
 5. B đăng nhập tài khoản khác, A không còn danh tính/dữ liệu người trước; reload
    chỉ theo tài khoản hiện tại. Thiếu Web Locks: từ chối login, public Catalog còn dùng được.
+6. Giữ POST mượn trước khi forward hoặc giữ response sau DB commit, logout tab B
+   vẫn có HTTP 204 và token trước logout nhận 401 ngay khi request đang treo.
+   Nhả response sau đó không hiện success cũ và không gửi lại POST. Transaction
+   đã commit vẫn được xác nhận còn tồn tại bằng API staff.
+7. Server logout 503: không tự retry; reload không restore user, vẫn có nút thử
+   lại ở EN/VI, thao tác thử lại thật trả 204 và token cũ nhận 401.
 
 Unit tests bổ sung storage bị chặn, tombstone qua reload, stale private response,
 CSRF mới, logout đang refresh và phát hiện family đã thu hồi. Backend Auth,
@@ -69,6 +82,10 @@ Origin/HMAC CSRF/session binding, rotation và reuse detection được giữ ng
 - Unknown URI giữ 404, bao gồm URL con lạ dưới `/docs`; Swagger HTML chỉ gắn
   vào GET `/docs`, không dùng middleware HTML bắt toàn bộ prefix. Regression đã
   tái hiện `/docs/not-a-resource` trả 200 trước sửa, sau sửa trả 404.
+  Review An phát hiện middleware init còn dùng endsWith: hai URL lồng tận cùng
+  `swagger-ui-init.js` đã tái hiện 200 trước sửa follow-up. Router static giờ chỉ
+  nhận top-level GET/HEAD; init sai method trả 405/Allow, URL lồng trả 404 và
+  CSS/bundle/preset/favicon thật vẫn được kiểm tra 200.
 - Known resource/sai method trả 405 Problem Details và Allow
   đúng resource. GET có HEAD; OPTIONS giữ CORS. Header Allow được expose.
 - Authenticated/staff/admin resource vẫn yêu cầu phiên và role tương ứng trước
@@ -76,7 +93,7 @@ Origin/HMAC CSRF/session binding, rotation và reuse detection được giữ ng
   operation ghi. Static `/users/me` được ưu tiên trước `/users/:id`.
 - Method negotiation xét hình dạng đường dẫn, không xác nhận bản ghi tồn tại.
   Method hợp lệ vẫn qua UUID validation, ownership, ETag và nghiệp vụ như cũ.
-- 28 HTTP tests trên app/router thật, gồm đủ 24 resource paths, role/status,
+- 31 HTTP tests trên app/router thật, gồm đủ 24 resource paths, role/status,
   unknown/nested paths, HEAD/CORS/Allow, static route và valid-method guards.
 - OpenAPI có response 405/Allow cho đủ 32 operations; contract checker phát hiện
   registry/OpenAPI lệch hoặc thiếu 405. Khi thêm handler phải cập nhật registry
@@ -85,7 +102,7 @@ Origin/HMAC CSRF/session binding, rotation và reuse detection được giữ ng
 
 Chi tiết chính sách ở [API_CONTRACT](API_CONTRACT.md#404-405-head-và-options).
 
-## Kết quả chạy
+## Kiểm chứng bản ban đầu ngày 01/11/2026
 
 - `npm run check`: đạt; 94 backend + 93 frontend tests, lint/typecheck/build,
   32 operation OpenAPI, Postman JSON và format. Còn 11 cảnh báo React hiện có.
@@ -108,17 +125,37 @@ Lần đối chiếu GitHub cuối: #9 ready/unmerged ở `40eb914`, #10 unmerge
 chạy lỗi khi phát triển được dùng sửa race/test fixture; kết quả cuối chỉ tính
 lượt chạy trên source ổn định. Không đổi số liệu bằng chứng lịch sử trong docs/evidence.
 
+## Follow-up review PR #12 ngày 03/11/2026
+
+- Tú đã review Q1 ở `fb7abcc`: chưa thấy blocker Q1, chạy check trên Linux và
+  16 test độc lập; xem [review của Tú](https://github.com/minhquan006/bookflow-rest-api/pull/12#pullrequestreview-5738873581).
+  Bộ 16 test nằm trên nhánh Tú, không cộng vào test có sẵn ở PR #12.
+- An request changes cho request nghiệp vụ treo chặn logout và Swagger init
+  lồng trả 200; xem [review của An](https://github.com/minhquan006/bookflow-rest-api/pull/12#pullrequestreview-5740475234).
+- Đã tự tái hiện bằng 2 unit cases (fetch/body treo) và 2 HTTP cases (nested init)
+  trên `fb7abcc` chưa sửa: cả bốn thất bại đúng điều kiện. Sau sửa đã đạt.
+- `npm run check`: 97 backend + 98 frontend đạt; types/build/contract/format đạt.
+  Còn 10 cảnh báo React; không có lỗi lint hoặc cảnh báo mới từ test bổ sung.
+- `npm run test:integration`: 105/105 đạt trên DB `_test`, schema riêng.
+- Browser Auth mục tiêu: 7/7 desktop đạt, bao gồm 3 ca bổ sung nói trên.
+  E2E đầy đủ: 20/20 desktop và 20/20 mobile đạt trên API mới cho mỗi project,
+  không retry. Tổng 40 ca; phần bổ sung có 2 ca mutation treo và 1 ca retry logout
+  cho mỗi project, không cộng thêm 7 targeted vào tổng 40.
+- Không có migration, thay đổi backend Auth hoặc JWT revocation; không nới rate
+  limit, không reset DB phát triển, không tự retry mutation. CI chỉ kiểm chứng
+  head đã push; phần sửa local chưa có CI hoặc re-review của An.
+
 ## Review và tích hợp tiếp theo
 
-- Tú review Q1: AppRouter key, EN/VI không submit, draft/filter/page giữ nguyên,
-  đổi account/role phải xóa dữ liệu cũ; phối hợp test URL/Back/Forward của T2.
-- An review Q2: khóa nhiều tab, cookie mới sau chờ, logout/revocation và stale
-  response. Review Q3: visibility/401/403/405/Allow và contract. Sau khi ghép A3,
+- Tú đã review Q1 ở `fb7abcc`; khi ghép T2 giữ AppRouter key, draft/applied
+  filters và URL/Back/Forward. Bộ kiểm tra local follow-up vẫn giữ hồi quy Q1.
+- An review lại follow-up Q2/Q3 trên head mới sau khi Quân commit/push: logout
+  khi mutation treo, retry revocation và nested Swagger init. Sau khi ghép A3,
   thêm assertion 405 runtime trong helper validator của An.
 - Quân tự giải thích và kiểm tra diff trước khi commit bằng danh tính Git thật.
-  Giữ PR #9 cho refactor. Nhánh này dựa trên PR #9: khi #9 chưa merge, PR tiếp
-  theo có thể dùng base `chore/repository-cleanup`; sau #9 merge thì đổi base sang
-  main và kiểm tra diff/CI. Không merge #9 hoặc #10 trong đợt triển khai này.
+  Push tiếp nhánh `fix/quan-session-http` để cập nhật PR #12 đang có; base hiện
+  là `chore/repository-cleanup` của PR #9. Sau #9 merge mới đổi base sang main
+  và kiểm tra diff/CI. Không merge các PR trong đợt sửa review này.
 - Khi ghép #10 với refactor, giữ cả import formatter dùng chung và response guard
   trong `LoansPage.tsx`. Ghép thay đổi OpenAPI theo từng operation, giữ schema DTO
   của An và 405 của Quân; chạy lại contract/integration/E2E trên source đã ghép.
