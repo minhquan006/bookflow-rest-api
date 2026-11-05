@@ -1,5 +1,9 @@
 # An: loan identity, return UX and response contracts
 
+The initial-base statements and dated results below are historical. See the
+integration preview section at the end for the local PR #9 + #10 combination;
+that preview does not establish a merge into main.
+
 Validation date: **31/10/2026 (UTC+7)**. Tasks: **A1, A2, A3** in the supplied
 `QUALITY_IMPROVEMENT_PLAN.md`. Implementation commit:
 `374509bcbad91a77b1aaef75462c7a2835a67737`.
@@ -194,3 +198,36 @@ The temporary database was removed. This workflow-only follow-up does not rerun
 unrelated application unit/integration or container suites locally. A new hosted
 CI run is still required to verify the changed workflow; the failed run's detailed
 error and formal human approvals remain outstanding.
+
+## Integration preview with PR #9 (05/11/2026, UTC+7)
+
+A local, uncommitted merge preview combines these exact inputs:
+
+- PR #9: `40eb9143866306725767f3121599e678e3fddc7c`.
+- PR #10: `3d0695d4693621f012d053c4824eebebb6c82f4f`, after An corrected the Git
+  identity to `An Lê <anle15674@gmail.com>`; its source tree matches the earlier
+  CI-fix head `a1bd041`.
+
+One conflict occurred in `client/src/features/loans/LoansPage.tsx`. The resolution
+keeps `formatLibraryDate` from the shared `lib/datetime` module and
+`isLoanReturnResponse` from the loan response guard. The refactored router/layout,
+shared pagination types, loan identity DTO and return/viewer protections remain.
+No production behavior was changed beyond combining the existing PRs.
+
+Linux cloud results for this combined source, before adding this documentation:
+
+- `npm run check`: 67 backend + 103 frontend tests; lint, typecheck, both builds,
+  32-operation OpenAPI/Postman checks and format passed.
+- Integration: 107/107 passed on a newly created dedicated `_test` database.
+- E2E: 12/12 desktop and 12/12 mobile passed with retries=0 and a fresh API per
+  project. The temporary test database was removed after the run; development
+  data and the global API rate limit were not changed.
+
+At the remote check for this preview, main was still
+`d3d614fb125c2c65538e1737b2a6b0a248eff5f7`; PR #9 had not landed there. These
+results are a local preview, not CI for a new PR #10 head or verification of main.
+No merge commit, push or GitHub review was created by Codex. PR #11/T1–T3 and
+PR #12/Q2–Q3 are not included; in particular, this preview does not add Q3's
+405/Allow implementation or A3 coverage for it. After #9 lands, compare the real
+main and PR #10 inputs again before applying the prepared resolution and
+requesting CI on An's own pushed commit.

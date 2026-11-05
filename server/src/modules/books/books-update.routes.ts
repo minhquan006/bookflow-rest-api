@@ -1,10 +1,11 @@
-﻿import { Router, type RequestHandler } from "express";
+import { bookETag } from "./books-version.js";
+import { Router, type RequestHandler } from "express";
 import type { Pool } from "pg";
 import { z } from "zod";
 import { requireRoles } from "../../middleware/auth.js";
 import { parseInput } from "../../middleware/validation.js";
 import { unauthenticated } from "../../shared/errors.js";
-import { createBookSchema } from "./books-write.schema.js";
+import { createBookSchema } from "./books.schema.js";
 import { changeBookMetadata } from "./books-update.service.js";
 
 const paramsSchema = z.object({ id: z.uuid() }).strict();
@@ -38,7 +39,7 @@ export function createBookUpdateRouter(
       req.requestId,
     );
 
-    res.set("ETag", `"book-${book.id}-v${book.version}"`).json({ data: book });
+    res.set("ETag", bookETag(book.id, book.version)).json({ data: book });
   };
 
   router.put(

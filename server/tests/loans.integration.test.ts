@@ -9,12 +9,11 @@ import { loadConfig } from "../src/config/env.js";
 import { runMigrations } from "../src/db/migrate.js";
 import { createLogger } from "../src/shared/logger.js";
 import { createAccessTokens } from "../src/shared/tokens.js";
-import {
-  createLoansRouter,
-  createLoansService,
-} from "../src/modules/loans/index.js";
-import { createAdministrationRouter } from "../src/modules/administration/index.js";
-import { bookETag, createCatalogRouter } from "../src/modules/catalog/index.js";
+import { createLoansRouter } from "../src/modules/loans/loans.routes.js";
+import { createLoansService } from "../src/modules/loans/loans.service.js";
+import { createAdministrationRouter } from "../src/modules/administration/administration.routes.js";
+import { createCatalogRouter } from "../src/modules/catalog/catalog.routes.js";
+import { bookETag } from "../src/modules/books/books-version.js";
 import type { Principal, Role } from "../src/middleware/context.js";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;

@@ -1,4 +1,5 @@
-﻿import { Router, type RequestHandler } from "express";
+import { bookETag } from "./books-version.js";
+import { Router, type RequestHandler } from "express";
 import type { Pool } from "pg";
 import { z } from "zod";
 import { requireRoles } from "../../middleware/auth.js";
@@ -30,7 +31,7 @@ export function createBookArchiveRouter(
         req.requestId,
       );
 
-      res.set("ETag", `"book-${id}-v${version}"`).status(204).end();
+      res.set("ETag", bookETag(id, version)).status(204).end();
     },
   );
 

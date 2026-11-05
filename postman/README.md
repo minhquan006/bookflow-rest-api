@@ -1,11 +1,10 @@
 # Chạy Postman cho BookFlow
 
-| Collection                                  | Mục đích                                                                  |
-| ------------------------------------------- | ------------------------------------------------------------------------- |
-| `BookFlow.postman_collection.json`          | Smoke health/readiness/API/docs và lỗi 404                                |
-| `BookFlow.catalog.postman_collection.json`  | Ví dụ/kiểm tra Catalog hiện có của Tú                                     |
-| `BookFlow.business.postman_collection.json` | 20 request tuần tự kiểm tra luồng nghiệp vụ trên bản tích hợp đủ module   |
-| `BookFlow.planned.postman_collection.json`  | Ví dụ request riêng từ thời thiết kế; không phải suite nghiệm thu tự động |
+| Collection                                  | Mục đích                                                                |
+| ------------------------------------------- | ----------------------------------------------------------------------- |
+| `BookFlow.postman_collection.json`          | Smoke health/readiness/API/docs và lỗi 404                              |
+| `BookFlow.catalog.postman_collection.json`  | Ví dụ/kiểm tra Catalog hiện có của Tú                                   |
+| `BookFlow.business.postman_collection.json` | 20 request tuần tự kiểm tra luồng nghiệp vụ trên bản tích hợp đủ module |
 
 Import collection và `BookFlow.local.postman_environment.json`. Nhập giá trị
 local trong Postman, không export/commit environment có password/token thật.
@@ -27,7 +26,7 @@ không được Vite proxy; do đó smoke collection dùng 3000. Docker smoke d�
 
 ## Business workflow
 
-Chạy **toàn bộ collection theo thứ tự 01–20** sau khi tích hợp đúng các gói.
+Chạy **toàn bộ collection theo thứ tự 01–20** trên source tích hợp hiện tại.
 Nó tạo MEMBER tổng hợp với email/password ngẫu nhiên, login admin, tạo category/
 book/copy, GET metadata/304, kiểm tra stale update, login/refresh MEMBER, borrow,
 kiểm tra lịch sử/quyền, staff return/idempotency, dashboard/audit, archive và logout.
@@ -55,5 +54,5 @@ và endpointMode của lần chạy thực tế. Đây là kiểm thử local, k
 
 Auth default 10 requests/IP/account trong 15 phút có thể ảnh hưởng nhiều lần chạy
 liên tiếp. Dùng server dev/test với budget cho test và restart khi đổi cấu hình;
-không bỏ assertion, bỏ rate limit hoặc coi 429 là pass. Collection `planned`
-vẫn là bộ ví dụ lịch sử kể cả khi các endpoint hiện đã được triển khai.
+không bỏ assertion, bỏ rate limit hoặc coi 429 là pass. Collection thiết kế
+`planned` cũ đã được bỏ vì các luồng hiện có được mô tả trong các collection trên.

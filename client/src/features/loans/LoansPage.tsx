@@ -1,3 +1,4 @@
+import { formatLibraryDate } from "../../lib/datetime";
 import { isLoanReturnResponse } from "./response";
 import { useTranslation } from "../../i18n/language";
 import { useEffect, useRef, useState } from "react";
@@ -5,13 +6,7 @@ import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
 import { Pagination } from "../../components/Pagination";
 import { useAuth } from "../auth/AuthContext";
-import {
-  formatLibraryDate,
-  loanStatus,
-  shortId,
-  type Loan,
-  type LoanCollection,
-} from "./types";
+import { loanStatus, shortId, type Loan, type LoanCollection } from "./types";
 
 export function LoansPage({
   onNavigate,

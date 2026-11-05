@@ -9,8 +9,9 @@ import { Feedback } from "../../components/Feedback";
 import { BookForm } from "./BookForm";
 import { Pagination } from "../../components/Pagination";
 import { loadAllCategories } from "./loadCategories";
-import { errorMessage } from "./types";
-import type { Book, BookInput, Category, Copy, PaginationInfo } from "./types";
+import { errorMessage } from "../../lib/errors";
+import type { PaginationInfo } from "../../lib/pagination";
+import type { Book, BookInput, Category, Copy } from "./types";
 
 function CopyRow({
   copy,

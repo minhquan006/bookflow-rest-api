@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LanguageProvider } from "../src/i18n/LanguageProvider";
 import { LANGUAGE_STORAGE_KEY } from "../src/i18n/language";
 import { LoansPage } from "../src/features/loans/LoansPage";
-import { formatLibraryDate, type Loan } from "../src/features/loans/types";
+import { formatLibraryDate } from "../src/lib/datetime";
+import type { Loan } from "../src/features/loans/types";
 
 const mocks = vi.hoisted(() => {
   const request = vi.fn();

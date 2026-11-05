@@ -3,7 +3,7 @@ import type { Pool } from "pg";
 import type { Principal } from "../../middleware/context.js";
 import { withTransaction } from "../../db/index.js";
 import { AppError, forbidden } from "../../shared/errors.js";
-import type { CreateBookInput } from "./books-write.schema.js";
+import type { CreateBookInput } from "./books.schema.js";
 import {
   updateBookMetadata,
   bookExists,

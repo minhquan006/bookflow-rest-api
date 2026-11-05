@@ -1,4 +1,5 @@
-﻿import { Router, type RequestHandler } from "express";
+import { bookETag } from "./books-version.js";
+import { Router, type RequestHandler } from "express";
 import type { Pool } from "pg";
 import { z } from "zod";
 import { parseInput } from "../../middleware/validation.js";
@@ -37,7 +38,7 @@ export function createBookDetailsRouter(
   router.get("/books/:id", optionalAuth, async (req, res) => {
     const { id } = parseInput(paramsSchema, req.params);
     const data = await service.detail(id, req.principal);
-    const etag = `"book-${data.id}-v${data.version}"`;
+    const etag = bookETag(data.id, data.version);
 
     res.set("ETag", etag);
     res.set("Cache-Control", "private, no-cache");

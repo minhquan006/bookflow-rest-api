@@ -20,7 +20,3 @@ export function createCatalogRouter({
     .use(createBooksRouter(pool, authenticate))
     .use(createCopiesRouter(pool, authenticate));
 }
-
-export function bookETag(id: string, version: number) {
-  return `"book-${id}-v${version}"`;
-}

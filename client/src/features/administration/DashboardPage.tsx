@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
 import { useAuth } from "../auth/AuthContext";
-import { formatLibraryDate } from "../loans/types";
+import { formatLibraryDate } from "../../lib/datetime";
 
 type Dashboard = {
   activeBooks: number;

@@ -16,8 +16,9 @@ Nguồn máy đọc là [`openapi.yaml`](openapi.yaml); các quyết định ngh
 | Loans, Dashboard/Audit        | Đã triển khai; kiểm thử transaction, RBAC và ownership           |
 
 Các operation hiện tại có `x-implementation-status: implemented` và router
-nghiệp vụ thực tế. Trạng thái này mô tả source tích hợp, không xác nhận các PR
-đã merge vào main; xem [IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md).
+nghiệp vụ thực tế. Các module đã merge qua PR #4–#6; xem
+[IMPLEMENTATION_STATUS](IMPLEMENTATION_STATUS.md) để phân biệt trạng thái
+Git, bằng chứng lịch sử và vấn đề còn mở.
 Endpoint ngoài contract trả404 chung. Khi đổi contract, cập nhật trạng thái và
 test cùng PR; schema hoặc ví dụ JSON không thay thế bằng chứng chạy.
 
@@ -142,9 +143,9 @@ Import environment `postman/BookFlow.local.postman_environment.json` và collect
 `postman/BookFlow.postman_collection.json` để chạy smoke nền móng; readiness
 yêu cầu DB đã migrate. `BookFlow.catalog.postman_collection.json` giữ kiểm tra
 Catalog hiện có của Tú. `BookFlow.business.postman_collection.json` chạy tuần tự
-20 request nghiệp vụ sau khi đủ ba gói, gồm refresh/CSRF, ETag và mượn–trả.
-`BookFlow.planned.postman_collection.json` là bộ ví dụ lịch sử, không phải báo cáo
-trạng thái hiện tại. Xem [Postman README](../postman/README.md).
+20 request nghiệp vụ trên bản tích hợp, gồm refresh/CSRF, ETag và mượn–trả.
+Collection thiết kế `planned` cũ đã được bỏ; xem
+[Postman README](../postman/README.md) cho các collection đang dùng.
 Nhập password/token vào biến local của Postman, không commit environment đã xuất
 kèm giá trị thật. Trình Postman tự quản cookie; Origin/CSRF của refresh phải khớp
 môi trường dùng thực tế.
