@@ -2,7 +2,8 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoansPage } from "../src/features/loans/LoansPage";
-import { formatLibraryDate, type Loan } from "../src/features/loans/types";
+import { formatLibraryDate } from "../src/lib/datetime";
+import type { Loan } from "../src/features/loans/types";
 
 const mocks = vi.hoisted(() => {
   const request = vi.fn();

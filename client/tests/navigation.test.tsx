@@ -1,0 +1,117 @@
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import App from "../src/App";
+
+const reader = {
+  id: "10000000-0000-4000-8000-000000000001",
+  fullName: "Review Reader",
+  email: "review@example.test",
+  role: "MEMBER",
+  status: "ACTIVE",
+  createdAt: "2026-10-20T00:00:00Z",
+};
+const category = {
+  id: "20000000-0000-4000-8000-000000000001",
+  name: "Technology",
+  slug: "technology",
+  createdAt: reader.createdAt,
+};
+const book = {
+  id: "30000000-0000-4000-8000-000000000001",
+  categoryId: category.id,
+  title: "Review Book",
+  author: "Review Author",
+  description: "Synthetic review fixture",
+  isbn: null,
+  archivedAt: null,
+  version: 1,
+};
+const session = (role = "MEMBER") => ({
+  accessToken: "review-access-token",
+  tokenType: "Bearer",
+  expiresIn: 900,
+  csrfToken: "csrf-a",
+  user: { ...reader, role },
+});
+const pageOf = (data: unknown[], limit = 20) => ({
+  data,
+  pagination: {
+    page: 1,
+    limit,
+    total: data.length,
+    totalPages: data.length ? 1 : 0,
+  },
+});
+function installAppApi(role = "MEMBER") {
+  document.cookie = "bookflow_csrf=csrf-a; Path=/";
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      const url = new URL(String(input), "http://localhost");
+      if (url.pathname.endsWith("/auth/refresh"))
+        return Response.json({ data: session(role) });
+      if (url.pathname === `/api/v1/books/${book.id}`)
+        return Response.json(
+          { data: book },
+          { headers: { ETag: `"book-${book.id}-v1"` } },
+        );
+      if (url.pathname.endsWith("/availability"))
+        return Response.json({ data: { bookId: book.id, availableCopies: 1 } });
+      if (url.pathname.endsWith("/copies")) return Response.json(pageOf([]));
+      if (url.pathname === "/api/v1/categories")
+        return Response.json(pageOf([category], 100));
+      if (url.pathname === "/api/v1/books")
+        return Response.json(pageOf([book], 2));
+      return Response.json({
+        data: { message: "Frontend and backend are connected." },
+      });
+    }),
+  );
+}
+beforeEach(() => {
+  localStorage.clear();
+  document.cookie = "bookflow_csrf=; Max-Age=0; Path=/";
+  window.history.replaceState(null, "", "/");
+  vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+});
+afterEach(() => {
+  document.cookie = "bookflow_csrf=; Max-Age=0; Path=/";
+  localStorage.clear();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+
+it("preserves a signed-in member's catalog filter when changing language", async () => {
+  installAppApi();
+  window.history.replaceState(null, "", "/books");
+  render(<App />);
+  await screen.findByRole("button", { name: reader.fullName });
+  await screen.findByRole("heading", { name: book.title });
+  await userEvent.type(screen.getByLabelText("Title or author"), "Practical");
+  await userEvent.click(screen.getByRole("button", { name: "Search" }));
+  await screen.findByRole("heading", { name: book.title });
+  await userEvent.selectOptions(screen.getByLabelText("Language"), "vi");
+  expect(screen.getByLabelText("Tên sách hoặc tác giả")).toHaveValue(
+    "Practical",
+  );
+});
+
+it("preserves a librarian's unsaved book draft when changing language", async () => {
+  installAppApi("LIBRARIAN");
+  window.history.replaceState(null, "", `/books/${book.id}`);
+  render(<App />);
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Edit metadata" }),
+  );
+  await userEvent.clear(screen.getByLabelText("Title", { exact: true }));
+  await userEvent.type(
+    screen.getByLabelText("Title", { exact: true }),
+    "Unsaved title",
+  );
+  await userEvent.selectOptions(screen.getByLabelText("Language"), "vi");
+  await screen.findByRole("heading", { name: book.title });
+  expect(screen.queryByLabelText("Tên sách", { exact: true })).toHaveValue(
+    "Unsaved title",
+  );
+});

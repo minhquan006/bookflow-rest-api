@@ -9,10 +9,11 @@ integrating and presenting the work. It does not imply that a member manually
 wrote every line. Each member should keep meaningful commits for the work they
 actually review or change and be able to explain their module and test results.
 
-Quân coordinates Auth/Users and shared integration. Catalog/Copies is handed to
-Tú as a patch; Loans/Dashboard/Audit is handed to An separately. The patches use
-plain Git diffs without author metadata. Members apply them, run the documented
-checks, make necessary changes and commit with their own configured identity.
+Quân coordinates Auth/Users and shared integration. Tú owns Catalog/Copies;
+An owns Loans/Dashboard/Audit. These modules and the language interface have
+been integrated through PRs #4–#7. Earlier patch deliveries are historical,
+not instructions to apply the same changes again. Members review and test new
+changes and commit with their own configured identity.
 Do not rewrite authorship or invent a history of activity for another person.
 
 The Faculty's or instructor's applicable AI-use/disclosure rules take precedence
@@ -22,3 +23,8 @@ runs; planned behavior and unrun checks must remain clearly identified.
 The English/Vietnamese interface, language preference handling and related tests
 were also implemented with AI assistance. The team should review the Vietnamese
 wording and verify the language selector in its final demo and submission.
+
+Repository maintenance and the quality improvement plan also received AI
+assistance. Git author identity records the account responsible for a change;
+it does not certify that all content was written without assistance. Preserve
+existing authorship and use meaningful commits rather than manufacturing activity.

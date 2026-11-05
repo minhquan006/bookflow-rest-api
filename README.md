@@ -15,10 +15,9 @@ Bản tích hợp trong workspace đã triển khai phần ứng dụng P0/P1 c�
   hàng, return idempotency, dashboard staff và audit ADMIN.
 - UI theo role, Swagger/OpenAPI, Postman, test DB/browser, Docker/Nginx và CI.
 
-Auth/Users (PR #4) và Catalog/Copies (PR #5, gồm bản sửa `118d20f`) đã merge
-vào `main` tại mốc `50e2dc4`. Nhánh `feat/an-loans-5commits` áp dụng gói
-`an-loans-v2` trên đúng nền này; phần Loans chờ review và CI trước khi merge.
-Backend và public components Catalog của Tú được giữ lại.
+Auth/Users (PR #4), Catalog/Copies (PR #5), Loans/Dashboard/Audit (PR #6)
+và English/Tiếng Việt (PR #7) đã merge. Mốc tích hợp đã đối chiếu là
+`main@d3d614f`; backend và public components Catalog của Tú được giữ lại.
 Xem [bàn giao](docs/TEAM_HANDOFF.md), [trạng thái](docs/IMPLEMENTATION_STATUS.md)
 và [kiểm chứng Loans v2](docs/LOANS_VALIDATION.md). Các kết quả chuẩn bị ngày
 21/10 trong [FULL_VALIDATION](docs/FULL_VALIDATION.md) là bằng chứng lịch sử.
@@ -26,8 +25,9 @@ và [kiểm chứng Loans v2](docs/LOANS_VALIDATION.md). Các kết quả chuẩ
 ## Ngôn ngữ giao diện
 
 Chọn **Language / Ngôn ngữ** ở đầu trang để chuyển giữa **English** và
-**Tiếng Việt**. Lựa chọn được lưu trên trình duyệt, không làm mất phiên đăng nhập
-hay nội dung biểu mẫu đang nhập. Xem [hướng dẫn ngôn ngữ](docs/LANGUAGES.md).
+**Tiếng Việt**. Lựa chọn được lưu trên trình duyệt. Router dùng ID và role gốc
+để giữ bộ lọc/bản nháp khi đổi ngôn ngữ; xem [hướng dẫn](docs/LANGUAGES.md)
+và phạm vi kiểm chứng trong [kế hoạch cải thiện](docs/QUALITY_IMPROVEMENT_PLAN.md).
 
 ## Cài và chạy dev
 
@@ -141,12 +141,14 @@ Xem [FULL_VALIDATION](docs/FULL_VALIDATION.md) cho kết quả và phần chưa 
 Trong dev, health/docs dùng API 3000; frontend chỉ proxy `/api`. Docker phục vụ
 cả API/docs/health qua web 8080. [Postman README](postman/README.md) hướng dẫn smoke,
 20-request business workflow, `baseUrl`, `frontendOrigin`, password và cookie/CSRF.
-Collection `planned` là bộ ví dụ lịch sử, không thay thế workflow đã kiểm chứng.
+Collection thiết kế `planned` cũ đã được bỏ; dùng các collection smoke,
+Catalog và business hiện có.
 
 ## Đóng góp và bài nộp
 
 `server/src/modules` và `client/src/features` chứa phần theo module;
 `shared`, `middleware`, `components`, `lib` dùng chung. Đọc
+[mục lục tài liệu và cấu trúc hiện tại](docs/README.md) và
 [CONTRIBUTING](CONTRIBUTING.md): controller → service → repository, SQL tham số
 hóa, một DB client xuyên transaction, migration đã merge bất biến.
 

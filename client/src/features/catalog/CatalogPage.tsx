@@ -1,3 +1,4 @@
+import type { PaginatedCollection } from "../../lib/pagination";
 import { useTranslation } from "../../i18n/language";
 import { BookDetails } from "./BookDetails";
 import { useEffect, useState } from "react";
@@ -8,17 +9,8 @@ import { Pagination } from "../../components/Pagination";
 import { BookForm } from "./BookForm";
 import { loadAllCategories } from "./loadCategories";
 import type { Book, BookInput, Category } from "./types";
-import "./catalog.css";
 
-type Collection<T> = {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-};
+type Collection<T> = PaginatedCollection<T>;
 
 type Filters = {
   q: string;

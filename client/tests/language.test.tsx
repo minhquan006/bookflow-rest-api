@@ -6,7 +6,7 @@ import App from "../src/App";
 import { LANGUAGE_STORAGE_KEY, translateText } from "../src/i18n/language";
 import { LanguageSelector } from "../src/components/LanguageSelector";
 import { Pagination } from "../src/components/Pagination";
-import { formatLibraryDate } from "../src/features/loans/types";
+import { formatLibraryDate } from "../src/lib/datetime";
 
 beforeEach(() => {
   localStorage.clear();
