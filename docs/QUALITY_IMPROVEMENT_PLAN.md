@@ -384,15 +384,18 @@ chụp token/password. Người review đối chiếu các checkbox của task t
 
 ## Theo dõi tiến độ
 
-| Mã  | Trạng thái hiện tại                          | Bằng chứng cần bổ sung khi thực hiện                                            |
-| --- | -------------------------------------------- | ------------------------------------------------------------------------------- |
-| Q1  | Tú review `fb7abcc`, chưa thấy blocker       | Giữ Q1 khi sửa follow-up và khi ghép T2; 16 test bổ sung vẫn ở nhánh Tú         |
-| Q2  | Đã sửa local P2 An nêu; chờ push/re-review   | Logout khi mutation treo trước/sau commit; retry sau 503/reload; epoch/revision |
-| Q3  | Đã sửa local nested init; chờ push/re-review | Hai URL lồng trả 404, init GET/HEAD và static assets còn hoạt động              |
-| T1  | Có trên PR #11 theo bàn giao của Tú          | Quân review cấu hình dev/proxy/cổng trên đúng head                              |
-| T2  | Có trên PR #11 theo bàn giao của Tú          | An review URL/Back/Forward/pagination; kiểm tra lại khi ghép Q1                 |
-| T3  | Có trên PR #11 theo bàn giao của Tú          | Quân review tài liệu, phân biệt trạng thái từng PR và bản tích hợp              |
+Mốc cập nhật 06/11/2026: main@`b009783` đã nhận #9/#12. Phần mô tả local/chờ
+push ở các mục lịch sử phía trên giữ bối cảnh thời điểm đó; trạng thái hiện tại
+dùng bảng dưới và [kiểm chứng An](AN_QUALITY_VALIDATION.md). Thứ tự: #9 → #12 → #10 → #11.
 
-| A1 | Có trên PR #10, chưa merge | Review DTO và quyền trên đúng head; kiểm thử tích hợp khi ghép |
-| A2 | Có trên PR #10, chưa merge | Giữ hồi quy response guard và EN/VI; review chéo của Tú |
-| A3 | Có trên PR #10, chưa merge | Ghép contract 405 của Q3; kiểm chứng lại runtime validator |
+| Mã  | Trạng thái hiện tại                               | Bằng chứng cần bổ sung khi thực hiện                                          |
+| --- | ------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Q1  | Đã merge qua #12; Tú đã review Q1                 | Giữ Q1 khi ghép T2; 16 test bổ sung vẫn ở nhánh Tú                            |
+| Q2  | Đã merge qua #12; An approve `98880e0`            | Giữ logout/epoch/revision khi ghép A2; chạy lại hai tab trên bản tích hợp     |
+| Q3  | Đã merge qua #12; An chốt hai finding P2          | Ghép runtime assertions 405/Allow của A3; giữ HEAD/CORS/quyền/Problem Details |
+| T1  | Có trên PR #11 theo bàn giao của Tú               | Quân review cấu hình dev/proxy/cổng trên đúng head                            |
+| T2  | An đã review #11 tại `bcf0fc4`, chưa blocker      | Kiểm tra lại URL/Back/Forward/pagination khi Tú ghép main sau #10             |
+| T3  | Có trên PR #11 theo bàn giao của Tú               | Quân review tài liệu, phân biệt trạng thái từng PR và bản tích hợp            |
+| A1  | #10 đang ghép main@`b009783`, chưa merge          | Quân chốt DTO/quyền trên head mới sau An tự commit/push                       |
+| A2  | Tú đã review `3d0695d`; #10 đang ghép nền mới     | Kiểm lại response guard, EN/VI và response muộn sau logout                    |
+| A3  | Đang bổ sung schema/Allow/HEAD 405 và kiểm thử DB | Quân review coverage và kết quả của đúng head mới                             |

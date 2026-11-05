@@ -1,3 +1,4 @@
+import { expectOpenApi } from "./helpers/openapi.js";
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import { Router } from "express";
@@ -13,6 +14,7 @@ import { createLoansService } from "../src/modules/loans/loans.service.js";
 import { createAdministrationRouter } from "../src/modules/administration/administration.routes.js";
 import { createCatalogRouter } from "../src/modules/catalog/catalog.routes.js";
 import { bookETag } from "../src/modules/books/books-version.js";
+import { createApiRouter } from "../src/routes.js";
 import type { Principal, Role } from "../src/middleware/context.js";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
@@ -51,6 +53,12 @@ const app = createApp({
   rateLimit: 10000,
 });
 const tokens = createAccessTokens(config);
+const methodApp = createApp({
+  config,
+  logger: createLogger(config),
+  checkReadiness: async () => true,
+  apiRouter: createApiRouter({ pool, config }),
+});
 const service = createLoansService(pool, config);
 let members: Principal[];
 let staff: Principal;
@@ -125,9 +133,65 @@ async function borrowDirect(bookId: string, member = members[0]!) {
 }
 
 describe("Loans HTTP integration", () => {
+  it.each(["MEMBER", "LIBRARIAN", "ADMIN"] as const)(
+    "keeps loan DTO, 405/Allow and live permissions composed for %s",
+    async (role) => {
+      const loan = await borrowDirect(books[0]!);
+      const actor =
+        role === "MEMBER"
+          ? members[0]!
+          : role === "LIBRARIAN"
+            ? staff
+            : administrator;
+      const auth = authorization[actor.id]!;
+      const detail = await request(methodApp)
+        .get(`/api/v1/loans/${loan.id}`)
+        .set("Authorization", auth);
+      expectOpenApi("getLoan", 200, detail);
+      expect(detail.body.data.book.id).toBe(books[0]);
+      if (role === "MEMBER") expect(detail.body.data.borrower).toBeUndefined();
+      else expect(detail.body.data.borrower.id).toBe(members[0]!.id);
+      const wrongRead = await request(methodApp)
+        .trace(`/api/v1/loans/${loan.id}`)
+        .set("Authorization", auth);
+      expectOpenApi("getLoan", 405, wrongRead);
+      expect(wrongRead.headers.allow).toBe("GET, HEAD, OPTIONS");
+      const wrongReturn = await request(methodApp)
+        .post(`/api/v1/loans/${loan.id}/return`)
+        .set("Authorization", auth)
+        .send({});
+      expectOpenApi("returnLoan", role === "MEMBER" ? 403 : 405, wrongReturn);
+      expect(wrongReturn.headers.allow).toBe(
+        role === "MEMBER" ? undefined : "PUT, OPTIONS",
+      );
+      const state = await pool.query(
+        "SELECT returned_at FROM loans WHERE id=$1",
+        [loan.id],
+      );
+      expect(state.rows[0].returned_at).toBeNull();
+      const audit = await pool.query(
+        "SELECT count(*)::int AS count FROM audit_logs WHERE action='loan.returned'",
+      );
+      expect(audit.rows[0].count).toBe(0);
+    },
+  );
+
+  it("checks current database account status before protected 405 negotiation", async () => {
+    const loan = await borrowDirect(books[0]!);
+    await pool.query("UPDATE users SET status='DISABLED' WHERE id=$1", [
+      members[0]!.id,
+    ]);
+    const response = await request(methodApp)
+      .trace(`/api/v1/loans/${loan.id}`)
+      .set("Authorization", authorization[members[0]!.id]!);
+    expectOpenApi("getLoan", 401, response);
+    expect(response.headers.allow).toBeUndefined();
+  });
+
   it("borrows an available copy with the exact DTO, Location, fourteen-day duration and matching audit", async () => {
     const response = await borrow();
     expect(response.status).toBe(201);
+    expectOpenApi("createLoan", 201, response);
     const loan = response.body.data;
     expect(Object.keys(loan).sort()).toEqual(
       [
@@ -135,6 +199,8 @@ describe("Loans HTTP integration", () => {
         "userId",
         "bookId",
         "copyId",
+        "book",
+        "copy",
         "borrowedAt",
         "dueAt",
         "returnedAt",
@@ -164,6 +230,86 @@ describe("Loans HTTP integration", () => {
         action: "loan.created",
       },
     ]);
+  });
+  it("returns current book/copy identity including archived history, and borrower identity only to staff", async () => {
+    const loan = await borrowDirect(books[0]!);
+    await borrowDirect(books[1]!, members[1]);
+    await returnLoan(loan.id);
+    await pool.query(
+      "UPDATE books SET title='Current archived title',archived_at=now() WHERE id=$1",
+      [loan.bookId],
+    );
+    await pool.query(
+      "UPDATE users SET full_name='Current Borrower' WHERE id=$1",
+      [loan.userId],
+    );
+    const barcode = (
+      await pool.query("SELECT barcode FROM book_copies WHERE id=$1", [
+        loan.copyId,
+      ])
+    ).rows[0].barcode;
+    for (const actor of [members[0]!, staff, administrator]) {
+      const detail = await request(app)
+        .get(`/api/v1/loans/${loan.id}`)
+        .set("Authorization", authorization[actor.id]!);
+      expectOpenApi("getLoan", 200, detail);
+      expect(detail.body.data.book).toEqual({
+        id: loan.bookId,
+        title: "Current archived title",
+      });
+      expect(detail.body.data.copy).toEqual({ id: loan.copyId, barcode });
+      if (actor.role === "MEMBER")
+        expect(detail.body.data).not.toHaveProperty("borrower");
+      else
+        expect(detail.body.data.borrower).toEqual({
+          id: loan.userId,
+          fullName: "Current Borrower",
+        });
+      const list = await request(app)
+        .get("/api/v1/loans?status=RETURNED&limit=1")
+        .set("Authorization", authorization[actor.id]!);
+      expectOpenApi("listLoans", 200, list);
+      expect(list.body.data).toEqual([detail.body.data]);
+      expect(list.body.pagination).toEqual({
+        page: 1,
+        limit: 1,
+        total: 1,
+        totalPages: 1,
+      });
+      expect(JSON.stringify(list.body)).not.toMatch(/password|token|email/i);
+    }
+    const hidden = await request(app)
+      .get(`/api/v1/loans/${loan.id}`)
+      .set("Authorization", authorization[members[1]!.id]!);
+    expectOpenApi("getLoan", 404, hidden);
+    const own = await request(app)
+      .get("/api/v1/loans")
+      .set("Authorization", authorization[members[1]!.id]!);
+    expectOpenApi("listLoans", 200, own);
+    expect(own.body.pagination.total).toBe(1);
+    expect(
+      own.body.data.every(
+        (item: { userId: string; borrower?: unknown }) =>
+          item.userId === members[1]!.id && !item.borrower,
+      ),
+    ).toBe(true);
+    const anonymous = await request(app).get(`/api/v1/loans/${loan.id}`);
+    expectOpenApi("getLoan", 401, anonymous);
+    expectOpenApi("returnLoan", 403, await returnLoan(loan.id, members[0]!));
+  });
+  it("rejects malformed loan responses using the actual OpenAPI schema", async () => {
+    const response = await borrow();
+    expectOpenApi("createLoan", 201, response);
+    const missing = structuredClone(response.body);
+    delete missing.data.book;
+    expect(() =>
+      expectOpenApi("createLoan", 201, { ...response, body: missing }),
+    ).toThrow(/required/);
+    const invalid = structuredClone(response.body);
+    invalid.data.copy.barcode = 123;
+    expect(() =>
+      expectOpenApi("createLoan", 201, { ...response, body: invalid }),
+    ).toThrow(/string/);
   });
   it("rejects anonymous/staff borrowing and strict body mass assignment", async () => {
     expect(
@@ -261,6 +407,7 @@ describe("Loans HTTP integration", () => {
       .get("/api/v1/loans?limit=1&page=2")
       .set("Authorization", authorization[members[0]!.id]!);
     expect(own.status).toBe(200);
+    expectOpenApi("listLoans", 200, own);
     expect(own.body.data).toHaveLength(1);
     expect(own.body.pagination).toEqual({
       page: 2,
@@ -272,6 +419,7 @@ describe("Loans HTTP integration", () => {
     const all = await request(app)
       .get("/api/v1/loans")
       .set("Authorization", authorization[staff.id]!);
+    expectOpenApi("listLoans", 200, all);
     expect(all.body.pagination.total).toBe(3);
     await returnLoan(first.id);
     const returned = await request(app)
@@ -319,7 +467,9 @@ describe("Loans HTTP integration", () => {
       returnLoan(loan.id, administrator),
     ]);
     expect(first.status).toBe(200);
+    expectOpenApi("returnLoan", 200, first);
     expect(second.status).toBe(200);
+    expectOpenApi("returnLoan", 200, second);
     expect(second.body).toEqual(first.body);
     expect([staff.id, administrator.id]).toContain(first.body.data.returnedBy);
     expect((await returnLoan(loan.id)).body).toEqual(first.body);

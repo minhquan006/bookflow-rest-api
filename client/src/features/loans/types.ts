@@ -5,6 +5,9 @@ export type Loan = {
   userId: string;
   bookId: string;
   copyId: string;
+  book: { id: string; title: string };
+  copy: { id: string; barcode: string };
+  borrower?: { id: string; fullName: string };
   borrowedAt: string;
   dueAt: string;
   returnedAt: string | null;

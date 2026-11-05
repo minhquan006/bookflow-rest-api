@@ -15,6 +15,7 @@ export const vi = {
   "Account created": "Đã tạo tài khoản",
   Action: "Thao tác",
   Actions: "Thao tác",
+  "Active loan": "Đang mượn",
   Active: "Đang hoạt động",
   "Active books": "Đầu sách đang phục vụ",
   "Active loans": "Phiếu chưa trả",
@@ -250,6 +251,8 @@ export const vi = {
   "Retry details": "Tải lại chi tiết",
   "Return at the library": "Trả sách tại thư viện",
   "Return copy": "Trả sách",
+  "The return response could not be verified. Refresh the history before trying again.":
+    "Không thể xác minh kết quả trả sách. Hãy tải lại lịch sử trước khi thử lại.",
   "Return recorded": "Đã ghi nhận trả sách",
   Returned: "Đã trả",
   "Review borrowing activity and confirm returned copies.":
