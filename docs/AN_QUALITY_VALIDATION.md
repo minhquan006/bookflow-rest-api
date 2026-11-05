@@ -1,8 +1,8 @@
 # An: loan identity, return UX and response contracts
 
 The initial-base statements and dated results below are historical. See the
-integration preview section at the end for the local PR #9 + #10 combination;
-that preview does not establish a merge into main.
+latest main integration section at the end for the prepared PR #10 update on
+main@b009783 after #9/#12. Prepared source is not a merge of #10 into main.
 
 Validation date: **31/10/2026 (UTC+7)**. Tasks: **A1, A2, A3** in the supplied
 `QUALITY_IMPROVEMENT_PLAN.md`. Implementation commit:
@@ -62,22 +62,23 @@ checks empty bodies for 204/304 and Problem Details status/request-ID correlatio
 No coercion, inserted defaults, runtime production validator or error-as-success
 schema is used. `contract:check` retains its existing spec/Postman checks.
 
-| Operation ID   | Response statuses validated |
-| -------------- | --------------------------- |
-| getLiveness    | 200                         |
-| register       | 201                         |
-| login          | 200, 401                    |
-| refreshSession | 200                         |
-| logout         | 204                         |
-| createBook     | 201                         |
-| getBook        | 200, 304                    |
-| updateBook     | 200, 412, 428               |
-| updateBookCopy | 200                         |
-| deleteCategory | 204                         |
-| createLoan     | 201                         |
-| listLoans      | 200                         |
-| getLoan        | 200, 401, 404               |
-| returnLoan     | 200, 403                    |
+| Operation ID                  | Response statuses validated                                |
+| ----------------------------- | ---------------------------------------------------------- |
+| getLiveness                   | 200                                                        |
+| register                      | 201                                                        |
+| login                         | 200, 401                                                   |
+| refreshSession                | 200                                                        |
+| logout                        | 204                                                        |
+| createBook                    | 201                                                        |
+| getBook                       | 200, 304                                                   |
+| updateBook                    | 200, 412, 428                                              |
+| updateBookCopy                | 200                                                        |
+| deleteCategory                | 204                                                        |
+| createLoan                    | 201                                                        |
+| listLoans                     | 200                                                        |
+| getLoan                       | 200, 401, 404                                              |
+| returnLoan                    | 200, 403                                                   |
+| All 32 implemented operations | 405, plus header/body checks for unsupported HEAD on login |
 
 Negative cases demonstrate rejection of missing required fields, incorrect types,
 extra properties, wrong/missing headers, wrong media types, unexpected/undocumented
@@ -85,13 +86,16 @@ statuses and forbidden response bodies. Mutated real loan responses specifically
 prove that a missing `book` or numeric `copy.barcode` fails validation. Role-based
 borrower omission/presence and ID consistency also retain explicit assertions.
 
-The other 18 operations are not yet wired to this helper: getReadiness, getApiInfo,
+Beyond the newly added 405 coverage, these 18 operations still have no other
+response statuses wired to this helper: getReadiness, getApiInfo,
 getOpenApi, getApiDocs, getCurrentUser, listUsers, updateUser, listCategories,
 createCategory, replaceCategory, listBooks, replaceBook, archiveBook,
 getAvailability, listBookCopies, createBookCopy, getDashboard and listAuditLogs.
 Other status combinations for covered operations are not claimed. Existing tests
 for these operations are still run, but are not equivalent to schema validation.
-405/Allow must be added after Q3 establishes its implementation and contract.
+The 405/Allow coverage was added after Q3 landed in main@b009783; see the latest
+integration record below. Covering 405 does not imply success responses or other
+errors for those operations have schema assertions.
 
 ## Commands and results
 
@@ -231,3 +235,60 @@ PR #12/Q2–Q3 are not included; in particular, this preview does not add Q3's
 405/Allow implementation or A3 coverage for it. After #9 lands, compare the real
 main and PR #10 inputs again before applying the prepared resolution and
 requesting CI on An's own pushed commit.
+
+## Main integration after #12 (06/11/2026, UTC+7)
+
+Prepared, uncommitted update for PR #10 from these exact inputs:
+
+- An head: `0f9ef827ba70c4a19b47dee15b1a47dacf68b389`.
+- Main: `b009783ce455faf0a0acb597e3b79d6e09e6f9f7`, containing #9 and #12.
+
+The merge completed without conflicts. OpenAPI retains both the loan identity
+schema and Q3's 405/Allow responses. Shared datetime/pagination, AppRouter viewer
+keys, `isLoanReturnResponse` and session coordination remain in the combined source.
+No new production handler, migration, auth policy or DTO/input change was needed.
+
+A3 now includes `server/tests/method-contract.test.ts`: 32 HTTP 405 samples, one
+per implemented OpenAPI operation, validate the actual composed app/router
+responses through the existing AJV helper. Expected Allow method sets are derived
+from OpenAPI independently of the runtime registry; extra/missing/duplicate
+methods fail. These tests stub only the live-user DB lookup, not the HTTP router.
+Three additional cases verify 401/403 without Allow, unsupported HEAD with no body,
+and rejection of missing Allow or invalid/uncorrelated Problem Details. The helper
+checks documented status/headers/media type for HEAD and deliberately requires an
+empty body instead of validating a body that HTTP forbids.
+
+Four new DB integration cases use the complete API router and real test users:
+MEMBER/LIBRARIAN/ADMIN keep the correct loan DTO, protected method negotiation
+respects roles, and a disabled account receives 401 before 405. Wrong return
+methods leave returned_at null and create no loan.returned audit. Existing
+ownership, concurrency, rollback and idempotency assertions are retained.
+
+A new E2E flow holds a real return response after the database commit. Confirmation
+and cancel stay locked; a second tab logs out 204 and the old refresh token gets
+401 before releasing the response. The original tab does not show stale success
+or repeat PUT. An explicit API repeat by another staff account preserves the
+original return data, and there is exactly one audit event. This flow runs in
+English desktop and Vietnamese mobile; it is not a repeat of the full eight-way
+A2 browser matrix from Tú's earlier review at 3d0695d.
+
+Results on the prepared combined source in Linux cloud, Node 24.19.0/npm 11.9.0,
+PostgreSQL 17.6 and Chromium:
+
+- `npm run check`: 133 backend + 119 frontend tests passed, including 35 new
+  method-contract tests; lint, typecheck, both builds and contract checks passed.
+- Integration: 111/111 passed, including the four new real-DB composition cases.
+- E2E: 21/21 desktop + 21/21 mobile passed with retries=0 and a fresh API per
+  project, including the new late-return/session case in each project.
+- Following documentation updates, format:check and git diff checks were rerun.
+
+The runner created a random dedicated `_test` DB, seeded synthetic fixtures and
+removed only that DB after finishing. No development DB reset, global rate-limit
+change, automatic mutation retry or weakening of existing assertions. No Windows
+or Mac results are claimed for this new combined source; Docker/Newman/benchmark
+were not rerun locally. Historical validation evidence remains unchanged.
+
+These results describe prepared source, not a new pushed commit or CI for PR #10.
+An will apply the bundle, inspect/test and commit/push manually using Vanan1507.
+Quân still needs to review A1/A3 on the new pushed head. #11/T1–T3 is not included;
+Tú updates it after #10 merges, following #9 → #12 → #10 → #11.

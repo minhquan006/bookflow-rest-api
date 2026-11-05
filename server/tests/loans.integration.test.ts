@@ -14,6 +14,7 @@ import { createLoansService } from "../src/modules/loans/loans.service.js";
 import { createAdministrationRouter } from "../src/modules/administration/administration.routes.js";
 import { createCatalogRouter } from "../src/modules/catalog/catalog.routes.js";
 import { bookETag } from "../src/modules/books/books-version.js";
+import { createApiRouter } from "../src/routes.js";
 import type { Principal, Role } from "../src/middleware/context.js";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
@@ -52,6 +53,12 @@ const app = createApp({
   rateLimit: 10000,
 });
 const tokens = createAccessTokens(config);
+const methodApp = createApp({
+  config,
+  logger: createLogger(config),
+  checkReadiness: async () => true,
+  apiRouter: createApiRouter({ pool, config }),
+});
 const service = createLoansService(pool, config);
 let members: Principal[];
 let staff: Principal;
@@ -126,6 +133,61 @@ async function borrowDirect(bookId: string, member = members[0]!) {
 }
 
 describe("Loans HTTP integration", () => {
+  it.each(["MEMBER", "LIBRARIAN", "ADMIN"] as const)(
+    "keeps loan DTO, 405/Allow and live permissions composed for %s",
+    async (role) => {
+      const loan = await borrowDirect(books[0]!);
+      const actor =
+        role === "MEMBER"
+          ? members[0]!
+          : role === "LIBRARIAN"
+            ? staff
+            : administrator;
+      const auth = authorization[actor.id]!;
+      const detail = await request(methodApp)
+        .get(`/api/v1/loans/${loan.id}`)
+        .set("Authorization", auth);
+      expectOpenApi("getLoan", 200, detail);
+      expect(detail.body.data.book.id).toBe(books[0]);
+      if (role === "MEMBER") expect(detail.body.data.borrower).toBeUndefined();
+      else expect(detail.body.data.borrower.id).toBe(members[0]!.id);
+      const wrongRead = await request(methodApp)
+        .trace(`/api/v1/loans/${loan.id}`)
+        .set("Authorization", auth);
+      expectOpenApi("getLoan", 405, wrongRead);
+      expect(wrongRead.headers.allow).toBe("GET, HEAD, OPTIONS");
+      const wrongReturn = await request(methodApp)
+        .post(`/api/v1/loans/${loan.id}/return`)
+        .set("Authorization", auth)
+        .send({});
+      expectOpenApi("returnLoan", role === "MEMBER" ? 403 : 405, wrongReturn);
+      expect(wrongReturn.headers.allow).toBe(
+        role === "MEMBER" ? undefined : "PUT, OPTIONS",
+      );
+      const state = await pool.query(
+        "SELECT returned_at FROM loans WHERE id=$1",
+        [loan.id],
+      );
+      expect(state.rows[0].returned_at).toBeNull();
+      const audit = await pool.query(
+        "SELECT count(*)::int AS count FROM audit_logs WHERE action='loan.returned'",
+      );
+      expect(audit.rows[0].count).toBe(0);
+    },
+  );
+
+  it("checks current database account status before protected 405 negotiation", async () => {
+    const loan = await borrowDirect(books[0]!);
+    await pool.query("UPDATE users SET status='DISABLED' WHERE id=$1", [
+      members[0]!.id,
+    ]);
+    const response = await request(methodApp)
+      .trace(`/api/v1/loans/${loan.id}`)
+      .set("Authorization", authorization[members[0]!.id]!);
+    expectOpenApi("getLoan", 401, response);
+    expect(response.headers.allow).toBeUndefined();
+  });
+
   it("borrows an available copy with the exact DTO, Location, fourteen-day duration and matching audit", async () => {
     const response = await borrow();
     expect(response.status).toBe(201);

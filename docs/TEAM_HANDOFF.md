@@ -12,6 +12,9 @@ là main@d3d614f, source tree 5f8a46f16af3f330d12774fb1c73a1c593496d61.
 Các gói patch và quy trình chia năm commit trước đây là lịch sử, không phải
 hướng dẫn áp dụng lại vào main hiện tại.
 
+Mốc mới đã đối chiếu ngày 06/11/2026: main@`b009783ce455faf0a0acb597e3b79d6e09e6f9f7`
+đã nhận PR #9 và #12. PR #10/A1–A3 và PR #11/T1–T3 chưa merge.
+
 | Thành viên                  | Phụ trách                                     |
 | --------------------------- | --------------------------------------------- |
 | Nguyễn Minh Quân — 52400227 | Auth/Users, tích hợp, ngôn ngữ                |
@@ -21,11 +24,20 @@ hướng dẫn áp dụng lại vào main hiện tại.
 ## Công việc tiếp theo
 
 [Kế hoạch cải thiện chất lượng](QUALITY_IMPROVEMENT_PLAN.md) chia Q1–Q3,
-T1–T3 và A1–A3, có phạm vi, phụ thuộc, kiểm thử và review chéo. Các lỗi đã
-xác định gồm CSRF cũ ở nhiều tab và nhãn trả sách chưa dịch. Lỗi React key làm
-mất state khi đổi ngôn ngữ đã sửa trong workspace khi tách AppRouter, có hai
-component regression tests; Q1 vẫn cần review theo đủ tiêu chí của kế hoạch.
+T1–T3 và A1–A3, có phạm vi, phụ thuộc, kiểm thử và review chéo.
+
+Q1–Q3 đã merge qua PR #12 tại main@`b009783`, sau PR #9. Tú đã review Q1;
+An đã chốt hai finding Q2/Q3 trên `eff4c0e` và approve lại `98880e0` sau khi
+đối chiếu source tree không đổi. Giữ đầy đủ lịch sử kiểm chứng của từng head.
+Xem [kiểm chứng và bàn giao của Quân](QUAN_VALIDATION.md) cho bằng chứng riêng
+của mỗi phiên bản/môi trường. PR #10 của An và PR #11 T1–T3 của Tú vẫn cần
+review/tích hợp riêng; không coi review từng nhánh là kiểm chứng bản đã ghép.
 Xem [cấu trúc mã nguồn và mục lục tài liệu](README.md) trước khi sửa import.
+
+Thứ tự thống nhất: #9 → #12 → #10 → #11. An đang chuẩn bị cập nhật #10 từ
+`0f9ef82` lên nền main@`b009783`, giữ DTO/return guard và bổ sung A3 cho 405/Allow.
+Sau khi An tự commit/push, Quân review A1/A3 trên đúng head mới. Tú cập nhật
+#11 sau khi #10 merge; không coi test nhánh Tú cũ là kiểm chứng bản tích hợp đó.
 
 ## Bắt đầu làm việc
 

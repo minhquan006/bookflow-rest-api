@@ -71,6 +71,7 @@ UI/tích hợp chạy E2E liên quan; thay đổi DB/nghiệp vụ chạy integr
 - [TEAM_HANDOFF](TEAM_HANDOFF.md): thành viên, cách tiếp tục công việc, cấu hình local.
 - [API_CONTRACT](API_CONTRACT.md) và [OpenAPI](openapi.yaml): hợp đồng HTTP.
 - [QUALITY_IMPROVEMENT_PLAN](QUALITY_IMPROVEMENT_PLAN.md): lỗi, phân công và tiêu chí.
+- [QUAN_VALIDATION](QUAN_VALIDATION.md): Q1–Q3, kiểm thử và checklist review chéo.
 - [LANGUAGES](LANGUAGES.md): ngôn ngữ, giới hạn và quy tắc bảo trì.
 - [REPOSITORY_MAINTENANCE](REPOSITORY_MAINTENANCE.md): đợt dọn repo và PR Catalog cũ.
 - [FULL_VALIDATION](FULL_VALIDATION.md), [LOANS_VALIDATION](LOANS_VALIDATION.md),

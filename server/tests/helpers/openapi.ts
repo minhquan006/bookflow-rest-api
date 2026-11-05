@@ -46,6 +46,7 @@ export function expectOpenApi(
   operationId: string,
   status: number,
   response: Pick<Response, "status" | "headers" | "body" | "text">,
+  options: { method?: string } = {},
 ) {
   assert.equal(response.status, status, `${operationId}: unexpected status`);
   const operation = operations.get(operationId);
@@ -74,6 +75,15 @@ export function expectOpenApi(
     .toLowerCase();
   const content = expected.content[mediaType];
   assert.ok(content, `${operationId}: undocumented Content-Type`);
+  if (options.method?.toUpperCase() === "HEAD") {
+    assert.ok(!response.text, `${operationId}: HEAD body must be empty`);
+    assert.deepEqual(
+      response.body ?? {},
+      {},
+      `${operationId}: HEAD body must be empty`,
+    );
+    return;
+  }
   validate(content.schema, response.body, `${operationId} ${status} body`);
   if (mediaType === "application/problem+json") {
     assert.equal(

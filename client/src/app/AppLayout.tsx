@@ -15,8 +15,23 @@ export function AppLayout({
   children: ReactNode;
 }) {
   const { t, translate } = useTranslation();
-  const { user, loading, logout, sessionError } = useAuth();
-  const [logoutError, setLogoutError] = useState("");
+  const {
+    user,
+    loading,
+    logout,
+    retryLogout,
+    revocationPending,
+    sessionError,
+  } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+  function signOut(retry = false) {
+    if (signingOut) return;
+    setSigningOut(true);
+    void (retry ? retryLogout() : logout())
+      .then(() => navigate("/"))
+      .catch(() => {})
+      .finally(() => setSigningOut(false));
+  }
   const staff = user?.role === "ADMIN" || user?.role === "LIBRARIAN";
   const links = [
     { path: "/", label: "Overview", visible: true },
@@ -67,20 +82,7 @@ export function AppLayout({
                 {user.fullName}
               </Button>
               <span className="badge">{translate(user.role)}</span>
-              <Button
-                onClick={() => {
-                  setLogoutError("");
-                  void logout()
-                    .then(() => navigate("/"))
-                    .catch((error: unknown) =>
-                      setLogoutError(
-                        error instanceof Error
-                          ? error.message
-                          : "Sign out failed.",
-                      ),
-                    );
-                }}
-              >
+              <Button busy={signingOut} onClick={() => signOut()}>
                 {t("Sign out")}
               </Button>
             </>
@@ -134,10 +136,13 @@ export function AppLayout({
           </a>
         </aside>
         <main id="main-content" tabIndex={-1}>
-          {(logoutError || sessionError) && (
-            <Feedback kind="error">
-              {translate(logoutError || sessionError)}
-            </Feedback>
+          {sessionError && (
+            <Feedback kind="error">{translate(sessionError)}</Feedback>
+          )}
+          {revocationPending && (
+            <Button busy={signingOut} onClick={() => signOut(true)}>
+              {t("Retry sign out")}
+            </Button>
           )}
           {children}
         </main>

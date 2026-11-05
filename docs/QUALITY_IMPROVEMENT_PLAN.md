@@ -54,11 +54,14 @@ trước khi nhóm quyết định merge. Không đặt chỉ tiêu số commit.
 **Vấn đề lúc review:** `App.tsx` dùng role đã dịch trong React key của Catalog và trang
 chi tiết sách. Đổi ngôn ngữ làm component được tạo lại và mất state.
 
-**Cập nhật workspace:** logic route đã chuyển sang `client/src/app/AppRouter.tsx`,
-key dùng `user.id` và role gốc. Hai regression tests trong
-`client/tests/navigation.test.tsx` tái hiện mất bộ lọc của MEMBER và mất bản nháp
-của LIBRARIAN: thất bại trước sửa, đạt sau sửa. Chưa coi toàn bộ Q1 hoàn tất
-trước khi đối chiếu đủ checklist và có review của nhóm.
+**Cập nhật 01/11/2026:** nhánh `fix/quan-session-http` dựa trên PR #9 @ `40eb914`
+đã bổ sung đủ ma trận App/browser cho Q1, phối hợp phiên Q2 và HTTP Q3.
+Đã commit/push thành PR #12 @ `fb7abcc`; Tú review Q1 chưa thấy blocker.
+Follow-up 03/11/2026 sửa hai P2 Q2/Q3 An nêu đang local, chờ push và review lại;
+kiểm chứng xem [QUAN_VALIDATION](QUAN_VALIDATION.md).
+Key dùng `user.id` và role gốc. Hai regression tests trước đó tái hiện lỗi và
+đạt sau sửa; bộ kiểm thử mới bao phủ thêm form, pagination, đổi tài khoản/quyền.
+Hoàn tất triển khai/kiểm thử không thay cho xác nhận review của Tú/An.
 
 **Công việc:**
 
@@ -73,11 +76,11 @@ trước khi đối chiếu đủ checklist và có review của nhóm.
 
 **Tiêu chí hoàn thành:**
 
-- [ ] MEMBER tìm kiếm, chọn thể loại, sort và trang; đổi EN → VI → EN vẫn giữ
+- [x] MEMBER tìm kiếm, chọn thể loại, sort và trang; đổi EN → VI → EN vẫn giữ
       nguyên các giá trị và kết quả đã áp dụng.
-- [ ] Staff đang thêm/sửa sách hoặc nhập barcode vẫn giữ form và nội dung.
-- [ ] Không phát sinh mutation hoặc submit form do đổi ngôn ngữ.
-- [ ] Đổi tài khoản/quyền vẫn loại bỏ dữ liệu của người xem trước.
+- [x] Staff đang thêm/sửa sách hoặc nhập barcode vẫn giữ form và nội dung.
+- [x] Không phát sinh mutation hoặc submit form do đổi ngôn ngữ.
+- [x] Đổi tài khoản/quyền vẫn loại bỏ dữ liệu của người xem trước.
 - [x] Có regression test thất bại trên source trước sửa và đạt sau sửa.
 
 **Kiểm tra:** `npm run check`, E2E ngôn ngữ/Catalog liên quan. Không cần chạy
@@ -109,13 +112,13 @@ khi có lý do cụ thể; ưu tiên giữ nguyên contract và cơ chế bảo 
 
 **Tiêu chí hoàn thành:**
 
-- [ ] Tab B rotate xong; tab A refresh tiếp vẫn hoạt động với cookie mới.
-- [ ] Tab B rotate xong; tab A logout thu hồi được refresh family phía server.
-- [ ] Hai tab refresh cùng lúc không tự làm mất phiên hợp lệ do đụng rotation.
-- [ ] Logout trong lúc refresh không bị response đến muộn đăng nhập lại.
-- [ ] Đổi tài khoản ở tab khác không làm lộ dữ liệu của tài khoản trước.
-- [ ] CSRF giả, Origin sai và reuse token thật vẫn bị từ chối như contract.
-- [ ] Có E2E dùng **hai page trong cùng browser context** để chia sẻ cookie.
+- [x] Tab B rotate xong; tab A refresh tiếp vẫn hoạt động với cookie mới.
+- [x] Tab B rotate xong; tab A logout thu hồi được refresh family phía server.
+- [x] Hai tab refresh cùng lúc không tự làm mất phiên hợp lệ do đụng rotation.
+- [x] Logout trong lúc refresh không bị response đến muộn đăng nhập lại.
+- [x] Đổi tài khoản ở tab khác không làm lộ dữ liệu của tài khoản trước.
+- [x] CSRF giả, Origin sai và reuse token thật vẫn bị từ chối như contract.
+- [x] Có E2E dùng **hai page trong cùng browser context** để chia sẻ cookie.
       Hai context riêng không thay thế được tình huống này.
 
 **Kiểm tra:** `npm run check`, E2E Auth/nhiều tab. Chạy
@@ -381,14 +384,18 @@ chụp token/password. Người review đối chiếu các checkbox của task t
 
 ## Theo dõi tiến độ
 
-| Mã  | Trạng thái hiện tại                           | Bằng chứng cần bổ sung khi thực hiện                                           |
-| --- | --------------------------------------------- | ------------------------------------------------------------------------------ |
-| Q1  | Đã sửa key trong workspace; chờ review đầy đủ | Hai regression component tests đạt; bổ sung commit, checklist và E2E liên quan |
-| Q2  | Chưa thực hiện                                | Commit, test CSRF cũ, browser nhiều tab, bằng chứng thu hồi phiên              |
-| Q3  | Chưa thực hiện                                | Commit, ma trận route/method/quyền, OpenAPI/Postman                            |
-| T1  | Chưa thực hiện                                | Commit, cấu hình thực sự đã chạy, HTTP/E2E liên quan                           |
-| T2  | Chưa thực hiện                                | Commit, test URL/Back/Forward/pagination và E2E                                |
-| T3  | Chưa thực hiện                                | Diff tài liệu, mốc Git đã đối chiếu, format/link                               |
-| A1  | Chưa thực hiện                                | Commit, DTO, ma trận quyền và DB integration                                   |
-| A2  | Chưa thực hiện                                | Commit, UI EN/VI, xác nhận trả, regression phân trang và E2E                   |
-| A3  | Chưa thực hiện                                | Commit, operation/status đã bao phủ và ca validator từ chối schema sai         |
+Mốc cập nhật 06/11/2026: main@`b009783` đã nhận #9/#12. Phần mô tả local/chờ
+push ở các mục lịch sử phía trên giữ bối cảnh thời điểm đó; trạng thái hiện tại
+dùng bảng dưới và [kiểm chứng An](AN_QUALITY_VALIDATION.md). Thứ tự: #9 → #12 → #10 → #11.
+
+| Mã  | Trạng thái hiện tại                               | Bằng chứng cần bổ sung khi thực hiện                                          |
+| --- | ------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Q1  | Đã merge qua #12; Tú đã review Q1                 | Giữ Q1 khi ghép T2; 16 test bổ sung vẫn ở nhánh Tú                            |
+| Q2  | Đã merge qua #12; An approve `98880e0`            | Giữ logout/epoch/revision khi ghép A2; chạy lại hai tab trên bản tích hợp     |
+| Q3  | Đã merge qua #12; An chốt hai finding P2          | Ghép runtime assertions 405/Allow của A3; giữ HEAD/CORS/quyền/Problem Details |
+| T1  | Có trên PR #11 theo bàn giao của Tú               | Quân review cấu hình dev/proxy/cổng trên đúng head                            |
+| T2  | An đã review #11 tại `bcf0fc4`, chưa blocker      | Kiểm tra lại URL/Back/Forward/pagination khi Tú ghép main sau #10             |
+| T3  | Có trên PR #11 theo bàn giao của Tú               | Quân review tài liệu, phân biệt trạng thái từng PR và bản tích hợp            |
+| A1  | #10 đang ghép main@`b009783`, chưa merge          | Quân chốt DTO/quyền trên head mới sau An tự commit/push                       |
+| A2  | Tú đã review `3d0695d`; #10 đang ghép nền mới     | Kiểm lại response guard, EN/VI và response muộn sau logout                    |
+| A3  | Đang bổ sung schema/Allow/HEAD 405 và kiểm thử DB | Quân review coverage và kết quả của đúng head mới                             |
