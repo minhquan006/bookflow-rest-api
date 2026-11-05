@@ -1,5 +1,4 @@
-import express from "express";
-import type { Router } from "express";
+import express, { Router } from "express";
 import helmet from "helmet";
 import cors from "cors";
 import { fileURLToPath } from "node:url";
@@ -10,6 +9,8 @@ import { AppError } from "./shared/errors.js";
 import { requestContext } from "./middleware/context.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { createRateLimiter } from "./middleware/rate-limit.js";
+import { createMethodGuard } from "./middleware/methods.js";
+import { FOUNDATION_RESOURCES } from "./routes.resources.js";
 
 export type AppDependencies = {
   config: AppConfig;
@@ -48,7 +49,7 @@ export function createApp({
           );
       },
       credentials: true,
-      exposedHeaders: ["X-Request-Id", "ETag", "Location"],
+      exposedHeaders: ["X-Request-Id", "ETag", "Location", "Allow"],
       allowedHeaders: [
         "Authorization",
         "Content-Type",
@@ -59,6 +60,7 @@ export function createApp({
       methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     }),
   );
+  app.use(createMethodGuard(FOUNDATION_RESOURCES));
   app.get("/health/live", (_req, res) => {
     res.json({ status: "ok", service: "bookflow-api" });
   });
@@ -86,9 +88,17 @@ export function createApp({
   app.get("/openapi.yaml", (_req, res) => {
     res.type("application/yaml").sendFile(contractPath);
   });
-  app.use(
+  const docsAssets = Router();
+  docsAssets.use(
+    createMethodGuard([
+      { path: "/swagger-ui-init.js", methods: ["GET"], visibility: "public" },
+    ]),
+  );
+  // swagger-ui-express matches init by suffix; only expose top-level assets.
+  docsAssets.get(["/", "/:asset"], swaggerUi.serve);
+  app.use("/docs", docsAssets);
+  app.get(
     "/docs",
-    swaggerUi.serve,
     swaggerUi.setup(undefined, {
       swaggerOptions: { url: "/openapi.yaml" },
       customSiteTitle: "BookFlow API",

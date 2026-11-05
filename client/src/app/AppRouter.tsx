@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { useTranslation } from "../i18n/language";
 import { useAuth } from "../features/auth/AuthContext";
 import { LoginPage } from "../features/auth/LoginPage";
@@ -126,7 +127,9 @@ export function AppRouter() {
     );
   return (
     <AppLayout path={path} onNavigate={navigate}>
-      {content}
+      <Fragment key={path === "/login" || path === "/register" ? path : viewer}>
+        {content}
+      </Fragment>
     </AppLayout>
   );
 }

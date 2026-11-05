@@ -11,7 +11,20 @@ không có nghĩa toàn bộ kiểm thử lịch sử đã được chạy lại
 | Loans/Dashboard/Audit | An — 52400258   | Đã merge PR #6; mượn–trả, transaction, dashboard/audit và UI |
 | English/Tiếng Việt    | Quân — 52400227 | Đã merge PR #7; selector, lưu lựa chọn và bản dịch           |
 
-## Lỗi và cải thiện còn mở
+## Q1–Q3 trong workspace ngày 01/11/2026
+
+Nhánh `fix/quan-session-http` dựa trên PR #9 @ `40eb914`, đã commit/push thành
+PR #12 @ `fb7abcc` (chưa merge). Follow-up ngày 03/11/2026 sửa hai P2 An review:
+request nghiệp vụ treo chặn logout và URL Swagger init lồng trả 200, bổ sung
+retry thu hồi phiên. Phần follow-up đang local, chờ commit/push và re-review.
+
+Phạm vi Q1–Q3:
+Q1 giữ bộ lọc/form khi đổi ngôn ngữ và xóa state khi đổi danh tính/quyền; Q2
+phối hợp phiên nhiều tab, CSRF hiện tại và loại bỏ response cũ; Q3 trả 405/Allow
+với chính sách quyền và contract tương ứng. Kết quả cụ thể và giới hạn ở
+[QUAN_VALIDATION](QUAN_VALIDATION.md). Đây không phải trạng thái của main.
+
+## Lỗi và cải thiện còn mở trên main
 
 - Refresh/logout có thể dùng CSRF trong RAM đã cũ khi tab khác đổi cookie (Q2).
 - Loan rows còn hai nhãn tiếng Anh chưa gọi hàm dịch (A2).
@@ -27,8 +40,8 @@ Trong workspace, App đã được tách thành router/layout/Home; tiện ích 
 dùng chung và tên router backend đã thống nhất. React key hiện dùng role gốc
 để tránh reset state khi đổi ngôn ngữ. Hai regression component tests cho bộ
 lọc MEMBER và bản nháp LIBRARIAN đã thất bại trước sửa, đạt sau sửa. Checklist
-Q1 đầy đủ và review của nhóm vẫn cần xác nhận; thay đổi workspace chưa xác
-nhận đã merge vào main. Xem [cấu trúc hiện tại](README.md).
+Tú đã review Q1 tại `fb7abcc`, chưa thấy blocker; Q2/Q3 chờ An review lại sau
+follow-up. Các kết quả này chưa xác nhận bản đã ghép hoặc merge vào main. Xem [cấu trúc hiện tại](README.md).
 
 ## Bằng chứng
 

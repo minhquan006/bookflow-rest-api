@@ -11,7 +11,11 @@ is implemented. The current dev Swagger link still assumes API 3000.
 
 VITE_API_BASE_URL defaults to /api/v1. VITE variables are public browser
 configuration and must not contain credentials. Access tokens remain in memory;
-refresh/CSRF cookies are handled by the Auth provider and backend.
+refresh/CSRF cookies are handled by the Auth provider and backend. Authentication
+requires Web Locks, writable site storage and HTTPS or localhost. The only session
+metadata in localStorage is `bookflow.session.revision`, an opaque revision without
+credentials or user data. Unsupported coordination refuses authentication while
+public browsing and in-memory language switching remain available.
 
 ## Implemented screens
 
@@ -20,9 +24,9 @@ refresh/CSRF cookies are handled by the Auth provider and backend.
 - Member/staff loans, staff dashboard and administrator audit viewer.
 - English/Vietnamese selector and language preference persistence.
 
-The language-state fix, its remaining acceptance checks and outstanding cross-tab
-session work are recorded in
-[the quality improvement plan](../docs/QUALITY_IMPROVEMENT_PLAN.md).
+Q1–Q3 implementation, verification and peer-review handoff are recorded in
+[Quân's validation](../docs/QUAN_VALIDATION.md). These workspace changes are based
+on PR #9; they do not imply a merge into main.
 
 ## Shared implementation
 
