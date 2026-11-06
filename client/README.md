@@ -1,31 +1,64 @@
 # BookFlow client
 
-React + TypeScript + Vite. Use Node.js 24.19.x and npm 11.x; install exact locked dependencies with `npm ci`.
+React + TypeScript + Vite. Use Node 24.19.0 and npm 11. Install dependencies
+from the repository root with npm ci and npm run deps; start the API and
+client as described in the [root README](../README.md).
+
+Default dev uses frontend 5173 and proxies /api to API 3000. On Quân's Mac,
+BookFlow uses frontend 5174 and API 3100 with the existing local helper;
+PostgreSQL uses 5433. Keep these local settings until configuration task T1
+is implemented. The current dev Swagger link still assumes API 3000.
+
+VITE_API_BASE_URL defaults to /api/v1. VITE variables are public browser
+configuration and must not contain credentials. Access tokens remain in memory;
+refresh/CSRF cookies are handled by the Auth provider and backend. Authentication
+requires Web Locks, writable site storage and HTTPS or localhost. The only session
+metadata in localStorage is `bookflow.session.revision`, an opaque revision without
+credentials or user data. Unsupported coordination refuses authentication while
+public browsing and in-memory language switching remain available.
+
+## Implemented screens
+
+- Authentication, account and administrator user management.
+- Public catalog and book details; staff categories, books and physical copies.
+- Member/staff loans, staff dashboard and administrator audit viewer.
+- English/Vietnamese selector and language preference persistence.
+
+Q1–Q3 implementation, verification and peer-review handoff are recorded in
+[Quân's validation](../docs/QUAN_VALIDATION.md). These workspace changes are based
+on PR #9; they do not imply a merge into main.
+
+## Shared implementation
+
+- src/lib/http.ts provides createApiClient, ApiError and request metadata.
+  A 204/304 has no data; features retain their cached representation for 304.
+  Mutations are not automatically retried.
+- src/features/auth/AuthContext.tsx manages the memory-only access token,
+  session restoration, refresh and logout. Protected GET recovery is composed
+  here; the underlying generic HTTP client does not refresh sessions itself.
+- src/components supplies shared buttons, fields, feedback and pagination.
+- src/App.tsx composes the language and authentication providers around AppRouter.
+- src/app/AppRouter.tsx selects pages and applies UI access guards; AppLayout.tsx
+  owns the shared shell and navigation; usePath.ts handles browser history.
+  Backend authorization and ownership checks remain required for every protected operation.
+- src/features/home/HomePage.tsx owns the overview and API connection status.
+- src/lib/errors.ts, datetime.ts and pagination.ts contain shared error mapping,
+  date formatting and paginated response types. Feature DTOs stay in their feature.
+- src/styles/index.css loads base, shared component, layout and feature styles in
+  a fixed order. Keep feature-specific selectors beside the feature.
+- src/i18n supplies language context and translations. Do not translate stored
+  book/user content or use translated labels as state identity.
+
+Keep API DTOs aligned with OpenAPI. Do not import backend source into the browser.
+
+## Checks
+
+From the repository root, source changes require npm run check; relevant UI
+changes require the applicable root Playwright tests. Client-only commands are:
 
 ```bash
-cd client
-npm ci
-npm run dev
+npm --prefix client run lint
+npm --prefix client run typecheck
+npm --prefix client test
+npm --prefix client run build
 ```
-
-Vite listens on port 5173 and forwards `/api` requests to the API on port 3000. Start the server as described in the root README. The example `VITE_API_BASE_URL=/api/v1` is the default; copying `.env.example` is optional. Values prefixed with `VITE_` are public browser configuration and must never contain credentials. Development and the Nginx deployment both use the same origin for API calls.
-
-```bash
-npm run lint
-npm run typecheck
-npm test
-npm run build
-```
-
-`npm run test:watch` starts interactive Vitest. Unit and component tests exercise the real HTTP client, API failures, cancellation, retry controls and accessible form/pagination boundaries. Root browser smoke tests are separate.
-
-## Shared code
-
-- `src/lib/http.ts`: `createApiClient`, `ApiError` and `ProblemDetails`. Use `request<T>(path, { json, method, signal })` for JSON requests; a `204` response resolves to `undefined`, so use `request<void>` for those operations. API paths are relative to the configured base. Read error codes and request IDs from `ApiError.problem`.
-- Use `requestWithMetadata<T>` when a feature needs response status or headers such as `ETag`/`Location`. It returns `{ data, status, headers }`; `304` has no data, so retain the feature's previous representation. Pass `If-Match`/`If-None-Match` through request headers. The shared client does not maintain a cache.
-- A feature may create its own client with `getAccessToken: () => tokenInMemory` to send the current bearer token. Never put access tokens in local storage. The client defaults to `credentials: "same-origin"`, preserves AbortError and never automatically retries a failed request or refreshes authentication.
-- `src/components/`: Button with pending/disabled state, Feedback with accessible announcements, FormField with label/error association, and Pagination with boundary/empty states. Button and Feedback are used in the foundation screen; form and pagination primitives are available for the first feature forms/lists.
-- `src/index.css`: shared color/spacing primitives, responsive shell, visible focus and reusable component styles. Use CSS Modules for feature-specific styles.
-- `src/App.tsx`: foundation overview with a real API connection check. Catalog, Borrowing and Accounts navigation explicitly shows planned modules; it does not implement authentication, permissions or business workflows. Server authorization remains required for every protected endpoint.
-
-Add business UI under `src/features/<module>/` and keep application composition under `src/app/` when routing/providers are introduced. Create files when they have a concrete responsibility. Do not import backend source or SQL into the browser. Keep API DTOs aligned with `docs/openapi.yaml`.

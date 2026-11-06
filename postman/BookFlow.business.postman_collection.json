@@ -437,7 +437,8 @@
             "exec": [
               "pm.test(\"HTTP 201\",()=>pm.response.to.have.status(201));",
               "pm.collectionVariables.set(\"wfLoanId\",pm.response.json().data.id);",
-              "pm.test(\"Unreturned loan\",()=>pm.expect(pm.response.json().data.returnedAt).to.eql(null));"
+              "pm.test(\"Unreturned loan\",()=>pm.expect(pm.response.json().data.returnedAt).to.eql(null));",
+              "pm.test(\"Member loan identity without borrower data\",()=>{const l=pm.response.json().data;pm.expect(l.book.id).to.eql(l.bookId);pm.expect(l.book.title).to.be.a(\"string\");pm.expect(l.copy.id).to.eql(l.copyId);pm.expect(l.copy.barcode).to.be.a(\"string\");pm.expect(l).not.to.have.property(\"borrower\");});"
             ]
           }
         }
@@ -462,7 +463,33 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
-              "pm.test(\"Correct book\",()=>pm.expect(pm.response.json().data.bookId).to.eql(pm.collectionVariables.get(\"wfBookId\")));"
+              "pm.test(\"Correct book\",()=>pm.expect(pm.response.json().data.bookId).to.eql(pm.collectionVariables.get(\"wfBookId\")));",
+              "pm.test(\"Member loan identity without borrower data\",()=>{const l=pm.response.json().data;pm.expect(l.book.id).to.eql(l.bookId);pm.expect(l.book.title).to.be.a(\"string\");pm.expect(l.copy.id).to.eql(l.copyId);pm.expect(l.copy.barcode).to.be.a(\"string\");pm.expect(l).not.to.have.property(\"borrower\");});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13b Staff reads loan identity",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/loans/{{wfLoanId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"Staff can identify borrower, book and copy\",()=>{const l=pm.response.json().data;pm.expect(l.book.id).to.eql(l.bookId);pm.expect(l.book.title).to.be.a(\"string\");pm.expect(l.copy.id).to.eql(l.copyId);pm.expect(l.copy.barcode).to.be.a(\"string\");pm.expect(l.borrower.id).to.eql(l.userId);pm.expect(l.borrower.fullName).to.eql(\"Postman Member\");});"
             ]
           }
         }

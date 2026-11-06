@@ -1,3 +1,4 @@
+import { bookETag } from "./books-version.js";
 import { createBookArchiveRouter } from "./books-archive.routes.js";
 import { createBookUpdateRouter } from "./books-update.routes.js";
 import { createBookDetailsRouter } from "./books-detail.routes.js";
@@ -6,10 +7,9 @@ import type { Pool } from "pg";
 import { parseInput } from "../../middleware/validation.js";
 import { requireRoles } from "../../middleware/auth.js";
 import { unauthenticated } from "../../shared/errors.js";
-import { listBooksSchema } from "./books.schema.js";
+import { createBookSchema, listBooksSchema } from "./books.schema.js";
 import { createBooksRepository } from "./books.repository.js";
 import { createBooksService } from "./books.service.js";
-import { createBookSchema } from "./books-write.schema.js";
 import { createBook } from "./books-write.service.js";
 
 export function createBooksRouter(pool: Pool, authenticate: RequestHandler) {
@@ -40,7 +40,7 @@ export function createBooksRouter(pool: Pool, authenticate: RequestHandler) {
 
       res
         .location(`/api/v1/books/${book.id}`)
-        .set("ETag", `"book-${book.id}-v${book.version}"`)
+        .set("ETag", bookETag(book.id, book.version))
         .status(201)
         .json({ data: book });
     },

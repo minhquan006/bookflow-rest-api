@@ -1,17 +1,12 @@
+import { formatLibraryDate } from "../../lib/datetime";
+import { isLoanReturnResponse } from "./response";
 import { useTranslation } from "../../i18n/language";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
 import { Pagination } from "../../components/Pagination";
 import { useAuth } from "../auth/AuthContext";
-import {
-  formatLibraryDate,
-  loanStatus,
-  shortId,
-  type Loan,
-  type LoanCollection,
-  type LoanReturn,
-} from "./types";
+import { loanStatus, shortId, type Loan, type LoanCollection } from "./types";
 
 export function LoansPage({
   onNavigate,
@@ -23,6 +18,7 @@ export function LoansPage({
   const staff = user?.role === "LIBRARIAN" || user?.role === "ADMIN";
   const viewer = user ? `${user.id}:${user.role}` : "anonymous";
   const currentViewer = useRef(viewer);
+  const viewerGeneration = useRef(0);
   const detailRequest = useRef<AbortController | null>(null);
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
@@ -39,7 +35,8 @@ export function LoansPage({
   const detail = detailViewer === viewer ? detailState : null;
   const [detailBusy, setDetailBusy] = useState(false);
   const [detailError, setDetailError] = useState("");
-  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [confirmLoan, setConfirmLoan] = useState<Loan | null>(null);
+  const confirmId = confirmLoan?.id;
   const [confirmationViewer, setConfirmationViewer] = useState("");
   const [returnBusy, setReturnBusy] = useState(false);
   const [returnError, setReturnError] = useState("");
@@ -51,12 +48,15 @@ export function LoansPage({
     setDetail(null);
     setDetailError("");
     setDetailBusy(false);
-    setConfirmId(null);
+    setConfirmLoan(null);
     setConfirmationViewer("");
     setReturnError("");
     setReturnBusy(false);
     setReturnedAt("");
-    return () => detailRequest.current?.abort();
+    return () => {
+      viewerGeneration.current += 1;
+      detailRequest.current?.abort();
+    };
   }, [viewer]);
 
   useEffect(() => {
@@ -132,15 +132,25 @@ export function LoansPage({
     if (!confirmId || returnBusy || !staff || confirmationViewer !== viewer)
       return;
     const requestViewer = viewer;
+    const requestGeneration = viewerGeneration.current;
     setReturnBusy(true);
     setReturnError("");
     setReturnedAt("");
     try {
-      const { data } = await api.request<{ data: LoanReturn }>(
+      const response = await api.request<unknown>(
         `/loans/${confirmId}/return`,
         { method: "PUT", json: {} },
       );
-      if (currentViewer.current !== requestViewer) return;
+      if (
+        currentViewer.current !== requestViewer ||
+        viewerGeneration.current !== requestGeneration
+      )
+        return;
+      if (!isLoanReturnResponse(response, confirmId))
+        throw new Error(
+          "The return response could not be verified. Refresh the history before trying again.",
+        );
+      const { data } = response;
       setDetail((previous) =>
         previous?.id === data.loanId
           ? {
@@ -150,18 +160,26 @@ export function LoansPage({
             }
           : previous,
       );
-      setConfirmId(null);
+      setConfirmLoan(null);
       setReturnedAt(data.returnedAt);
       setRefresh((value) => value + 1);
     } catch (failure) {
-      if (currentViewer.current !== requestViewer) return;
+      if (
+        currentViewer.current !== requestViewer ||
+        viewerGeneration.current !== requestGeneration
+      )
+        return;
       setReturnError(
         failure instanceof Error
           ? failure.message
           : "The return could not be confirmed.",
       );
     } finally {
-      if (currentViewer.current === requestViewer) setReturnBusy(false);
+      if (
+        currentViewer.current === requestViewer &&
+        viewerGeneration.current === requestGeneration
+      )
+        setReturnBusy(false);
     }
   }
 
@@ -206,7 +224,7 @@ export function LoansPage({
               }}
             >
               <option value="">{t("All loans")}</option>
-              <option value="ACTIVE">{t("Active")}</option>
+              <option value="ACTIVE">{t("Active loan")}</option>
               <option value="OVERDUE">{t("Overdue")}</option>
               <option value="RETURNED">{t("Returned")}</option>
             </select>
@@ -239,6 +257,7 @@ export function LoansPage({
                 <tr>
                   <th scope="col">{t("Loan")}</th>
                   <th scope="col">{t("Book")}</th>
+                  <th scope="col">{t("Barcode")}</th>
                   {staff && <th scope="col">{t("Borrower")}</th>}
                   <th scope="col">{t("Borrowed")}</th>
                   <th scope="col">{t("Due")}</th>
@@ -264,17 +283,20 @@ export function LoansPage({
                         <Button
                           onClick={() => onNavigate(`/books/${loan.bookId}`)}
                           aria-label={t("View book {id}", {
-                            id: shortId(loan.bookId),
+                            id: loan.book.title,
                           })}
                         >
-                          {shortId(loan.bookId)}
+                          {loan.book.title}
                         </Button>
                       ) : (
-                        shortId(loan.bookId)
+                        loan.book.title
                       )}
                     </td>
+                    <td>{loan.copy.barcode}</td>
                     {staff && (
-                      <td title={loan.userId}>{shortId(loan.userId)}</td>
+                      <td title={loan.userId}>
+                        {loan.borrower?.fullName ?? loan.userId}
+                      </td>
                     )}
                     <td>{formatLibraryDate(loan.borrowedAt, locale)}</td>
                     <td>{formatLibraryDate(loan.dueAt, locale)}</td>
@@ -282,7 +304,9 @@ export function LoansPage({
                       <span
                         className={`badge ${loanStatus(loan) === "Overdue" ? "badge--danger" : ""}`}
                       >
-                        {translate(loanStatus(loan))}
+                        {loanStatus(loan) === "Active"
+                          ? t("Active loan")
+                          : translate(loanStatus(loan))}
                       </span>
                     </td>
                     <td>
@@ -290,7 +314,7 @@ export function LoansPage({
                         <Button
                           disabled={returnBusy}
                           onClick={() => {
-                            setConfirmId(loan.id);
+                            setConfirmLoan(loan);
                             setConfirmationViewer(viewer);
                             setReturnError("");
                             setReturnedAt("");
@@ -302,9 +326,9 @@ export function LoansPage({
                           {t("Return copy")}
                         </Button>
                       ) : loan.returnedAt ? (
-                        "Return recorded"
+                        t("Return recorded")
                       ) : (
-                        "Return at the library"
+                        t("Return at the library")
                       )}
                     </td>
                   </tr>
@@ -322,7 +346,7 @@ export function LoansPage({
           />
         )}
       </section>
-      {confirmId && staff && confirmationViewer === viewer && (
+      {confirmLoan && staff && confirmationViewer === viewer && (
         <section
           className="panel stack"
           aria-labelledby="return-confirmation-title"
@@ -331,9 +355,17 @@ export function LoansPage({
           <p>
             {t(
               "Confirm that the library has received the copy for loan {id}. The server records the return time and staff account.",
-              { id: shortId(confirmId) },
+              { id: shortId(confirmLoan.id) },
             )}
           </p>
+          <dl className="detail-list">
+            <dt>{t("Book")}</dt>
+            <dd>{confirmLoan.book.title}</dd>
+            <dt>{t("Barcode")}</dt>
+            <dd>{confirmLoan.copy.barcode}</dd>
+            <dt>{t("Borrower")}</dt>
+            <dd>{confirmLoan.borrower?.fullName ?? confirmLoan.userId}</dd>
+          </dl>
           {returnError && (
             <Feedback kind="error">
               {translate(returnError)}
@@ -348,7 +380,7 @@ export function LoansPage({
             <Button busy={returnBusy} onClick={() => void confirmReturn()}>
               {t("Confirm return")}
             </Button>
-            <Button disabled={returnBusy} onClick={() => setConfirmId(null)}>
+            <Button disabled={returnBusy} onClick={() => setConfirmLoan(null)}>
               {t("Cancel")}
             </Button>
           </div>
@@ -367,12 +399,18 @@ export function LoansPage({
             <dl className="detail-list">
               <dt>{t("Loan ID")}</dt>
               <dd>{detail.id}</dd>
+              <dt>{t("Book")}</dt>
+              <dd>{detail.book.title}</dd>
+              <dt>{t("Barcode")}</dt>
+              <dd>{detail.copy.barcode}</dd>
               <dt>{t("Book ID")}</dt>
               <dd>{detail.bookId}</dd>
               <dt>{t("Copy ID")}</dt>
               <dd>{detail.copyId}</dd>
               {staff && (
                 <>
+                  <dt>{t("Borrower")}</dt>
+                  <dd>{detail.borrower?.fullName ?? detail.userId}</dd>
                   <dt>{t("Borrower ID")}</dt>
                   <dd>{detail.userId}</dd>
                 </>
@@ -382,7 +420,11 @@ export function LoansPage({
               <dt>{t("Due")}</dt>
               <dd>{formatLibraryDate(detail.dueAt, locale)}</dd>
               <dt>{t("Status")}</dt>
-              <dd>{translate(loanStatus(detail))}</dd>
+              <dd>
+                {loanStatus(detail) === "Active"
+                  ? t("Active loan")
+                  : translate(loanStatus(detail))}
+              </dd>
               {detail.returnedAt && (
                 <>
                   <dt>{t("Returned")}</dt>

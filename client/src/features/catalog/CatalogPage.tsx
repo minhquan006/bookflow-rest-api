@@ -1,3 +1,4 @@
+import type { PaginatedCollection } from "../../lib/pagination";
 import { useBrowserLocation } from "../../lib/navigation";
 import {
   CATALOG_PAGE_SIZES,
@@ -16,17 +17,8 @@ import { Pagination } from "../../components/Pagination";
 import { BookForm } from "./BookForm";
 import { loadAllCategories } from "./loadCategories";
 import type { Book, BookInput, Category } from "./types";
-import "./catalog.css";
 
-type Collection<T> = {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-};
+type Collection<T> = PaginatedCollection<T>;
 
 export function CatalogPage({
   client = api,

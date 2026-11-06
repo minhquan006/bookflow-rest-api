@@ -46,7 +46,12 @@ jobs:
       - run: npm run db:migrate && npm run db:seed && npm run db:migrate && npm run db:seed
       - run: npm run test:integration
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      # Each invocation starts its own API so the two browser projects do not
+      # consume one shared 300/minute IP allowance. Keep production limits intact.
+      - name: Browser flows with a fresh API per project
+        run: |
+          npm run test:e2e -- --project=chromium
+          npm run test:e2e -- --project=mobile
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

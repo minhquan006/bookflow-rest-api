@@ -4,13 +4,23 @@ BookFlow offers English and Vietnamese through the **Language / Ngôn ngữ** se
 in the header, including on mobile. English remains the default on a new browser.
 Choosing **Tiếng Việt** changes the current interface immediately; choosing **English**
 switches it back. The preference is saved as `bookflow.language` in localStorage and
-restored after reload. No authentication data is written to browser storage. If
+restored after reload. No credentials or profile data are written to browser storage; the session
+coordinator stores only an opaque revision marker. If
 storage is unavailable, switching still works for the current visit.
 
 The translation covers navigation, public pages, authentication, account and user
 administration, catalog/category/copy management, loans/returns, dashboard, audit
 filters, pagination, accessibility labels and known error/validation messages.
-Changing language preserves the session, current form input, filters and page.
+Changing language keeps the session. AppRouter now uses the user ID and canonical
+role in React keys, preserving Catalog filters and book-detail drafts when language
+changes. App tests cover search/category/sort/page, create/edit/barcode drafts and absence
+of language-triggered mutations. Identity/role changes clear the previous viewer's
+drafts; background restoration preserves typed sign-in credentials. Browser tests
+exercise the same language matrix with the real API. See
+[Quân's validation](QUAN_VALIDATION.md) for the exact workspace and results;
+peer review remains tracked in [the improvement plan](QUALITY_IMPROVEMENT_PLAN.md).
+Other outstanding language work includes untranslated return instructions in
+loan rows (A2). The existing test evidence does not establish full coverage.
 Library dates use the selected locale and always retain Vietnam's UTC+7 timezone.
 
 Book titles, descriptions, category names, user names and emails remain exactly as
@@ -36,7 +46,8 @@ named placeholders instead of concatenating translated fragments. Use `translate
 only for known canonical messages or status labels coming from state/API helpers;
 never pass book or user content to it. Store canonical messages or timestamps in
 state so existing feedback also updates when the language changes. Pass the chosen
-locale to `formatLibraryDate`; do not change timestamps sent to the API.
+locale to `formatLibraryDate` in `client/src/lib/datetime.ts`; do not change
+timestamps sent to the API.
 
 ## Validation
 

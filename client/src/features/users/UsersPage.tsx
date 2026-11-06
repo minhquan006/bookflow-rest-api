@@ -1,3 +1,4 @@
+import type { PaginatedCollection } from "../../lib/pagination";
 import { useTranslation } from "../../i18n/language";
 import { useEffect, useState } from "react";
 import { Button } from "../../components/Button";
@@ -5,17 +6,9 @@ import { Feedback } from "../../components/Feedback";
 import { Pagination } from "../../components/Pagination";
 import { useAuth } from "../auth/AuthContext";
 import type { Role, User } from "../auth/AuthContext";
-import { errorMessage } from "../auth/forms";
+import { errorMessage } from "../../lib/errors";
 
-type UserPage = {
-  data: User[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-};
+type UserPage = PaginatedCollection<User>;
 
 export function UsersPage() {
   const { t, translate } = useTranslation();

@@ -15,18 +15,21 @@ Bản tích hợp trong workspace đã triển khai phần ứng dụng P0/P1 c�
   hàng, return idempotency, dashboard staff và audit ADMIN.
 - UI theo role, Swagger/OpenAPI, Postman, test DB/browser, Docker/Nginx và CI.
 
-Auth/Users (PR #4), Catalog/Copies (PR #5), Loans/Dashboard/Audit (PR #6,
-`7221e9e`) và tiếng Việt (PR #7, `d3d614f`) đã merge vào main.
-Không áp lại gói bàn giao cũ. Xem [bàn giao](docs/TEAM_HANDOFF.md),
-[trạng thái](docs/IMPLEMENTATION_STATUS.md) và
-[kiểm tra T1–T3](docs/TU_QUALITY_HANDOFF.md).
-Các tài liệu validation cũ giữ nguyên bằng chứng lịch sử tại mốc đã ghi.
+Auth/Users (PR #4), Catalog/Copies (PR #5), Loans/Dashboard/Audit (PR #6)
+và English/Tiếng Việt (PR #7) đã merge. Nền tích hợp mới `main@e28ff83`
+ngày 06/11/2026 đã nhận PR #9 → #12 → #10, gồm Q1–Q3 và A1–A3.
+Nhánh PR #11 đang ghép T1–T3 trên nền này; chưa merge vào main.
+Xem [bàn giao](docs/TEAM_HANDOFF.md), [trạng thái](docs/IMPLEMENTATION_STATUS.md),
+[bàn giao T1–T3](docs/TU_QUALITY_HANDOFF.md) và
+[kiểm chứng tích hợp](docs/TU_INTEGRATION_VALIDATION.md).
+Các validation cũ giữ nguyên phạm vi và môi trường lịch sử.
 
 ## Ngôn ngữ giao diện
 
 Chọn **Language / Ngôn ngữ** ở đầu trang để chuyển giữa **English** và
-**Tiếng Việt**. Lựa chọn được lưu trên trình duyệt, không làm mất phiên đăng nhập
-hay nội dung biểu mẫu đang nhập. Xem [hướng dẫn ngôn ngữ](docs/LANGUAGES.md).
+**Tiếng Việt**. Lựa chọn được lưu trên trình duyệt. Router dùng ID và role gốc
+để giữ bộ lọc/bản nháp khi đổi ngôn ngữ; xem [hướng dẫn](docs/LANGUAGES.md)
+và phạm vi kiểm chứng trong [kế hoạch cải thiện](docs/QUALITY_IMPROVEMENT_PLAN.md).
 
 ## Cài và chạy dev
 
@@ -150,12 +153,14 @@ Xem [TU_QUALITY_HANDOFF](docs/TU_QUALITY_HANDOFF.md) cho kết quả T1–T3;
 Trong dev, frontend proxy cả API/docs/OpenAPI/health theo cùng cấu hình. Docker phục vụ
 cả API/docs/health qua web 8080. [Postman README](postman/README.md) hướng dẫn smoke,
 20-request business workflow, `baseUrl`, `frontendOrigin`, password và cookie/CSRF.
-Collection `planned` là bộ ví dụ lịch sử, không thay thế workflow đã kiểm chứng.
+Collection thiết kế `planned` cũ đã được bỏ; dùng các collection smoke,
+Catalog và business hiện có.
 
 ## Đóng góp và bài nộp
 
 `server/src/modules` và `client/src/features` chứa phần theo module;
 `shared`, `middleware`, `components`, `lib` dùng chung. Đọc
+[mục lục tài liệu và cấu trúc hiện tại](docs/README.md) và
 [CONTRIBUTING](CONTRIBUTING.md): controller → service → repository, SQL tham số
 hóa, một DB client xuyên transaction, migration đã merge bất biến.
 

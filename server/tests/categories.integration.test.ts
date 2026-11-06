@@ -1,3 +1,4 @@
+import { expectOpenApi } from "./helpers/openapi.js";
 import { createCopiesRouter } from "../src/modules/copies/copies.routes.js";
 import { createCopiesService } from "../src/modules/copies/copies.service.js";
 import { createBooksRouter } from "../src/modules/books/books.routes.js";
@@ -487,6 +488,7 @@ describe("Book details and availability over HTTP", () => {
         .set("If-None-Match", header);
 
       expect(response.status).toBe(304);
+      expectOpenApi("getBook", 304, response);
       expect(response.text).toBe("");
       expect(response.headers.etag).toBe(first.headers.etag);
     }
@@ -869,6 +871,7 @@ describe("Copy condition updates", () => {
       .set("Authorization", `Bearer ${token}`)
       .send({ conditionStatus: "MAINTENANCE" });
     expect(changed.status).toBe(200);
+    expectOpenApi("updateBookCopy", 200, changed);
     expect(changed.body.data.conditionStatus).toBe("MAINTENANCE");
 
     const availability = await request(httpApp).get(
@@ -1023,6 +1026,7 @@ async function createMetadataTestBook() {
     .set("Authorization", `Bearer ${token}`)
     .send(input);
   expect(response.status).toBe(201);
+  expectOpenApi("createBook", 201, response);
 
   return {
     token,
@@ -1057,6 +1061,7 @@ describe("Book metadata updates with If-Match", () => {
       .set("Authorization", `Bearer ${token}`)
       .send({ title: "Missing precondition" });
     expect(missing.status).toBe(428);
+    expectOpenApi("updateBook", 428, missing);
     expect(missing.body.code).toBe("PRECONDITION_REQUIRED");
 
     for (const tag of ["*", `W/${etag}`, '"invalid"']) {
@@ -1066,6 +1071,7 @@ describe("Book metadata updates with If-Match", () => {
         .set("If-Match", tag)
         .send({ title: "Unsupported precondition" });
       expect(response.status).toBe(412);
+      expectOpenApi("updateBook", 412, response);
     }
   });
 
@@ -1080,6 +1086,7 @@ describe("Book metadata updates with If-Match", () => {
       .send({ title: "Updated title", isbn: null });
 
     expect(changed.status).toBe(200);
+    expectOpenApi("updateBook", 200, changed);
     expect(changed.body.data).toMatchObject({
       title: "Updated title",
       author: input.author,
@@ -1094,9 +1101,11 @@ describe("Book metadata updates with If-Match", () => {
       .set("If-Match", etag)
       .send({ title: "Stale overwrite" });
     expect(stale.status).toBe(412);
+    expectOpenApi("updateBook", 412, stale);
     expect(stale.body.code).toBe("VERSION_MISMATCH");
 
     const read = await request(httpApp).get(path);
+    expectOpenApi("getBook", 200, read);
     expect(read.body.data.title).toBe("Updated title");
     expect(read.body.data.version).toBe(2);
   });
@@ -1534,6 +1543,7 @@ describe("Category replacement and deletion", () => {
       .delete(path)
       .set("Authorization", `Bearer ${token}`);
     expect(deleted.status).toBe(204);
+    expectOpenApi("deleteCategory", 204, deleted);
     expect(deleted.text).toBe("");
 
     const stored = await pool.query("SELECT id FROM categories WHERE id = $1", [

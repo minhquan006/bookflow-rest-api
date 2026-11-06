@@ -1,7 +1,8 @@
 import type { createApiClient } from "../../lib/http";
-import type { Category, PaginationInfo } from "./types";
+import type { Category } from "./types";
+import type { PaginatedCollection } from "../../lib/pagination";
 
-type CategoryPage = { data: Category[]; pagination: PaginationInfo };
+type CategoryPage = PaginatedCollection<Category>;
 const PAGE_SIZE = 100;
 const MAX_OPTION_PAGES = 1000;
 

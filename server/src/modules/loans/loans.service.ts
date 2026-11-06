@@ -93,7 +93,7 @@ export function createLoansService(
             id,
             requestId,
           );
-          return (await repository.findLoan(client, id))!;
+          return (await repository.findLoan(client, id, actor))!;
         });
       } catch (error) {
         if (

@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "BookFlow \u2014 Foundation smoke",
-    "description": "Executable checks for implemented foundation endpoints only. Start PostgreSQL, run migrations, start API, select BookFlow.local environment, and run this collection. Business features are in a separate planned collection.",
+    "name": "BookFlow — Foundation smoke",
+    "description": "Executable checks for implemented foundation endpoints only. Start PostgreSQL, run migrations, start API, select BookFlow.local environment, and run this collection. Catalog and complete business workflows are provided in their respective collections.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -127,6 +127,129 @@
             "exec": [
               "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
               "pm.test(\"Problem Details\", () => { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\"); const body=pm.response.json(); pm.expect(body.status).to.eql(404); pm.expect(body.code).to.eql(\"RESOURCE_NOT_FOUND\"); pm.expect(body.requestId).to.be.a(\"string\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Known collection rejects unsupported method",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/api/v1/books"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 405\", () => pm.response.to.have.status(405));",
+              "pm.test(\"Problem Details\", () => { const b = pm.response.json(); pm.expect(b.status).to.eql(405); pm.expect(b.code).to.eql(\"METHOD_NOT_ALLOWED\"); pm.expect(b.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\"); });",
+              "pm.test(\"Resource Allow\", () => pm.expect(pm.response.headers.get(\"Allow\")).to.eql(\"GET, HEAD, POST, OPTIONS\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Known nested resource rejects unsupported method",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/v1/books/00000000-0000-4000-8000-000000000001/availability"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 405\", () => pm.response.to.have.status(405));",
+              "pm.test(\"Problem Details\", () => { const b = pm.response.json(); pm.expect(b.status).to.eql(405); pm.expect(b.code).to.eql(\"METHOD_NOT_ALLOWED\"); pm.expect(b.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\"); });",
+              "pm.test(\"Resource Allow\", () => pm.expect(pm.response.headers.get(\"Allow\")).to.eql(\"GET, HEAD, OPTIONS\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unknown endpoint remains 404",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/api/v1/no-such-endpoint"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+              "pm.test(\"Problem Details\", () => { const b = pm.response.json(); pm.expect(b.status).to.eql(404); pm.expect(b.code).to.eql(\"RESOURCE_NOT_FOUND\"); pm.expect(b.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\"); });",
+              "pm.test(\"No Allow for unknown URI\", () => pm.expect(pm.response.headers.has(\"Allow\")).to.eql(false));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nested Swagger initialization must not exist: /docs/not-a-resource/swagger-ui-init.js",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/docs/not-a-resource/swagger-ui-init.js"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Unknown URI is 404\", () => pm.response.to.have.status(404));",
+              "pm.test(\"Correlated Problem Details\", () => { const body = pm.response.json(); pm.expect(body.code).to.eql(\"RESOURCE_NOT_FOUND\"); pm.expect(body.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nested Swagger initialization must not exist: /docs/a/b/swagger-ui-init.js",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/docs/a/b/swagger-ui-init.js"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Unknown URI is 404\", () => pm.response.to.have.status(404));",
+              "pm.test(\"Correlated Problem Details\", () => { const body = pm.response.json(); pm.expect(body.code).to.eql(\"RESOURCE_NOT_FOUND\"); pm.expect(body.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Swagger init rejects unsupported method",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/docs/swagger-ui-init.js"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 405\", () => pm.response.to.have.status(405));",
+              "pm.test(\"Allow\", () => pm.expect(pm.response.headers.get(\"Allow\")).to.eql(\"GET, HEAD, OPTIONS\"));"
             ]
           }
         }

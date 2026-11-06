@@ -29,6 +29,8 @@ paths:
       x-implementation-status: implemented
       security: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -53,6 +55,8 @@ paths:
       x-implementation-status: implemented
       security: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -79,6 +83,8 @@ paths:
       x-implementation-status: implemented
       security: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -100,6 +106,8 @@ paths:
       x-implementation-status: implemented
       security: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: OpenAPI 3.1 YAML document.
           content:
@@ -116,11 +124,18 @@ paths:
     get:
       operationId: getApiDocs
       summary: Swagger UI
+      description: >-
+        Serves the documentation page and top-level static assets using GET/HEAD.
+        Initialization is served only at /docs/swagger-ui-init.js; an unsupported
+        method on that asset returns 405 with Allow. Unknown nested initialization
+        paths remain 404. Static assets are not additional business operations.
       tags:
         - Operations
       x-implementation-status: implemented
       security: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Interactive API documentation (may redirect to /docs/).
           content:
@@ -142,6 +157,8 @@ paths:
       x-implementation-status: implemented
       security: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "201":
           description: Success.
           content:
@@ -193,6 +210,8 @@ paths:
       x-implementation-status: implemented
       security: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -252,6 +271,8 @@ paths:
         - refreshCookie: []
           csrfHeader: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -304,6 +325,8 @@ paths:
         - refreshCookie: []
           csrfHeader: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "204":
           description: Success.
           headers:
@@ -341,6 +364,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -376,6 +401,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -423,6 +450,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -479,6 +508,8 @@ paths:
       x-implementation-status: implemented
       security: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -516,6 +547,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "201":
           description: Success.
           content:
@@ -566,6 +599,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -618,6 +653,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "204":
           description: Success.
           headers:
@@ -653,6 +690,8 @@ paths:
         - {}
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -729,6 +768,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "201":
           description: Success.
           content:
@@ -785,6 +826,8 @@ paths:
         - {}
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -835,6 +878,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -896,6 +941,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -956,6 +1003,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "204":
           description: Success.
           headers:
@@ -996,6 +1045,8 @@ paths:
       x-implementation-status: implemented
       security: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -1034,6 +1085,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -1081,6 +1134,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "201":
           description: Success.
           content:
@@ -1134,6 +1189,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -1190,6 +1247,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "201":
           description: Success.
           content:
@@ -1249,6 +1308,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -1301,6 +1362,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -1340,6 +1403,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -1397,6 +1462,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -1435,6 +1502,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
         "200":
           description: Success.
           content:
@@ -1850,11 +1919,39 @@ components:
     Loan:
       type: object
       additionalProperties: false
+      description: >-
+        Current book title and copy barcode, including archived books in visible history;
+        these are not borrowing-time snapshots. borrower is present for LIBRARIAN/ADMIN only
+        and omitted for MEMBER. Existing IDs and ownership rules are unchanged.
       properties:
         id: *id015
         userId: *id015
         bookId: *id015
         copyId: *id015
+        book:
+          type: object
+          additionalProperties: false
+          properties:
+            id: *id015
+            title:
+              type: string
+          required: [id, title]
+        copy:
+          type: object
+          additionalProperties: false
+          properties:
+            id: *id015
+            barcode:
+              type: string
+          required: [id, barcode]
+        borrower:
+          type: object
+          additionalProperties: false
+          properties:
+            id: *id015
+            fullName:
+              type: string
+          required: [id, fullName]
         borrowedAt: *id016
         dueAt: *id016
         returnedAt: &id025
@@ -1872,6 +1969,8 @@ components:
         - userId
         - bookId
         - copyId
+        - book
+        - copy
         - borrowedAt
         - dueAt
         - returnedAt
@@ -2021,6 +2120,28 @@ components:
         - archivedAt
         - version
   responses:
+    MethodNotAllowed:
+      description: >-
+        Known resource with an unsupported method (METHOD_NOT_ALLOWED). Protected
+        resources require authentication and the resource visibility role before
+        method negotiation; valid operations retain their individual permissions
+        and ownership checks. Unknown paths remain 404. Global CORS, rate limiting
+        and body parsing can reject a request before negotiation.
+      headers:
+        X-Request-Id: *id001
+        Allow:
+          description: Actual resource methods, including implicit HEAD for GET and OPTIONS.
+          schema:
+            type: string
+          example: GET, HEAD, OPTIONS
+        Cache-Control:
+          schema:
+            type: string
+          example: no-store
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
     BadRequest:
       description: Invalid JSON, query, UUID, or request schema (VALIDATION_ERROR).
       content:

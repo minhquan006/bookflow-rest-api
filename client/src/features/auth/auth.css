@@ -1,0 +1,11 @@
+.auth-panel,
+.auth-card {
+  max-width: 520px;
+  margin: 16px auto;
+}
+
+.auth-panel form,
+.auth-card form {
+  display: grid;
+  gap: 18px;
+}

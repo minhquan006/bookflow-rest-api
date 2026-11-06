@@ -1,120 +1,72 @@
-# Current BookFlow handoff
+# Bàn giao BookFlow hiện tại
 
-Baseline `main@d3d614f` includes merged PRs #4 Auth, #5 Catalog, #6 Loans and
-#7 Vietnamese. Do not apply old handoff bundles to this source.
-Read [README](../README.md), [blueprint](PROJECT_BLUEPRINT.md),
-[status](IMPLEMENTATION_STATUS.md), [dev profiles](DEV_PROFILES.md) and
-[Tú's T1–T3 evidence](TU_QUALITY_HANDOFF.md).
+Đề tài RESTful Web Services, môn 503073. Đọc [README](../README.md),
+[API contract](API_CONTRACT.md) và [trạng thái triển khai](IMPLEMENTATION_STATUS.md).
+Blueprint là thiết kế; validation ghi đúng phiên bản và môi trường đã chạy.
 
-Use Node 24.19.0/npm 11; install root/client/server from lockfiles. Setup preserves
-existing env files. Start DB, build server, migrate/seed/create test DB, then
-run check and E2E as in README. Preserve existing DB, services and local work.
-Windows users use npm.cmd/npx.cmd and record their own actual results.
+## Phần đã tích hợp
 
-Quân owns Auth/platform; Tú owns Catalog/Copies/UI; An owns Loans/Dashboard/Audit.
-Quân reviews T1/T3 and Q1 overlap; An reviews T2; Tú reviews Q1/A2.
-See [quality plan reference](QUALITY_IMPROVEMENT_PLAN.md). Implementation commit `49d7070` is pushed in
-[PR #11](https://github.com/minhquan006/bookflow-rest-api/pull/11).
-It has not been merged into main. AI assistance does not replace owner review.
+Auth/Users (PR #4), Catalog/Copies (PR #5), Loans/Dashboard/Audit (PR #6)
+và English/Tiếng Việt (PR #7) đã merge. Mốc Git đã đối chiếu ngày 30/10/2026
+là main@d3d614f, source tree 5f8a46f16af3f330d12774fb1c73a1c593496d61.
+Các gói patch và quy trình chia năm commit trước đây là lịch sử, không phải
+hướng dẫn áp dụng lại vào main hiện tại.
 
-Old validation remains historical; reporting/slides/video remain group work.
-The old handoff below is preserved for reference, not current setup instructions.
+Mốc mới đã đối chiếu ngày 06/11/2026: main@`e28ff8340c2fc0e492ec7df1a8a76601bf098180`
+đã nhận PR #9 → #12 → #10. Q1–Q3 và A1–A3 đã merge; PR #11 T1–T3
+đang ghép trên nền này, chưa merge. Xem [kiểm chứng tích hợp của Tú](TU_INTEGRATION_VALIDATION.md).
 
-<details>
-<summary>Historical handoff before PR #6/#7 - do not reapply</summary>
+| Thành viên                  | Phụ trách                                     |
+| --------------------------- | --------------------------------------------- |
+| Nguyễn Minh Quân — 52400227 | Auth/Users, tích hợp, ngôn ngữ                |
+| Phạm Văn Tú — 52400252      | Catalog/Copies và giao diện                   |
+| Lê Nguyễn Vạn An — 52400258 | Loans/Dashboard/Audit, kiểm thử và triển khai |
 
-# Bàn giao các phần BookFlow
+## Công việc tiếp theo
 
-Đề tài 1 — RESTful Web Services, môn 503073. Đọc [README](../README.md),
-[contract](API_CONTRACT.md), [blueprint](PROJECT_BLUEPRINT.md) và
-[kết quả Loans v2](LOANS_VALIDATION.md).
+[Kế hoạch cải thiện chất lượng](QUALITY_IMPROVEMENT_PLAN.md) chia Q1–Q3,
+T1–T3 và A1–A3, có phạm vi, phụ thuộc, kiểm thử và review chéo.
 
-## Trạng thái và phân công
+Q1–Q3 đã merge qua #12, sau #9; A1–A3 đã merge qua #10 trên nền Q1–Q3.
+Giữ lịch sử kiểm chứng tại [Quân](QUAN_VALIDATION.md),
+[An](AN_QUALITY_VALIDATION.md), [Tú](TU_QUALITY_HANDOFF.md) và
+[review Q1/A2](TU_FRONTEND_REVIEW.md).
 
-Auth/Users của Quân (PR #4) và Catalog/Copies của Tú (PR #5, gồm sửa review
-`118d20f`) đã merge vào `main` tại `50e2dc4`. Nhánh `feat/an-loans-5commits`
-bổ sung Loans/Dashboard/Audit từ gói `an-loans-v2`. Chưa coi phần Loans đã merge.
+Thứ tự thống nhất: #9 → #12 → #10 → #11. Tú đang cập nhật #11 từ `bcf0fc4`
+lên nền main@`e28ff83`, giữ cấu trúc router/layout, session coordination,
+loan DTO/return guard, runtime 405/Allow và cấu hình T1/URL state T2.
+Quân review lại T1/T3 và An đối chiếu T2 trên head mới sau khi Tú commit/push.
+Review nhánh cũ và CI main không thay thế kiểm tra/CI của head tích hợp #11.
 
-| Thành viên                  | Phạm vi                                                     |
-| --------------------------- | ----------------------------------------------------------- |
-| Nguyễn Minh Quân — 52400227 | Auth/Users, nền tảng/tích hợp; review Loans                 |
-| Phạm Văn Tú — 52400252      | Catalog/Copies, public/staff UI; review Auth                |
-| Lê Nguyễn Vạn An — 52400258 | Loans/Dashboard/Audit, transaction, UI/test; review Catalog |
+## Bắt đầu làm việc
 
-Code/test và quá trình áp dụng, review, chạy kiểm thử có AI hỗ trợ. Các commit
-mới dùng Git identity hiện có của An; không sửa author/date hoặc lịch sử người
-khác. An vẫn cần đọc, kiểm tra và giải thích được module; kiểm tra bằng AI không
-thay thế review độc lập của thành viên khác.
+- Kiểm tra Git và bảo toàn thay đổi local trước khi cập nhật nhánh; không
+  áp lại patch hoặc reset/clean để vượt qua xung đột.
+- Node 24.19.0, npm 11; cài root bằng npm ci, hai ứng dụng bằng npm run deps.
+- Chạy/migrate/seed theo README; không reset DB phát triển. DB test kết thúc _test.
+- Trên Mac của Quân giữ PostgreSQL 5433, API 3100 và frontend 5174. Override
+  Compose local ở .cache/bookflow/compose.port-5433.yaml và helper ngoài repo
+  là cấu hình local cần giữ, không phải thư mục rác. Default dev trong repo
+  vẫn là API 3000, web 5173; xem T1 trước khi thay cách cấu hình.
+- Controller xử lý HTTP, service giữ nghiệp vụ/transaction, repository dùng
+  SQL tham số hóa qua cùng DB client. Migration đã merge là bất biến.
 
-## Gói An v2
+## Kiểm chứng và trách nhiệm
 
-Dùng thư mục `an-loans-v2` nằm cạnh checkout, giữ nguyên README, helper,
-series.json, patch, file lists và logs. Gói cũ, `loans.patch` đơn lẻ và quy trình
-Catalog bundle trước đây không còn là hướng dẫn áp dụng cho nền này.
+Chạy npm run check cho source changes, integration cho DB/nghiệp vụ và E2E
+cho UI/tích hợp liên quan. Từng PR ghi lệnh đã chạy, commit, môi trường và phần
+chưa kiểm tra. Không coi kết quả cloud là kết quả Mac hoặc GitHub Actions mới.
 
-Trước bước đầu, working tree phải sạch, Node 24.19.0/npm 11, Docker/PostgreSQL
-sẵn sàng. Chạy setup/build/migrate/seed/test DB theo README. Cấu hình local root
-và server phải nhất quán; DB test kết thúc `_test`. Không gửi mật khẩu/token,
-không reset DB dev hoặc dùng `docker compose down -v`.
+[FULL_VALIDATION](FULL_VALIDATION.md), [LOANS_VALIDATION](LOANS_VALIDATION.md)
+và docs/evidence giữ bằng chứng các giai đoạn; không thay số liệu lịch sử.
+[LANGUAGES](LANGUAGES.md) mô tả tính năng và giới hạn ngôn ngữ hiện có.
+[Repository maintenance](REPOSITORY_MAINTENANCE.md) ghi review PR Catalog cũ
+và cách giữ lịch sử khi dọn nhánh.
 
-Helper kiểm tra chính xác tree nền `95da85a3833ec188d8f76dfec04bba58896162fa`.
-Nếu main đã có thay đổi mới làm kiểm tra không khớp, dừng để Quân hòa giải;
-không reset hoặc sửa series.json để vượt kiểm tra. Nếu bước lỗi, giữ code và
-staging để chẩn đoán, không áp lại cùng patch.
+Code và kiểm thử có AI hỗ trợ; xem [AI assistance](AI_ASSISTANCE.md).
+Mỗi người review, kiểm tra và giải thích được phần mình, tự chịu trách nhiệm
+với commit bằng danh tính Git thật. Không sửa author/date hoặc tạo đóng góp giả.
 
-| Bước | Nội dung                                                       |
-| ---- | -------------------------------------------------------------- |
-| 1    | Loans/Dashboard/Audit API, contract/Postman và test PostgreSQL |
-| 2    | Màn hình Loans cho MEMBER/staff và component tests             |
-| 3    | Dashboard/Audit UI và tests                                    |
-| 4    | Điều hướng, nút Borrow và E2E nghiệp vụ                        |
-| 5    | Benchmark tooling, tài liệu bàn giao và bằng chứng             |
-
-Từng bước riêng: đọc patch/file list → chạy helper với một số bước → đọc kết
-quả và diff → push → bước kế tiếp. Không chạy năm bước bằng vòng lặp. UI mượn
-ẩn ở bước 1–3 và chỉ bật ở bước 4. Trong lần tiếp nhận này, tài liệu và bằng
-chứng hiện tại được bổ sung vào commit cuối sau khi helper hoàn tất; source
-ứng dụng/test vẫn giữ nguyên nội dung v2 đã kiểm thử.
-
-Khi review: kiểm tra đủ năm commit trên nền `50e2dc4`, working tree sạch và
-remote branch khớp. Mở PR vào `main` với tiêu đề
-`feat(loans): implement borrowing returns and library administration`.
-Ghi rõ test đã/chưa chạy và AI hỗ trợ. Quân review code/contract/tích hợp;
-chờ GitHub Actions và review đạt rồi dùng **Create a merge commit**.
-Không squash hoặc push trực tiếp main để bỏ qua review.
-
-## Nội dung An cần hiểu và giải thích
-
-- Mượn chỉ dành cho MEMBER và lấy userId từ principal, không nhận userId từ body.
-- Khóa user → book → copy để tuần tự hóa hạn mức và tranh copy cuối; service
-  dùng cùng DB client trong transaction, không gọi HTTP ngoài hoặc xen pool.query.
-- Chặn overdue, vượt hạn mức và giữ hai bản cùng đầu sách. Archive và borrow
-  khóa cùng hàng book để không mượn sách đã archive.
-- Insert loan và audit cùng transaction; audit lỗi thì loan rollback.
-- MEMBER chỉ đọc loan của mình, loan của người khác trả404; staff có thể xem
-  lịch sử và xác nhận trả. Trả khóa copy → loan, không khóa user sau copy.
-- Return lặp giữ nguyên thời điểm/người xác nhận, không thêm audit trùng.
-- Dashboard dành cho staff; Audit chỉ ADMIN, lọc action/actor/time/page.
-- Loans UI gắn dữ liệu với user+role, abort request cũ và không hiển thị loan
-  người trước khi đổi tài khoản. POST borrow không tự retry khi kết quả không rõ.
-- Catalog giữ availability riêng với no-store và metadata ETag/304; không tự
-  mượn khi chỉ mở chi tiết sách.
-
-Controller giữ HTTP, service giữ nghiệp vụ/transaction, repository giữ SQL tham
-số hóa. Không import backend source vào client hoặc sửa migration đã merge.
-Các test cạnh tranh/rollback dùng PostgreSQL thật và schema cô lập trong `_test`.
-
-## Các việc còn lại
-
-- An đọc và giải thích mã; Quân review độc lập PR Loans, xác nhận GitHub Actions.
-- Chạy stack Docker đầy đủ, Newman/Postman và checkout trên máy thứ hai nếu cần
-  nghiệm thu triển khai; không thay bằng kết quả lịch sử trong gói.
-- Hoàn thiện báo cáo tiếng Anh Word/PDF 20–60 trang theo mẫu Khoa, slide và video
-  tiếng Anh có âm thanh tối đa 20 phút đủ ba thành viên.
-- Xác nhận thông tin giảng viên, mẫu Khoa và giờ nộp. Hạn tài liệu nhóm ghi
-  **30/10/2026**; chưa có giờ cụ thể.
-
-Xem [REQUIREMENTS_TRACEABILITY](REQUIREMENTS_TRACEABILITY.md). Hoàn thành source
-không đồng nghĩa hoàn thành bộ bài nộp hoặc bảo đảm mức điểm.
-
-</details>
+Phần mềm đã tích hợp không xác nhận hồ sơ học phần đã hoàn tất. Các yêu cầu
+báo cáo, slide, video và thông tin còn thiếu nằm trong
+[REQUIREMENTS_TRACEABILITY](REQUIREMENTS_TRACEABILITY.md).

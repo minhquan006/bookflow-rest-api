@@ -1,5 +1,9 @@
 # T1-T3 - Tu quality handoff
 
+Checkpoint tích hợp 06/11/2026: PR #11 đang ghép trên main@`e28ff83`, đã có
+#9/#12/#10. Xem [báo cáo tích hợp mới](TU_INTEGRATION_VALIDATION.md); các phần
+bên dưới giữ bằng chứng và phạm vi của những lượt kiểm chứng trước.
+
 Base `origin/main@d3d614f`; source checked on 30/10/2026 in the Linux cloud workspace.
 Branch `feat/tu-quality-improvements`. Implementation commit `49d7070` was
 pushed for review in [PR #11](https://github.com/minhquan006/bookflow-rest-api/pull/11).

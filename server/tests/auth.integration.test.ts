@@ -1,3 +1,4 @@
+import { expectOpenApi } from "./helpers/openapi.js";
 import { randomUUID, createHash } from "node:crypto";
 import { Router } from "express";
 import { Pool } from "pg";
@@ -7,8 +8,8 @@ import { SignJWT } from "jose";
 import { createApp } from "../src/app.js";
 import { loadConfig } from "../src/config/env.js";
 import { runMigrations } from "../src/db/migrate.js";
-import { createAuthRouter } from "../src/modules/auth/index.js";
-import { createUsersRouter } from "../src/modules/users/index.js";
+import { createAuthRouter } from "../src/modules/auth/auth.routes.js";
+import { createUsersRouter } from "../src/modules/users/users.routes.js";
 import { createUsersService } from "../src/modules/users/users.service.js";
 import { hashPassword, verifyPassword } from "../src/shared/passwords.js";
 import { createLogger } from "../src/shared/logger.js";
@@ -42,8 +43,12 @@ let app: ReturnType<typeof createApp>;
 let memberId: string;
 let adminId: string;
 
-function session(response: Response) {
+function session(
+  response: Response,
+  operation: "login" | "refreshSession" = "login",
+) {
   expect(response.status).toBe(200);
+  expectOpenApi(operation, 200, response);
   const headers: string[] = response.headers[
     "set-cookie"
   ] as unknown as string[];
@@ -125,6 +130,7 @@ describe("Auth HTTP and PostgreSQL", () => {
       password,
     });
     expect(response.status).toBe(201);
+    expectOpenApi("register", 201, response);
     expect(response.headers.location).toBe("/api/v1/users/me");
     expect(response.body.data).toMatchObject({
       fullName: "New Member",
@@ -240,6 +246,7 @@ describe("Auth HTTP and PostgreSQL", () => {
     const disabled = await login();
     for (const response of [wrong, unknown, disabled]) {
       expect(response.status).toBe(401);
+      expectOpenApi("login", 401, response);
       expect(response.body.detail).toBe("The email or password is incorrect.");
       expect(response.headers["set-cookie"]).toBeUndefined();
     }
@@ -260,7 +267,7 @@ describe("Auth HTTP and PostgreSQL", () => {
   });
   it("rotates refresh tokens atomically and returns a new CSRF token", async () => {
     const original = session(await login());
-    const rotated = session(await refresh(original));
+    const rotated = session(await refresh(original), "refreshSession");
     expect(rotated.raw).not.toBe(original.raw);
     expect(rotated.csrf).not.toBe(original.csrf);
     const records = (
@@ -276,7 +283,7 @@ describe("Auth HTTP and PostgreSQL", () => {
   });
   it("commits family revocation on old-token reuse and rejects the replacement", async () => {
     const original = session(await login());
-    const replacement = session(await refresh(original));
+    const replacement = session(await refresh(original), "refreshSession");
     expect((await refresh(original)).status).toBe(401);
     expect(
       (
@@ -374,6 +381,7 @@ describe("Auth HTTP and PostgreSQL", () => {
     const current = session(await login());
     const first = await logout(current);
     expect(first.status).toBe(204);
+    expectOpenApi("logout", 204, first);
     expect(first.text).toBe("");
     const clearCookies = first.headers["set-cookie"] as unknown as string[];
     expect(
