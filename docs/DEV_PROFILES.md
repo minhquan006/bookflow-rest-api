@@ -29,10 +29,24 @@ Check the web origin on 5173 (or 5174): `/api/v1` must identify BookFlow API;
 All four paths proxy to the same API using HOST/PORT. Wildcard API bind addresses
 use loopback as the proxy target. Root/server env must agree for a standalone API.
 
-`npm run test:e2e` runs managed desktop/mobile projects with separate server
-lifetimes. Reports are in `playwright-report/chromium` and `playwright-report/mobile`.
-An explicit project is run alone. Stop manually started BookFlow dev first with
-Ctrl+C in its own terminal; keep DB running. Do not disable rate limits for tests.
+`npm run test:e2e` runs managed desktop/mobile projects. Each full-project run
+splits UI and session flows, with a fresh API for each group so their traffic
+does not share the real 300/minute IP budget. Execution options such as
+`--retries=0` and `--reporter=list,html` retain that split; both `--flag=value`
+and separate option values are supported. An explicit project runs that project
+alone. Explicit file/grep filters and external mode retain their original scope.
+
+Default HTML reports are separate for all four batches:
+
+- `playwright-report/chromium-ui/index.html`
+- `playwright-report/chromium-sessions/index.html`
+- `playwright-report/mobile-ui/index.html`
+- `playwright-report/mobile-sessions/index.html`
+
+For example, run `npm run test:e2e -- --project=chromium --retries=0`.
+Reporters that replace HTML (for example `--reporter=line`) do not create HTML
+reports; include `html` to keep them. Stop manually started BookFlow dev first
+with Ctrl+C in its own terminal; keep DB running. Do not disable rate limits.
 
 For an existing stack in PowerShell, set `$env:E2E_EXTERNAL="1"` and
 `$env:E2E_BASE_URL="http://127.0.0.1:5174"` before `npm.cmd run test:e2e`.
