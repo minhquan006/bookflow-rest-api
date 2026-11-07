@@ -1,21 +1,45 @@
 import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 import { resolve } from "node:path";
+import { readDevConfig, repositoryRoot } from "./dev-config.ts";
 
-const root = resolve(import.meta.dirname, "..");
+const config = readDevConfig();
+// Probe before starting either child; never kill a process to claim a port.
+for (const [port, host] of [
+  [config.apiPort, config.host],
+  [config.webPort, "127.0.0.1"],
+]) {
+  await new Promise((resolvePort, reject) => {
+    const probe = createServer();
+    probe.once("error", () =>
+      reject(
+        new Error(
+          `BookFlow port ${port} is unavailable. Choose PORT/WEB_PORT in .env; existing services were left running.`,
+        ),
+      ),
+    );
+    probe.listen(port, host, () => probe.close(resolvePort));
+  });
+}
 const processes = [
   spawn("npm", ["run", "dev"], {
-    cwd: resolve(root, "server"),
+    cwd: resolve(repositoryRoot, "server"),
+    env: config.env,
     stdio: "inherit",
     detached: process.platform !== "win32",
     shell: process.platform === "win32",
   }),
   spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1"], {
-    cwd: resolve(root, "client"),
+    cwd: resolve(repositoryRoot, "client"),
+    env: config.env,
     stdio: "inherit",
     detached: process.platform !== "win32",
     shell: process.platform === "win32",
   }),
 ];
+console.log(
+  `BookFlow web ${config.webOrigin}; API ${config.apiOrigin}; docs ${config.webOrigin}/docs/`,
+);
 let stopping = false;
 function stop(code) {
   if (stopping) return;

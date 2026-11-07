@@ -8,6 +8,11 @@ The historical Catalog-only review fix remains recorded in
 assertions apply to that earlier stage. Current tests verify integrated navigation
 without creating a loan merely by browsing.
 
+Current T2 changes add 12/24/48 page sizes and applied Catalog state in the URL.
+Reload, history, detail return and EN/VI changes preserve applied state.
+Viewer changes clear old results. See [current handoff](TU_QUALITY_HANDOFF.md)
+for source, actual cloud checks and pending Windows verification.
+
 The following is the historical status recorded on Tú’s branch before integration.
 
 # Catalog implementation status

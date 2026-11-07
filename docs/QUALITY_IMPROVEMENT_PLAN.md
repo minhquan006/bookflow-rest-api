@@ -1,5 +1,12 @@
 # Phân công cải thiện chất lượng BookFlow
 
+## Checkpoint tích hợp 06/11/2026
+
+Main@`e28ff83` đã nhận #9 → #12 → #10 (Q1–Q3 và A1–A3).
+PR #11 đang ghép T1–T3 trên nền này, chưa merge; kiểm chứng và giới hạn ghi ở
+[TU_INTEGRATION_VALIDATION](TU_INTEGRATION_VALIDATION.md). Các trạng thái local/chờ
+push bên dưới là lịch sử của từng lần triển khai, không thay checkpoint hiện tại.
+
 Ngày lập: **30/10/2026**. Đây là kế hoạch công việc phần mềm sau review.
 Các cập nhật triển khai trong workspace được ghi riêng; kế hoạch ban đầu
 không phải bằng chứng đã hoàn thành hoặc đã merge.

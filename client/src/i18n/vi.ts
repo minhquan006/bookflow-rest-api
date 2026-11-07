@@ -1,4 +1,5 @@
 export const vi = {
+  "Books per page": "Số sách mỗi trang",
   "Secure session coordination is unavailable. Use an up-to-date browser with site storage enabled over HTTPS or localhost.":
     "Không thể đồng bộ phiên an toàn. Hãy dùng trình duyệt mới, cho phép lưu trữ của trang và truy cập bằng HTTPS hoặc localhost.",
   "Your session changed in another tab. Please sign in again.":

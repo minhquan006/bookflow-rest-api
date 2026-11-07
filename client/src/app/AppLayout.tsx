@@ -126,9 +126,7 @@ export function AppLayout({
           </p>
           <a
             className="sidebar-docs"
-            href={
-              import.meta.env.DEV ? "http://127.0.0.1:3000/docs/" : "/docs/"
-            }
+            href="/docs/"
             target="_blank"
             rel="noreferrer"
           >

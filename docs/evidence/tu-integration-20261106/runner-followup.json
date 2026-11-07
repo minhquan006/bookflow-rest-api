@@ -1,0 +1,60 @@
+{
+  "recorded_at_utc": "2026-11-06T15:48:29.616973+00:00",
+  "environment": "Linux cloud, Node 24.19.0/npm 11.9.0, PostgreSQL 17.6, system Chromium",
+  "source_parent": "43456c32f330b44e9c1cffa21467d3892da53cd0",
+  "base_main": "e28ff8340c2fc0e492ec7df1a8a76601bf098180",
+  "validation_source": "uncommitted runner follow-up diff; awaiting commit approval",
+  "regression_negative_control": {
+    "runner": "43456c3",
+    "passed": 5,
+    "expected_failures": 5,
+    "kind": "subprocess with temporary fake CLI, no API/DB"
+  },
+  "regression_after_fix": {
+    "passed": 10,
+    "failed": 0,
+    "kind": "same subprocess tests"
+  },
+  "check": {
+    "passed": true,
+    "tooling": 15,
+    "server": 133,
+    "client": 143,
+    "total_tests": 291,
+    "lint_typecheck_build_contract_format": "passed"
+  },
+  "integration": {
+    "passed": true,
+    "tests": 111,
+    "database": "bookflow_tu_integration_20261106_test"
+  },
+  "browser": [
+    {
+      "command": "npm run test:e2e -- --project=chromium --retries=0",
+      "project": "chromium",
+      "ui_passed": 14,
+      "sessions_passed": 8,
+      "retries": 0
+    },
+    {
+      "command": "npm run test:e2e -- --project=mobile --retries=0 --reporter=list,html",
+      "project": "mobile",
+      "ui_passed": 14,
+      "sessions_passed": 8,
+      "retries": 0
+    }
+  ],
+  "html_reports_verified": [
+    "playwright-report/chromium-ui/index.html",
+    "playwright-report/chromium-sessions/index.html",
+    "playwright-report/mobile-ui/index.html",
+    "playwright-report/mobile-sessions/index.html"
+  ],
+  "api_rate_limit_unchanged": "300/minute",
+  "limits": [
+    "No Mac/Windows run for this follow-up diff",
+    "No CI for this follow-up before commit/push",
+    "Default four-batch planning covered by subprocess regression; full default browser run remains historical at 43456c3",
+    "No new smoke/container/Newman/benchmark run for this runner-only change"
+  ]
+}

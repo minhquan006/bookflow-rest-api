@@ -1,9 +1,11 @@
 # Trạng thái triển khai và tích hợp
 
-Mốc hiện tại đã đối chiếu ngày 06/11/2026: main@`b009783ce455faf0a0acb597e3b79d6e09e6f9f7`
-đã merge PR #9 và #12. A1–A3 ở #10 và T1–T3 ở #11 chưa merge. Bản chuẩn bị #10
-đang kết hợp nền này với DTO/return guard của An và runtime contract assertions
-405/Allow; kết quả và giới hạn ở [AN_QUALITY_VALIDATION](AN_QUALITY_VALIDATION.md).
+Mốc hiện tại đã đối chiếu ngày 06/11/2026: main@`e28ff8340c2fc0e492ec7df1a8a76601bf098180`
+đã merge PR #9 → #12 → #10, gồm Q1–Q3 và A1–A3. Nhánh PR #11 đang
+chuẩn bị tích hợp T1–T3 trên nền này, chưa merge. Kiểm chứng mới ghi riêng ở
+[TU_INTEGRATION_VALIDATION](TU_INTEGRATION_VALIDATION.md); bằng chứng từng nhánh
+ở [AN_QUALITY_VALIDATION](AN_QUALITY_VALIDATION.md),
+[QUAN_VALIDATION](QUAN_VALIDATION.md) và [TU_QUALITY_HANDOFF](TU_QUALITY_HANDOFF.md).
 
 Mốc đã đối chiếu ngày 30/10/2026: main@d3d614f, source tree
 5f8a46f16af3f330d12774fb1c73a1c593496d61. Các thay đổi bảo trì sau mốc này
@@ -30,24 +32,17 @@ với chính sách quyền và contract tương ứng. Kết quả cụ thể v�
 [QUAN_VALIDATION](QUAN_VALIDATION.md); các đoạn ghi còn local/chờ push trong tài liệu
 đó là bằng chứng lịch sử, không thay thế mốc Git mới đã đối chiếu ở trên.
 
-## Lỗi và cải thiện còn mở trên main
+## T1–T3 đang tích hợp trong PR #11
 
-- Loan rows còn hai nhãn tiếng Anh chưa gọi hàm dịch (A2).
-- Link Swagger dev ép cổng 3000; cấu hình cổng và trải nghiệm phân trang cần
-  cải thiện (T1/T2).
-- Thông tin nhận diện phiếu mượn và mở rộng kiểm tra response theo OpenAPI
-  chờ #10/A1–A3. HTTP 405 đã có từ #12; A3 bổ sung runtime assertions khi ghép #10.
+A1–A3 đã vào main qua #10: DTO nhận diện sách/bản sách theo quyền, xác nhận trả
+EN/VI, response guard và runtime contract assertions 405/Allow. Cấu trúc AppRouter,
+AppLayout, Fragment theo viewer và xử lý phiên Q1–Q3 được giữ từ main.
 
-Xem [phân công chi tiết](QUALITY_IMPROVEMENT_PLAN.md). Đánh dấu hoàn thành
-chỉ khi đã sửa, kiểm tra và review, không dựa trên việc đã lập kế hoạch.
-
-Trong workspace, App đã được tách thành router/layout/Home; tiện ích frontend
-dùng chung và tên router backend đã thống nhất. React key hiện dùng role gốc
-để tránh reset state khi đổi ngôn ngữ. Hai regression component tests cho bộ
-lọc MEMBER và bản nháp LIBRARIAN đã thất bại trước sửa, đạt sau sửa. Checklist
-Tú đã review Q1 tại `fb7abcc`, chưa thấy blocker; An đã approve Q2/Q3 tại
-`eff4c0e` và xác nhận lại head `98880e0`. Các phần này đã vào main qua #12;
-việc ghép #10/#11 cần CI và review riêng trên các head mới. Xem [cấu trúc hiện tại](README.md).
+Nhánh Tú giữ shared dev config/proxy/Swagger tương đối của T1; Catalog URL,
+page size 12/24/48 và draft/applied filters của T2; cập nhật bàn giao T3.
+Sau giải quyết conflict cần check, integration và E2E desktop/mobile trên bản ghép,
+review Quân/An và CI của head mới trước merge. Kết quả nhánh riêng không tự
+xác nhận bản ghép. Xem [kế hoạch](QUALITY_IMPROVEMENT_PLAN.md).
 
 ## Bằng chứng
 

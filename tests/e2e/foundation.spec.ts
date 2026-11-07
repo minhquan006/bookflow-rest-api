@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("Swagger loads the actual OpenAPI contract", async ({ page, baseURL }) => {
-  const docsBase = process.env.E2E_EXTERNAL ? baseURL : "http://127.0.0.1:3000";
+  const docsBase = baseURL;
   await page.goto(`${docsBase}/docs/`);
   await expect(page.locator(".swagger-ui .info .title")).toContainText(
     "BookFlow",

@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
-import { afterEach, beforeEach } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
 beforeEach(() => {
   let queue: Promise<unknown> = Promise.resolve();
   Object.defineProperty(navigator, "locks", {
@@ -22,3 +22,8 @@ beforeEach(() => {
   });
 });
 afterEach(() => cleanup());
+
+beforeEach(() => {
+  window.history.replaceState(null, "", "/");
+  vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+});

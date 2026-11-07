@@ -1,0 +1,70 @@
+{
+  "recorded_at_utc": "2026-11-02T13:43:02.177308+00:00",
+  "environment": "Linux, Node 24.19.0, npm 11.9.0, system Chromium",
+  "pr9_head": "40eb9143866306725767f3121599e678e3fddc7c",
+  "pr10_head": "3d0695d4693621f012d053c4824eebebb6c82f4f",
+  "tu_base_head": "0eff395c9192e9b2f06d745a4806860bdfcd3afa",
+  "database": "bookflow_tu_review_20261102_test",
+  "checks": [
+    {
+      "scope": "Q1 on PR9",
+      "command": "npm --prefix client test -- --run tests/catalog-viewer-review.test.tsx",
+      "passed_tests": 16,
+      "exit_code": 0,
+      "observed_summary": ["Test Files  1 passed (1)", "Tests  16 passed (16)"]
+    },
+    {
+      "scope": "PR11 plus review diff",
+      "command": "npm run check",
+      "passed_tests": 175,
+      "exit_code": 0,
+      "observed_summary": [
+        "Test Files  4 passed (4)",
+        "Tests  66 passed (66)",
+        "Test Files  16 passed (16)",
+        "Tests  104 passed (104)",
+        "OpenAPI 3.1.0: 32 operations validated; Postman JSON valid.",
+        "All matched files use Prettier code style!"
+      ]
+    },
+    {
+      "scope": "PR10",
+      "command": "npm run check",
+      "passed_tests": 168,
+      "exit_code": 0,
+      "observed_summary": [
+        "Test Files  5 passed (5)",
+        "Tests  67 passed (67)",
+        "Test Files  13 passed (13)",
+        "Tests  101 passed (101)",
+        "OpenAPI 3.1.0: 32 operations validated; Postman JSON valid.",
+        "All matched files use Prettier code style!"
+      ]
+    },
+    {
+      "scope": "PR10 isolated schemas",
+      "command": "npm run test:integration",
+      "passed_tests": 107,
+      "exit_code": 0,
+      "observed_summary": [
+        "Test Files  4 passed (4)",
+        "Tests  107 passed (107)"
+      ]
+    },
+    {
+      "scope": "PR10 actual API/DB",
+      "command": "npm run test:e2e -- tests/e2e/business-flow.spec.ts",
+      "passed_tests": 2,
+      "exit_code": 0,
+      "observed_summary": ["2 passed (4.9s)"]
+    }
+  ],
+  "browser_q1_cases": 8,
+  "browser_a2_cases": 8,
+  "old_key_negative_control": {
+    "expected_failures": 4,
+    "not_selected": 12,
+    "source_restored": true
+  },
+  "review_diff_uncommitted_during_validation": true
+}

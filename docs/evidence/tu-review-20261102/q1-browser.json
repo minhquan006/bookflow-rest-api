@@ -1,0 +1,95 @@
+{
+  "head": "40eb9143866306725767f3121599e678e3fddc7c",
+  "environment": "Linux Chromium",
+  "api": "mocked HTTP for frontend/keyboard/CSS review; not backend E2E evidence",
+  "cases": [
+    {
+      "viewport": "desktop",
+      "locale": "en",
+      "role": "MEMBER",
+      "queryCategorySortPage": true,
+      "languageRoundTrip": true,
+      "createAndEditBarcode": false,
+      "noMutation": true,
+      "skipLinkKeyboardFocus": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "viewport": "desktop",
+      "locale": "en",
+      "role": "LIBRARIAN",
+      "queryCategorySortPage": true,
+      "languageRoundTrip": true,
+      "createAndEditBarcode": true,
+      "noMutation": true,
+      "skipLinkKeyboardFocus": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "viewport": "desktop",
+      "locale": "vi",
+      "role": "MEMBER",
+      "queryCategorySortPage": true,
+      "languageRoundTrip": true,
+      "createAndEditBarcode": false,
+      "noMutation": true,
+      "skipLinkKeyboardFocus": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "viewport": "desktop",
+      "locale": "vi",
+      "role": "LIBRARIAN",
+      "queryCategorySortPage": true,
+      "languageRoundTrip": true,
+      "createAndEditBarcode": true,
+      "noMutation": true,
+      "skipLinkKeyboardFocus": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "viewport": "mobile",
+      "locale": "en",
+      "role": "MEMBER",
+      "queryCategorySortPage": true,
+      "languageRoundTrip": true,
+      "createAndEditBarcode": false,
+      "noMutation": true,
+      "skipLinkKeyboardFocus": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "viewport": "mobile",
+      "locale": "en",
+      "role": "LIBRARIAN",
+      "queryCategorySortPage": true,
+      "languageRoundTrip": true,
+      "createAndEditBarcode": true,
+      "noMutation": true,
+      "skipLinkKeyboardFocus": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "viewport": "mobile",
+      "locale": "vi",
+      "role": "MEMBER",
+      "queryCategorySortPage": true,
+      "languageRoundTrip": true,
+      "createAndEditBarcode": false,
+      "noMutation": true,
+      "skipLinkKeyboardFocus": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "viewport": "mobile",
+      "locale": "vi",
+      "role": "LIBRARIAN",
+      "queryCategorySortPage": true,
+      "languageRoundTrip": true,
+      "createAndEditBarcode": true,
+      "noMutation": true,
+      "skipLinkKeyboardFocus": true,
+      "noHorizontalOverflow": true
+    }
+  ]
+}

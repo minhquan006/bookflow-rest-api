@@ -29,6 +29,14 @@ unchanged. Swagger/OpenAPI remains the English API contract. Unrecognized API er
 details remain visible in their original language rather than losing diagnostic
 information.
 
+## Catalog state
+
+The App viewer key uses user ID and raw role. EN/VI changes preserve Catalog
+create/edit/copy drafts; identity or role changes still clear the old viewer.
+Applied filters, sort, page and size are stored in the Catalog URL.
+Quân must review this minimal Q1 prerequisite when integrating Q1.
+See [actual T1–T3 checks](TU_QUALITY_HANDOFF.md).
+
 ## Maintenance
 
 `client/src/i18n/LanguageProvider.tsx` owns language selection and persistence.

@@ -1,0 +1,75 @@
+{
+  "recorded_at_utc": "2026-11-06T05:46:54.915977+00:00",
+  "environment": "Linux cloud, Node 24.19.0, npm 11.9.0, PostgreSQL 17.6, system Chromium",
+  "branch": "feat/tu-quality-improvements",
+  "tu_parent": "bcf0fc4401c821adc1bbea47394e8d50be375070",
+  "main_parent": "e28ff8340c2fc0e492ec7df1a8a76601bf098180",
+  "validation_source": "working tree after merge conflict resolution; commit not yet authorized",
+  "initial_conflict_files": [
+    "README.md",
+    "client/src/App.tsx",
+    "client/src/features/catalog/CatalogPage.tsx",
+    "client/src/i18n/vi.ts",
+    "client/tests/setup.ts",
+    "docs/API_CONTRACT.md",
+    "docs/IMPLEMENTATION_STATUS.md",
+    "docs/QUALITY_IMPROVEMENT_PLAN.md",
+    "docs/REQUIREMENTS_TRACEABILITY.md",
+    "docs/TEAM_HANDOFF.md",
+    "tests/e2e/language.spec.ts"
+  ],
+  "checks": [
+    {
+      "command": "npm run check",
+      "passed": true,
+      "tooling": 5,
+      "server": 133,
+      "client": 143,
+      "total_tests": 281
+    },
+    {
+      "command": "npm run test:integration",
+      "passed": true,
+      "tests": 111
+    },
+    {
+      "command": "npm run test:e2e",
+      "passed": true,
+      "desktop": 22,
+      "mobile": 22,
+      "ui_per_project": 14,
+      "sessions_per_project": 8,
+      "retries": 0
+    },
+    {
+      "command": "SMOKE_BASE_URL=http://127.0.0.1:5196 npm run smoke",
+      "passed": true,
+      "checks": 11
+    }
+  ],
+  "initial_e2e_attempt": {
+    "desktop_passed": 19,
+    "desktop_failed": 3,
+    "observed_status": 429,
+    "affected_paths": [
+      "/api/v1/books/:id/availability",
+      "/api/v1/books/:id",
+      "/api/v1/auth/register"
+    ],
+    "resolution": "fresh managed API for each UI/session group and browser project"
+  },
+  "api_rate_limit_unchanged": "300 requests per minute",
+  "database": "bookflow_tu_integration_20261106_test",
+  "ci_for_new_head": "not available before commit/push",
+  "limits": [
+    "Linux results do not certify Windows/Mac hardware",
+    "No full API/Nginx image rebuild, Newman or benchmark in this integration run",
+    "Updated head still requires reviewer signoff"
+  ],
+  "dev_launcher": {
+    "startup": "configured API 3146 and web 5196",
+    "shutdown": "direct SIGINT to owned launcher",
+    "ports_free_after_signal": [3146, 5196],
+    "windows_mac_terminal_ctrl_c": "not rerun"
+  }
+}

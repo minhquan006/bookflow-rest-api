@@ -16,6 +16,10 @@ hàng ID 1 mục II, mục III–V và Teamworking Policy. [Blueprint](PROJECT_B
 là thiết kế nhóm tự chọn, không thay đề bài. Quân xác nhận **hạn 30/10/2026** và
 chỉ có đề DOCX trên là yêu cầu giảng viên đã cung cấp; chưa có giờ nộp cụ thể.
 
+Checkpoint phần mềm 06/11/2026: main@`e28ff83` đã nhận #9/#12/#10.
+T1–T3 đang tích hợp ở #11, chưa merge; xem [kiểm chứng mới](TU_INTEGRATION_VALIDATION.md).
+Trạng thái phần mềm không xác nhận báo cáo/slide/video đã hoàn tất.
+
 ## Yêu cầu và bằng chứng
 
 | Căn cứ             | Yêu cầu/định hướng                                                                     | Trạng thái và việc còn lại                                                                                                                                                                      |

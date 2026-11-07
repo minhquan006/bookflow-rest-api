@@ -161,3 +161,59 @@ test("signed-in member keeps applied search, category, sort and page across EN�
   ).toEqual(titles);
   expect(writes).toBe(0);
 });
+
+test("staff Catalog drafts survive language changes without submissions", async ({
+  page,
+}) => {
+  const password = process.env.SEED_DEMO_PASSWORD;
+  if (!password) throw new Error("SEED_DEMO_PASSWORD is required.");
+  const mutations: string[] = [];
+  page.on("request", (request) => {
+    if (
+      /\/api\/v1\/(books|copies)/.test(request.url()) &&
+      !["GET", "HEAD"].includes(request.method())
+    )
+      mutations.push(request.method());
+  });
+  await page.goto("/login");
+  await page
+    .getByLabel("Email", { exact: true })
+    .fill("librarian@bookflow.test");
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page
+    .locator("form")
+    .getByRole("button", { name: "Sign in", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Add book", exact: true }).click();
+  await page
+    .getByLabel("Title", { exact: true })
+    .fill("Unsubmitted create draft");
+  await page.getByLabel("Language", { exact: true }).selectOption("vi");
+  await expect(page.getByLabel("Tên sách", { exact: true })).toHaveValue(
+    "Unsubmitted create draft",
+  );
+  await page.getByLabel("Ngôn ngữ", { exact: true }).selectOption("en");
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue(
+    "Unsubmitted create draft",
+  );
+  await page.goto("/books/10000000-0000-4000-8000-000000000001");
+  await page.getByLabel("New copy barcode").fill("Unsubmitted barcode");
+  await page
+    .getByRole("button", { name: "Edit metadata", exact: true })
+    .click();
+  await page
+    .getByLabel("Title", { exact: true })
+    .fill("Unsubmitted edit draft");
+  await page.getByLabel("Language", { exact: true }).selectOption("vi");
+  await expect(page.getByLabel("Tên sách", { exact: true })).toHaveValue(
+    "Unsubmitted edit draft",
+  );
+  await expect(page.getByLabel("Mã vạch bản sách mới")).toHaveValue(
+    "Unsubmitted barcode",
+  );
+  await page.getByLabel("Ngôn ngữ", { exact: true }).selectOption("en");
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue(
+    "Unsubmitted edit draft",
+  );
+  expect(mutations).toEqual([]);
+});

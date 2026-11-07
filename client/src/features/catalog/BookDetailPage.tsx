@@ -1,3 +1,5 @@
+import { useBrowserLocation } from "../../lib/navigation";
+import { catalogHref, readCatalogQuery } from "./catalogQuery";
 import { useTranslation } from "../../i18n/language";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
@@ -67,6 +69,7 @@ export function BookDetailPage({
 }) {
   const { t, translate } = useTranslation();
   const { user, api } = useAuth();
+  const { search } = useBrowserLocation();
   const staff = user?.role === "LIBRARIAN" || user?.role === "ADMIN";
   const [book, setBook] = useState<Book | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -302,7 +305,13 @@ export function BookDetailPage({
     book?.id === bookId && (!book.archivedAt || staff) ? book : null;
   return (
     <div className="stack">
-      <Button onClick={() => onNavigate("/books")}>
+      <Button
+        onClick={() =>
+          onNavigate(
+            search ? catalogHref(readCatalogQuery(search, staff)) : "/books",
+          )
+        }
+      >
         {t("Back to catalog")}
       </Button>
       {loading && (

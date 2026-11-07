@@ -146,7 +146,9 @@ describe("catalog and copy screens", () => {
     await userEvent.click(
       screen.getByRole("button", { name: `View ${book.title}` }),
     );
-    expect(navigate).toHaveBeenCalledWith(`/books/${book.id}`);
+    expect(navigate).toHaveBeenCalledWith(
+      `/books/${book.id}${window.location.search}`,
+    );
   });
 
   it("reports a catalog failure and permits a manual retry", async () => {
@@ -200,7 +202,9 @@ describe("catalog and copy screens", () => {
         }),
       ),
     );
-    expect(navigate).toHaveBeenCalledWith(`/books/${book.id}`);
+    expect(navigate).toHaveBeenCalledWith(
+      `/books/${book.id}?page=1&limit=12&sort=title`,
+    );
   });
 
   it("loads later category option pages for both filtering and book forms", async () => {

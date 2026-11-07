@@ -13,7 +13,7 @@ client/src/
   app/
     AppRouter.tsx          Chọn trang, kiểm tra quyền ở UI
     AppLayout.tsx          Header, menu, footer, thông báo phiên
-    usePath.ts             Theo dõi và cập nhật browser history
+    usePath.ts             Dùng chung pathname/query history từ lib/navigation
   features/
     home/                  Trang tổng quan, trạng thái kết nối API
     auth/                  Phiên đăng nhập, đăng ký, đăng nhập
@@ -73,6 +73,8 @@ UI/tích hợp chạy E2E liên quan; thay đổi DB/nghiệp vụ chạy integr
 - [QUALITY_IMPROVEMENT_PLAN](QUALITY_IMPROVEMENT_PLAN.md): lỗi, phân công và tiêu chí.
 - [QUAN_VALIDATION](QUAN_VALIDATION.md): Q1–Q3, kiểm thử và checklist review chéo.
 - [LANGUAGES](LANGUAGES.md): ngôn ngữ, giới hạn và quy tắc bảo trì.
+- [TU_INTEGRATION_VALIDATION](TU_INTEGRATION_VALIDATION.md): tích hợp #11 trên
+  main sau #9/#12/#10, file conflict và kiểm chứng mới.
 - [REPOSITORY_MAINTENANCE](REPOSITORY_MAINTENANCE.md): đợt dọn repo và PR Catalog cũ.
 - [FULL_VALIDATION](FULL_VALIDATION.md), [LOANS_VALIDATION](LOANS_VALIDATION.md),
   [BENCHMARK](BENCHMARK.md) và [evidence](evidence/README.md): kết quả theo từng
