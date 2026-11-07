@@ -24,6 +24,11 @@ Xem [bàn giao](docs/TEAM_HANDOFF.md), [trạng thái](docs/IMPLEMENTATION_STATU
 [kiểm chứng tích hợp](docs/TU_INTEGRATION_VALIDATION.md).
 Các validation cũ giữ nguyên phạm vi và môi trường lịch sử.
 
+Bản hoàn thiện source trên nhánh `fix/source-finalization` bắt đầu từ head
+`11c5445` của #11, gồm toàn bộ bản tích hợp và bản vá dependency xử lý request
+nén. Kết quả kiểm chứng và các bước phát hành còn lại được ghi riêng trong
+[SOURCE_FINALIZATION](docs/SOURCE_FINALIZATION.md); chưa coi nhánh local là main.
+
 ## Ngôn ngữ giao diện
 
 Chọn **Language / Ngôn ngữ** ở đầu trang để chuyển giữa **English** và
@@ -169,7 +174,7 @@ Branch protection do maintainer bật. Mã có AI hỗ trợ phải được ng�
 chạy thử, chỉnh sửa và tự commit bằng danh tính Git của mình. Không thay author,
 force-push nhánh thành viên hoặc tạo lịch sử đóng góp giả.
 
-Quân xác nhận hạn nộp **30/10/2026**, chưa có giờ cụ thể. Đề chính thức là
+Quân cập nhật hạn nộp là **hết ngày 08/11/2026, giờ Việt Nam**. Đề chính thức là
 `docs/503073-Midterm-V1.docx`. Báo cáo Word/PDF tiếng Anh 20–60 trang, slide,
 video tiếng Anh có âm thanh tối đa 20 phút và đủ ba người vẫn phải hoàn thiện.
 Mẫu Khoa được đề tham chiếu nhưng chưa được cung cấp. Xem

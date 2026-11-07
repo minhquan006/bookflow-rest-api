@@ -24,6 +24,11 @@ Mốc mới đã đối chiếu ngày 06/11/2026: main@`e28ff8340c2fc0e492ec7df1
 
 ## Công việc tiếp theo
 
+Nhánh Quân `fix/source-finalization` bắt đầu từ head #11 `11c5445` để giữ đầy đủ
+T1–T3 cùng Q1–Q3/A1–A3, cập nhật body-parser và bổ sung regression request nén.
+Xem [checkpoint source cuối](SOURCE_FINALIZATION.md). Không đẩy nhánh này vào
+nhánh Tú; sau khi #11 merge, tạo PR riêng vào main cho phần sửa còn lại.
+
 [Kế hoạch cải thiện chất lượng](QUALITY_IMPROVEMENT_PLAN.md) chia Q1–Q3,
 T1–T3 và A1–A3, có phạm vi, phụ thuộc, kiểm thử và review chéo.
 
@@ -32,11 +37,13 @@ Giữ lịch sử kiểm chứng tại [Quân](QUAN_VALIDATION.md),
 [An](AN_QUALITY_VALIDATION.md), [Tú](TU_QUALITY_HANDOFF.md) và
 [review Q1/A2](TU_FRONTEND_REVIEW.md).
 
-Thứ tự thống nhất: #9 → #12 → #10 → #11. Tú đang cập nhật #11 từ `bcf0fc4`
-lên nền main@`e28ff83`, giữ cấu trúc router/layout, session coordination,
+Thứ tự thống nhất: #9 → #12 → #10 → #11. Tú đã tích hợp #11 trên main@`e28ff83`
+và sửa runner tại head `11c5445`, giữ router/layout, session coordination,
 loan DTO/return guard, runtime 405/Allow và cấu hình T1/URL state T2.
-Quân review lại T1/T3 và An đối chiếu T2 trên head mới sau khi Tú commit/push.
-Review nhánh cũ và CI main không thay thế kiểm tra/CI của head tích hợp #11.
+Quân đã kiểm tra lại T1/T3 trên Mac; An đã đối chiếu T2 trên head này. CI push
+và pull_request của `11c5445` đạt. Checkpoint GitHub lúc bắt đầu nhánh hoàn thiện:
+#11 Ready nhưng chưa có approval chính thức và chưa merge. Review từng head
+không thay thế CI của commit merge hoặc phần sửa thêm trên nhánh Quân.
 
 ## Bắt đầu làm việc
 

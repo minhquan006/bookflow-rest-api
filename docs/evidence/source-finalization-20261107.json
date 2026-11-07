@@ -1,0 +1,95 @@
+{
+  "checkpoint": "2026-11-07",
+  "branch": "fix/source-finalization",
+  "base": "11c54456bcf67d42e1452fe1a300164b7a03c577",
+  "sourceState": "uncommitted working diff; no published head or new CI result",
+  "runtime": {
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "changedSourceSha256": {
+    "server/package-lock.json": "1ba396f332e3cbf316f9128e30cd4f1c7d71e6f4f072658457f445702a2286c3",
+    "server/tests/request-body.test.ts": "3128848be088735ab87e2014a90436065a9b1495d8aa1fffb77c3f642d41e466",
+    "server/tests/fixtures/request-body-server.ts": "e2a3948eb7c9a0e92ebd0041d547197992a0487760cb0fab32f574a403b492c9",
+    ".github/workflows/ci.yml": "908751ca94856a8b771b2634fd3ac4ff9efdaf52debab8fd5ad2c1419b97004b"
+  },
+  "bodyParser": "2.4.0",
+  "baseline": {
+    "version": "2.3.0",
+    "passed": 7,
+    "failed": 1,
+    "failure": "gzip trailing bytes terminate fixture process with Z_DATA_ERROR"
+  },
+  "check": {
+    "tooling": 15,
+    "backend": 141,
+    "frontend": 143,
+    "total": 299
+  },
+  "integration": {
+    "passed": 111,
+    "failed": 0
+  },
+  "e2e": {
+    "desktop": 22,
+    "mobile": 22,
+    "retries": 0
+  },
+  "proxySmoke": 11,
+  "migrateSeedRerun": true,
+  "devShutdownPortsReleased": true,
+  "originalEnvFilesPreserved": true,
+  "ownedTestDatabaseRemoved": true,
+  "audit": [
+    {
+      "scope": ".",
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    {
+      "scope": "server",
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    {
+      "scope": "client",
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    }
+  ],
+  "docker": {
+    "status": "passed",
+    "build": {
+      "api": true,
+      "web": true
+    },
+    "migrateSeed": true,
+    "healthyServices": ["db", "api", "web"],
+    "nginxSmoke": 11,
+    "runtime": {
+      "node": "v24.19.0",
+      "platform": "linux",
+      "architecture": "arm64",
+      "bodyParser": "2.4.0",
+      "uid": 1000
+    },
+    "browserRerun": false,
+    "onlyOwnedResourcesRemoved": true,
+    "privateEnvRemoved": true,
+    "testPortsReleased": true
+  }
+}

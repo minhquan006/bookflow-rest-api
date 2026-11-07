@@ -1,5 +1,10 @@
 # Trạng thái triển khai và tích hợp
 
+Checkpoint local tiếp theo: nhánh `fix/source-finalization` dựa trên #11
+`11c5445`, giữ đầy đủ T1–T3/Q1–Q3/A1–A3 và bổ sung bản vá dependency cùng
+regression request nén. Xem [SOURCE_FINALIZATION](SOURCE_FINALIZATION.md) để
+biết kết quả thực chạy và phần phát hành chưa hoàn tất.
+
 Mốc hiện tại đã đối chiếu ngày 06/11/2026: main@`e28ff8340c2fc0e492ec7df1a8a76601bf098180`
 đã merge PR #9 → #12 → #10, gồm Q1–Q3 và A1–A3. Nhánh PR #11 đang
 chuẩn bị tích hợp T1–T3 trên nền này, chưa merge. Kiểm chứng mới ghi riêng ở
@@ -40,9 +45,11 @@ AppLayout, Fragment theo viewer và xử lý phiên Q1–Q3 được giữ từ 
 
 Nhánh Tú giữ shared dev config/proxy/Swagger tương đối của T1; Catalog URL,
 page size 12/24/48 và draft/applied filters của T2; cập nhật bàn giao T3.
-Sau giải quyết conflict cần check, integration và E2E desktop/mobile trên bản ghép,
-review Quân/An và CI của head mới trước merge. Kết quả nhánh riêng không tự
-xác nhận bản ghép. Xem [kế hoạch](QUALITY_IMPROVEMENT_PLAN.md).
+Head tích hợp `11c5445` đã sửa finding runner, có CI đạt và được Quân kiểm tra
+lại T1/T3 trên Mac, An đối chiếu T2. Checkpoint lúc bắt đầu bản hoàn thiện:
+#11 đã Ready, còn approval chính thức/merge. Kết quả working diff có bản vá
+parser được ghi riêng ở SOURCE_FINALIZATION; không dùng CI của head Tú để
+xác nhận phần sửa thêm. Xem [kế hoạch](QUALITY_IMPROVEMENT_PLAN.md).
 
 ## Bằng chứng
 
@@ -61,5 +68,5 @@ lịch sử. [Repository maintenance](REPOSITORY_MAINTENANCE.md) mô tả phạm
 source và review PR cũ. Kiểm tra CI của đúng commit trước khi viện dẫn kết quả.
 
 Hồ sơ học phần cần được nhóm xác nhận riêng theo
-[REQUIREMENTS_TRACEABILITY](REQUIREMENTS_TRACEABILITY.md). Hạn Quân đã cung cấp
-là 30/10/2026, chưa có giờ nộp cụ thể.
+[REQUIREMENTS_TRACEABILITY](REQUIREMENTS_TRACEABILITY.md). Quân đã cập nhật hạn
+nộp là hết ngày 08/11/2026, giờ Việt Nam.

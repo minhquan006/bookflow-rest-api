@@ -13,8 +13,8 @@ REST API and Web Application.
 
 Nguồn chính thức: [`503073-Midterm-V1.docx`](503073-Midterm-V1.docx), mục I,
 hàng ID 1 mục II, mục III–V và Teamworking Policy. [Blueprint](PROJECT_BLUEPRINT.md)
-là thiết kế nhóm tự chọn, không thay đề bài. Quân xác nhận **hạn 30/10/2026** và
-chỉ có đề DOCX trên là yêu cầu giảng viên đã cung cấp; chưa có giờ nộp cụ thể.
+là thiết kế nhóm tự chọn, không thay đề bài. Quân cập nhật **hạn hết ngày
+08/11/2026, giờ Việt Nam**; đề DOCX trên là yêu cầu giảng viên đã cung cấp.
 
 Checkpoint phần mềm 06/11/2026: main@`e28ff83` đã nhận #9/#12/#10.
 T1–T3 đang tích hợp ở #11, chưa merge; xem [kiểm chứng mới](TU_INTEGRATION_VALIDATION.md).
@@ -45,7 +45,7 @@ viết so sánh định tính; phải phân biệt khảo sát với thực nghi
 | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | P0/P1 mục 1.4                                         | Source tích hợp triển khai Auth/Users, Catalog/Copies, Loans, refresh/CSRF, ETag/If-Match, dashboard/audit; xem FULL_VALIDATION để biết kết quả thật |
 | Tối đa 3 loan, hạn 14×24 giờ, chặn overdue/mượn trùng | Luật demo tự chọn; có service/transaction và test DB thật, không phải quy định giảng viên                                                            |
-| Kế hoạch 7 ngày với AI                                | Kế hoạch nội bộ; đề cho 8 tuần. Hạn30/10/2026 là thông tin Quân xác nhận, không suy ra từ kế hoạch                                                   |
+| Kế hoạch 7 ngày với AI                                | Kế hoạch nội bộ; đề cho 8 tuần. Hạn hết ngày 08/11/2026 do Quân cập nhật, không suy ra từ kế hoạch                                                   |
 | Hosting công khai                                     | Tùy chọn; chưa cần mua dịch vụ/domain hoặc microservices                                                                                             |
 | P2: đặt trước/email/OAuth login/full-text             | Hướng mở rộng; không tự thêm vào phạm vi nộp hiện tại                                                                                                |
 
@@ -57,6 +57,6 @@ viết so sánh định tính; phải phân biệt khảo sát với thực nghi
 và Loans; không tự áp dụng cho `main` hay những commit thành viên viết thêm sau đó.
 
 Còn cần báo cáo Word/PDF, slide, video, ảnh thật, kiểm tra máy thứ hai và kết quả
-CI sau merge. Thông tin giảng viên, mẫu Khoa và giờ nộp chưa có; phải xác nhận
+CI sau merge. Thông tin giảng viên và mẫu Khoa chưa được cung cấp; phải xác nhận
 trước khi hoàn thiện hồ sơ. Hoàn thành source không bảo đảm mức điểm hoặc đủ
 mọi sản phẩm đầu ra của môn học.
