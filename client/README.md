@@ -1,60 +1,68 @@
-# BookFlow client
+# BookFlow frontend
 
-React + TypeScript + Vite. Use Node 24.19.0 and npm 11. Install dependencies
-from the repository root with npm ci and npm run deps; start the API and
-client as described in the [root README](../README.md).
+The client uses React, TypeScript and Vite. It provides the public catalog,
+member circulation screens, staff catalog/return management and administrator
+user/audit screens in English and Vietnamese.
 
-Default dev uses frontend 5173 and proxies /api to API 3000. On Quân's Mac,
-BookFlow uses frontend 5174 and API 3100 with the existing local helper;
-PostgreSQL uses 5433. Keep these local settings until configuration task T1
-is implemented. The current dev Swagger link still assumes API 3000.
+## Run locally
 
-VITE_API_BASE_URL defaults to /api/v1. VITE variables are public browser
-configuration and must not contain credentials. Access tokens remain in memory;
-refresh/CSRF cookies are handled by the Auth provider and backend. Authentication
-requires Web Locks, writable site storage and HTTPS or localhost. The only session
-metadata in localStorage is `bookflow.session.revision`, an opaque revision without
-credentials or user data. Unsupported coordination refuses authentication while
-public browsing and in-memory language switching remain available.
+Use Node 24.19.0 and npm 11. Follow the [root setup guide](../README.md) to install
+all packages, configure the application and prepare PostgreSQL. The normal entry
+point is `npm run dev` from the repository root; it starts both API and client.
 
-## Implemented screens
+For a client-only process, with a configured API already running:
 
-- Authentication, account and administrator user management.
-- Public catalog and book details; staff categories, books and physical copies.
-- Member/staff loans, staff dashboard and administrator audit viewer.
-- English/Vietnamese selector and language preference persistence.
+```bash
+npm --prefix client run dev
+```
 
-Q1–Q3 implementation, verification and peer-review handoff are recorded in
-[Quân's validation](../docs/QUAN_VALIDATION.md). These workspace changes are based
-on PR #9; they do not imply a merge into main.
+The default web/API ports are 5173/3000. The shared root configuration controls
+Vite's strict port and its proxy for `/api`, `/docs`, `/openapi.yaml` and `/health`.
+Swagger uses the relative `/docs/` link. See
+[development profiles](../docs/DEV_PROFILES.md) for alternate ports.
 
-## Shared implementation
+`VITE_API_BASE_URL` defaults to `/api/v1`. All `VITE_*` values are public and must
+not contain credentials. `npm --prefix client run preview` previews a built client;
+it does not start PostgreSQL or the API and is not a substitute for the full stack.
 
-- src/lib/http.ts provides createApiClient, ApiError and request metadata.
-  A 204/304 has no data; features retain their cached representation for 304.
-  Mutations are not automatically retried.
-- src/features/auth/AuthContext.tsx manages the memory-only access token,
-  session restoration, refresh and logout. Protected GET recovery is composed
-  here; the underlying generic HTTP client does not refresh sessions itself.
-- src/components supplies shared buttons, fields, feedback and pagination.
-- src/App.tsx composes the language and authentication providers around AppRouter.
-- src/app/AppRouter.tsx selects pages and applies UI access guards; AppLayout.tsx
-  owns the shared shell and navigation; usePath.ts handles browser history.
-  Backend authorization and ownership checks remain required for every protected operation.
-- src/features/home/HomePage.tsx owns the overview and API connection status.
-- src/lib/errors.ts, datetime.ts and pagination.ts contain shared error mapping,
-  date formatting and paginated response types. Feature DTOs stay in their feature.
-- src/styles/index.css loads base, shared component, layout and feature styles in
-  a fixed order. Keep feature-specific selectors beside the feature.
-- src/i18n supplies language context and translations. Do not translate stored
-  book/user content or use translated labels as state identity.
+## Structure
 
-Keep API DTOs aligned with OpenAPI. Do not import backend source into the browser.
+| Path              | Responsibility                                                       |
+| ----------------- | -------------------------------------------------------------------- |
+| `src/main.tsx`    | React entry point and stylesheet loading                             |
+| `src/App.tsx`     | Language and authentication providers                                |
+| `src/app/`        | Page routing, viewer guards, shared layout and browser history       |
+| `src/features/`   | Home, authentication, users, catalog, loans and administration       |
+| `src/components/` | Shared buttons, fields, feedback, language selector and pagination   |
+| `src/lib/`        | HTTP requests, navigation, error mapping, dates and pagination types |
+| `src/i18n/`       | Language context, persistence and Vietnamese translations            |
+| `src/styles/`     | Base, shared component and layout styles                             |
+| `tests/`          | Component, request handling, navigation and state regression tests   |
 
-## Checks
+Feature DTOs and feature-specific CSS stay with their feature. `src/styles/index.css`
+loads styles in a defined order; keep that order when changing shared styles.
 
-From the repository root, source changes require npm run check; relevant UI
-changes require the applicable root Playwright tests. Client-only commands are:
+## Requests and session state
+
+`src/lib/http.ts` provides `createApiClient`, `ApiError` and request metadata.
+Responses with 204 or 304 have no replacement data; a feature keeps its cached
+representation for 304. Mutations are not automatically retried.
+
+The authentication provider owns the memory-only access token, cookie-based
+session restoration, refresh and logout. It composes recovery for protected GET
+requests; the generic HTTP client does not refresh sessions itself. Cross-tab
+coordination uses Web Locks and an opaque `bookflow.session.revision` marker.
+Authentication requires writable site storage and localhost or HTTPS. Unsupported
+coordination produces feedback while public browsing remains available.
+
+Language changes preserve the current viewer and feature drafts. Identity or role
+changes clear the previous viewer's state; late responses cannot restore it.
+Backend role and ownership checks remain the security boundary. Keep DTOs aligned
+with OpenAPI and do not import backend source into the frontend.
+
+## Validation
+
+Run from the repository root:
 
 ```bash
 npm --prefix client run lint
@@ -62,3 +70,7 @@ npm --prefix client run typecheck
 npm --prefix client test
 npm --prefix client run build
 ```
+
+Before integrating source changes, run the root `npm run check` and relevant
+Playwright flows. See [language behavior](../docs/LANGUAGES.md) and
+[recorded validation](../docs/SOURCE_FINALIZATION.md) for scope.

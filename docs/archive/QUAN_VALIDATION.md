@@ -100,7 +100,7 @@ Origin/HMAC CSRF/session binding, rotation và reuse detection được giữ ng
   cùng contract và tests. Foundation Postman thêm known method sai, nested route
   và unknown URI; JSON/schema được kiểm tra, chưa chạy Newman ở đợt này.
 
-Chi tiết chính sách ở [API_CONTRACT](API_CONTRACT.md#404-405-head-và-options).
+Chi tiết chính sách ở [API_CONTRACT](../API_CONTRACT.md#404-405-head-và-options).
 
 ## Kiểm chứng bản ban đầu ngày 01/11/2026
 

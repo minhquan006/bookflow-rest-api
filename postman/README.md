@@ -1,58 +1,62 @@
-# Chạy Postman cho BookFlow
+# BookFlow Postman collections
 
-| Collection                                  | Mục đích                                                                |
-| ------------------------------------------- | ----------------------------------------------------------------------- |
-| `BookFlow.postman_collection.json`          | Smoke health/readiness/API/docs và lỗi 404                              |
-| `BookFlow.catalog.postman_collection.json`  | Ví dụ/kiểm tra Catalog hiện có của Tú                                   |
-| `BookFlow.business.postman_collection.json` | 20 request tuần tự kiểm tra luồng nghiệp vụ trên bản tích hợp đủ module |
+These collections exercise the running API. Follow the [root setup guide](../README.md)
+to start PostgreSQL, migrate, seed and run the application before using them.
 
-Import collection và `BookFlow.local.postman_environment.json`. Nhập giá trị
-local trong Postman, không export/commit environment có password/token thật.
+| Collection                                  | Purpose                                                                          |
+| ------------------------------------------- | -------------------------------------------------------------------------------- |
+| `BookFlow.postman_collection.json`          | Health, readiness, API information, documentation and unknown-route smoke checks |
+| `BookFlow.catalog.postman_collection.json`  | Catalog requests and checks                                                      |
+| `BookFlow.business.postman_collection.json` | Ordered 20-request integrated business workflow                                  |
 
-## Cấu hình chạy
+## Configure Postman
 
-- `baseUrl`: API origin, không thêm `/api/v1`. Dev API trực tiếp dùng
-  `http://127.0.0.1:3000`; dev business qua Vite có thể dùng
-  `http://127.0.0.1:5173`; Docker/Nginx dùng `http://127.0.0.1:8080`.
-- `frontendOrigin`: Origin được API cho phép, dev 5173 hoặc Docker 8080 tương ứng.
-  Refresh/logout yêu cầu Origin chính xác; không để slash cuối hoặc nhầm cổng.
-- `adminEmail`: mặc định `admin@bookflow.test`.
-- `adminPassword`: nhập password local đã seed (`SEED_DEMO_PASSWORD`). Nếu seed
-  chạy lại, password của tài khoản cũ vẫn giữ, không tự đổi theo file mới.
-- Các biến token/CSRF/IDs của lần chạy được collection tạo; không đưa vào Git.
+Import a collection and `BookFlow.local.postman_environment.json`. Set local
+values in Postman; do not export or commit an environment containing credentials.
 
-API/DB phải chạy và đã migrate/seed. Trên dev, `/health` và `/docs` nằm ở API 3000,
-không được Vite proxy; do đó smoke collection dùng 3000. Docker smoke dùng 8080.
+| Variable         | Value                                                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `baseUrl`        | Service origin without `/api/v1`: direct API `http://127.0.0.1:3000`, Vite `http://127.0.0.1:5173`, or Docker `http://127.0.0.1:8080` |
+| `frontendOrigin` | An exact origin allowed by the API, usually the matching Vite or Docker web origin; no trailing slash                                 |
+| `adminEmail`     | `admin@bookflow.test`                                                                                                                 |
+| `adminPassword`  | The password originally seeded from local `SEED_DEMO_PASSWORD`                                                                        |
+
+The alternate Mac profile uses API 3100 and web 5174. Vite proxies API,
+documentation and health routes, so smoke checks can run through either the API
+or web origin. Refresh/logout require the correct Origin and CSRF handling.
+Runtime tokens, CSRF values, resource IDs and ETags are populated by collection
+scripts; keep them out of shared environment files.
 
 ## Business workflow
 
-Chạy **toàn bộ collection theo thứ tự 01–20** trên source tích hợp hiện tại.
-Nó tạo MEMBER tổng hợp với email/password ngẫu nhiên, login admin, tạo category/
-book/copy, GET metadata/304, kiểm tra stale update, login/refresh MEMBER, borrow,
-kiểm tra lịch sử/quyền, staff return/idempotency, dashboard/audit, archive và logout.
+Run the complete business collection in its 01–20 order. It creates a synthetic
+member, signs in as admin, creates category/book/copy data, checks metadata and
+conditional reads, rejects a stale edit, signs in and refreshes the member,
+borrows a copy, checks history and permissions, confirms and repeats a staff
+return, inspects dashboard/audit data, archives the book and logs out.
 
-Postman cookie jar quản refresh cookie HttpOnly; script/header chuyển CSRF và
-Origin theo contract. Không sao chép refresh token ra môi trường chia sẻ.
-Nếu chạy request lẻ, phải chuẩn bị IDs/token/ETag trước; kết quả đó không thay
-thế lần chạy collection đầy đủ.
+Postman's cookie jar manages HttpOnly refresh cookies. Collection scripts provide
+CSRF and Origin headers. Running one request alone requires its prerequisite
+IDs, tokens and ETag; it does not replace a successful full collection run.
 
-Runner tạo synthetic data có suffix riêng và giữ returned loan/audit/history.
-Nó không purge DB hoặc xóa mọi account/category/book. Chỉ chạy trên local/test
-được phép; không dùng dataset thật hoặc môi trường công khai để demo tùy tiện.
+Each run creates suffixed synthetic data and retains returned loans and audit
+history. The collection does not purge the database. Use an authorized local/test
+stack rather than production or personal data. Re-seeding does not change an
+existing account's password.
 
-## Newman và bằng chứng
+## Newman and evidence
 
-Có thể chạy collection bằng Newman 6.x sau khi cài runner. Truyền environment
-bằng object trong Node script hoặc tệp cấu hình local được ignore; không đặt
-password trực tiếp trong command line/log và không commit JSON có giá trị thật.
-Newman cần full integration tree và cùng cấu hình cookie/Origin như Postman.
+The collections can also run with Newman 6.x. Provide credentials through an
+ignored local configuration file or an in-memory Node environment object; avoid
+passwords in shell history and command output. Newman needs the same cookie and
+Origin configuration as Postman.
 
-Lần đã kiểm chứng trên bản ghép giữ mã thật của Tú qua **Docker/Nginx**:
-**20 requests, 33 assertions, 0 failures**. Kết quả tổng hợp không chứa credentials
-ở [`docs/evidence/postman.json`](../docs/evidence/postman.json), ghi thời gian UTC
-và endpointMode của lần chạy thực tế. Đây là kiểm thử local, không xác nhận GitHub CI.
+A historical Docker/Nginx run recorded **20 requests, 33 assertions and zero
+failures** in [postman.json](../docs/evidence/postman.json). That record retains
+its execution time and endpoint mode. It was not rerun during the final source
+validation and does not establish CI status for later commits.
 
-Auth default 10 requests/IP/account trong 15 phút có thể ảnh hưởng nhiều lần chạy
-liên tiếp. Dùng server dev/test với budget cho test và restart khi đổi cấu hình;
-không bỏ assertion, bỏ rate limit hoặc coi 429 là pass. Collection thiết kế
-`planned` cũ đã được bỏ vì các luồng hiện có được mô tả trong các collection trên.
+Repeated sign-ins can reach the authentication rate limit. Use the documented
+local/test configuration and restart affected test processes when needed; keep
+rate-limit checks and assertions intact. See
+[development configuration](../docs/DEV_PROFILES.md).

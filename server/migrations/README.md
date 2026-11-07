@@ -12,8 +12,7 @@ Both commands read the server `.env` or exported variables. Migration requires
 and `SEED_DEMO_PASSWORD` of 12–128 characters. Seed inserts three synthetic
 accounts (`admin@bookflow.test`, `librarian@bookflow.test`,
 `member@bookflow.test`), two categories, three books and six copies. It preserves
-existing account passwords, roles and catalog records. Seed does not implement
-login; the auth module must still be developed. Never use demo credentials in a
+existing account passwords, roles and catalog records. Authentication is implemented by the auth module; seeding only prepares data. Never use demo credentials in a
 public deployment.
 
 Add migrations as `NNN_descriptive_name.sql`, in ascending order. An applied

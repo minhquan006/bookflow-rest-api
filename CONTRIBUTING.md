@@ -1,25 +1,78 @@
-# Làm việc cùng nhau
+# Contributing to BookFlow
 
-Đọc [README](README.md), [bàn giao nền tảng](docs/TEAM_HANDOFF.md) và
-[hợp đồng API](docs/API_CONTRACT.md) trước khi tạo nhánh.
+Read the [README](README.md), [architecture guide](docs/README.md),
+[team handoff](docs/TEAM_HANDOFF.md) and relevant [API contract](docs/API_CONTRACT.md)
+sections before changing the application.
 
-1. Dùng Node trong `.nvmrc`, chạy `npm ci`, `npm run deps`, `npm run setup`.
-2. Tạo nhánh `feat/auth`, `feat/catalog`, `feat/loans` hoặc tên tác vụ nhỏ hơn.
-3. Thống nhất thay đổi OpenAPI/schema với người phụ trách module liên quan trước khi triển khai.
-4. Chạy `npm run check` và test integration/E2E liên quan. Chỉ báo pass cho test đã chạy.
-5. Mở PR với mục tiêu, bằng chứng kiểm thử và phần chưa hoàn thành; một thành viên khác review.
+## Local development
 
-Không tạo file rỗng chỉ để đủ cây thư mục. Controller xử lý HTTP; service giữ nghiệp vụ và
-transaction; repository nhận DB client, dùng SQL tham số hóa. Dùng shared middleware/errors
-và HTTP client thay vì tạo định dạng lỗi riêng. Không import source backend vào client.
+Use Node 24.19.0 and npm 11. Install with `npm ci` and `npm run deps`, then follow
+the README to configure and start the database and application. Preserve existing
+environment files and database volumes when updating a checkout.
 
-Migration đã merge là bất biến; thêm file SQL có số thứ tự tăng dần. Không tự reset DB của
-người khác. Test DB dùng `TEST_DATABASE_URL` có tên kết thúc `_test`. Không commit `.env`,
-token, password, dump dữ liệu cá nhân hay thư mục dependency.
+Work on a focused branch, such as `feat/catalog-search`, `fix/loan-return` or
+`docs/setup-guide`. Check `git status` before switching branches and preserve any
+uncommitted work. Use your own Git identity and review the staged diff before
+committing. Each member records the changes they take responsibility for.
 
-Commit ví dụ: `feat(loans): enforce active loan limit`. Cập nhật nhánh từ main thường xuyên;
-giữ PR nhỏ theo một hành vi kiểm chứng được. Mỗi thành viên tự commit phần đóng góp.
+A commit message should describe the change, for example:
 
-Quản trị repository cần bật branch protection cho `main`: PR trước merge, ít nhất một
-approval và yêu cầu các job CI `quality`/`containers` thành công. Đây là cấu hình GitHub
-cần thực hiện trên repository; file workflow không tự bật branch protection.
+```text
+fix(loans): preserve the original return confirmation
+```
+
+## Code structure
+
+- Route handlers own HTTP parsing, authorization integration and response selection.
+- Services own business rules and transaction boundaries.
+- Repositories use parameterized SQL on the supplied database client.
+- Keep every operation in a transaction on the same client. Do not open another
+  connection or commit inside a repository method.
+- Reuse shared errors, middleware, UI components and the client HTTP layer.
+- Keep frontend DTOs aligned with the API contract; do not import backend source
+  into the browser bundle.
+- Add files when they have a responsibility; avoid empty module placeholders.
+
+Changes to an API contract must update OpenAPI, the resource/method registry,
+relevant Postman requests and tests together.
+
+## Database changes
+
+Add a new numbered SQL migration. Migrations already merged are immutable because
+the runner verifies their checksums. Update `CURRENT_SCHEMA_VERSION` in
+`server/src/db/migrate.ts` when adding a migration. See the
+[migration guide](server/migrations/README.md) for transaction restrictions.
+
+Integration tests use `TEST_DATABASE_URL`, with a database name ending in `_test`.
+Tests create and remove their own schemas. Never reset the development database
+to resolve a test failure.
+
+## Validation
+
+| Change                     | Required validation                                         |
+| -------------------------- | ----------------------------------------------------------- |
+| Application source         | `npm run check`                                             |
+| Database or business rules | `npm run check` and `npm run test:integration`              |
+| UI or integrated flows     | `npm run check` and the relevant E2E flows                  |
+| API contract               | Contract validation plus affected HTTP/integration tests    |
+| Documentation only         | Formatting, local links and accuracy of commands and claims |
+
+Use `npm run test:e2e -- --retries=0` for a managed browser run. State which
+checks actually ran, their environment and any limitations. A previous successful
+run does not validate a new commit. Keep historical evidence dated and scoped.
+
+## Pull requests
+
+Describe the problem, resulting behavior and relevant validation. Include
+screenshots for UI changes when useful. Identify contract or migration changes,
+remaining work and checks not run. Resolve conflicts, inspect the resulting diff
+and rerun affected checks before requesting approval on a changed head.
+
+A second member reviews each PR. The `quality` and `containers` checks must pass
+before integration. Maintainers configure `main` branch protection in GitHub to
+require a PR, successful checks and at least one approving review.
+
+Do not commit local environment files, passwords, tokens, dependency folders,
+build output or personal-data dumps. Keep authorship, references and validation
+results accurate. Tool use and team responsibility are described in
+[AI_ASSISTANCE](docs/AI_ASSISTANCE.md).

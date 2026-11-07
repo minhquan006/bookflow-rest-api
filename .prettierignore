@@ -7,7 +7,6 @@ test-results
 .env
 .env.*
 !.env.example
-docs/PROJECT_BLUEPRINT.md
 *.docx
 *.svg
 *.png
