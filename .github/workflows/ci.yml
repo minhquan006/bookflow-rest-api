@@ -40,6 +40,8 @@ jobs:
             server/package-lock.json
             client/package-lock.json
       - run: npm ci && npm run deps
+      - name: Audit server runtime dependencies
+        run: npm --prefix server audit --omit=dev --audit-level=high
       - name: Generate temporary signing key
         run: echo "JWT_SECRET=$(openssl rand -hex 48)" >> "$GITHUB_ENV"
       - run: npm run check
