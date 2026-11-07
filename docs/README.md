@@ -1,5 +1,8 @@
 # Tài liệu và cấu trúc mã nguồn
 
+Checkpoint hoàn thiện source và hướng dẫn phát hành:
+[SOURCE_FINALIZATION](SOURCE_FINALIZATION.md).
+
 Đây là hướng dẫn cấu trúc hiện tại trong workspace. [Blueprint](PROJECT_BLUEPRINT.md)
 ghi thiết kế; [trạng thái triển khai](IMPLEMENTATION_STATUS.md) phân biệt các PR
 đã merge, thay đổi workspace và công việc còn mở.

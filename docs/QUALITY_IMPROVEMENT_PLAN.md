@@ -1,5 +1,14 @@
 # Phân công cải thiện chất lượng BookFlow
 
+## Checkpoint hoàn thiện source 07/11/2026
+
+Q1–Q3 và A1–A3 đã vào main `e28ff83`. T1–T3 được tích hợp trong #11 tại
+`11c5445`, đã sửa runner, CI đạt và có kết quả kiểm tra Quân/An; formal approval
+và merge vẫn phải hoàn tất. Nhánh `fix/source-finalization` giữ nền này và
+bổ sung bản vá parser, regression và audit CI. Kết quả mới được ghi trong
+[SOURCE_FINALIZATION](SOURCE_FINALIZATION.md); các trạng thái bên dưới giữ
+nguyên checkpoint lịch sử, không phải danh sách lỗi mới còn mở.
+
 ## Checkpoint tích hợp 06/11/2026
 
 Main@`e28ff83` đã nhận #9 → #12 → #10 (Q1–Q3 và A1–A3).
