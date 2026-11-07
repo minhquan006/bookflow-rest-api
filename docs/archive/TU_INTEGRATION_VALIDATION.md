@@ -24,7 +24,7 @@ kiểm tra và tổng hợp bằng chứng; Tú chịu trách nhiệm đọc và
 - `client/tests/setup.ts`
 - `docs/API_CONTRACT.md`
 - `docs/IMPLEMENTATION_STATUS.md`
-- `docs/QUALITY_IMPROVEMENT_PLAN.md`
+- `docs/archive/QUALITY_IMPROVEMENT_PLAN.md`
 - `docs/REQUIREMENTS_TRACEABILITY.md`
 - `docs/TEAM_HANDOFF.md`
 - `tests/e2e/language.spec.ts`
@@ -65,7 +65,7 @@ thành UI/session, khởi động API mới cho từng nhóm/project; desktop/mo
 đó đạt đủ 44 ca. External/custom filtered runs giữ scope và lifecycle đã có.
 CI gọi `--project=chromium`/`--project=mobile` cũng dùng cách tách full suite này.
 
-[Tổng hợp số liệu](evidence/tu-integration-20261106/run-summary.json) không chứa
+[Tổng hợp số liệu](../evidence/tu-integration-20261106/run-summary.json) không chứa
 credentials. Log đầy đủ giữ ngoài repository tại
 `/workspace/tu-integration-evidence/20261106`, bao gồm lượt thất bại ban đầu.
 Lint còn React advisories; không có lint errors. Không coi các cảnh báo này là
@@ -94,7 +94,7 @@ Bản sửa phân biệt option thực thi/report với bộ lọc file: hỗ tr
 và giá trị tách rời. Thêm retries/reporter vẫn chạy UI/session trên API mới,
 giữ các đối số gốc. File/grep filters và external mode giữ scope đã chọn.
 Report project được đặt riêng, tránh lần gọi mobile ghi đè report chromium;
-đường dẫn cập nhật trong [DEV_PROFILES](DEV_PROFILES.md).
+đường dẫn cập nhật trong [DEV_PROFILES](../DEV_PROFILES.md).
 
 10 regression kiểm tra launcher bằng subprocess và CLI fixture trong thư mục tạm:
 default bốn batch, retries/reporter với/không project, giá trị option tách rời,
@@ -115,7 +115,7 @@ Kết quả Linux trên working diff sau sửa:
   **14 UI + 8 session = 22** đạt. Hai lượt đều không retry.
 - Đã xác nhận đủ bốn HTML report tại các đường dẫn mới trong DEV_PROFILES.
 
-[Tổng hợp follow-up](evidence/tu-integration-20261106/runner-followup.json) ghi
+[Tổng hợp follow-up](../evidence/tu-integration-20261106/runner-followup.json) ghi
 source, lệnh và giới hạn. Log riêng tại `runner-followup/` trong thư mục evidence
 local. Bản sửa này chưa có CI/head phát hành; chưa chạy trên Mac/Windows.
 Không chạy lại smoke/container/Newman/benchmark cho thay đổi chỉ ở runner này.

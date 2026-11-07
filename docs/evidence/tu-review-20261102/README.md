@@ -1,6 +1,6 @@
 # Bằng chứng review Q1/A2 — 02/11/2026
 
-Đọc [báo cáo và giới hạn](../../TU_FRONTEND_REVIEW.md) trước khi dùng các số liệu.
+Đọc [báo cáo và giới hạn](../../archive/TU_FRONTEND_REVIEW.md) trước khi dùng các số liệu.
 
 | Artifact                                   | Nội dung                                                     |
 | ------------------------------------------ | ------------------------------------------------------------ |

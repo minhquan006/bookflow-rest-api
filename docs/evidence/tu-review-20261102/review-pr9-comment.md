@@ -17,5 +17,5 @@ CI xanh của #9 không được dùng để xác nhận bản ghép #9 + #10 + 
 Full accessibility audit và phiên nhiều tab chưa nằm trong kết luận này.
 
 Báo cáo, test và ảnh thuộc bộ review của nhánh Tú. Sau khi bộ evidence được
-push, có thể dẫn `docs/TU_FRONTEND_REVIEW.md`
+push, có thể dẫn `docs/archive/TU_FRONTEND_REVIEW.md`
 và `docs/evidence/tu-review-20261102` trong PR #11 để đối chiếu.

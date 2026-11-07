@@ -1,7 +1,9 @@
 # Hợp đồng API dùng chung
 
 Nguồn máy đọc là [`openapi.yaml`](openapi.yaml); các quyết định nghiệp vụ gốc ở
-[`PROJECT_BLUEPRINT.md`](PROJECT_BLUEPRINT.md). Auth/Users, Catalog/Copies và Loans/Dashboard/Audit đã triển khai trong bản ghép giữ mã Catalog của Tú. Không coi endpoint đã có trong OpenAPI là đã có mã nghiệp vụ.
+[`PROJECT_BLUEPRINT.md`](PROJECT_BLUEPRINT.md). Auth/Users, Catalog/Copies và Loans/Dashboard/Audit đã được tích hợp vào main.
+Xem [trạng thái triển khai](IMPLEMENTATION_STATUS.md) và
+[kết quả kiểm chứng](SOURCE_FINALIZATION.md) cho phiên bản được kiểm thử.
 
 ## Trạng thái triển khai
 

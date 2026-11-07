@@ -1,47 +1,44 @@
 # BookFlow
 
-Ứng dụng quản lý thư viện dùng RESTful Web Services cho dự án giữa kỳ
-**Web Programming & Applications — 503073**. Stack: React/TypeScript,
-Express/TypeScript và PostgreSQL; monolith chia module.
+BookFlow is a library management web application built with React, Express and
+PostgreSQL. Members browse the catalog and borrow books, librarians manage the
+collection and confirm returns, and administrators manage users and audit records.
 
-Bản tích hợp trong workspace đã triển khai phần ứng dụng P0/P1 của
-[blueprint](docs/PROJECT_BLUEPRINT.md):
+The project was developed for **Web Programming & Applications (503073)** at
+Ton Duc Thang University, with RESTful Web Services as its technical focus.
 
-- Auth/Users: register/login, JWT, RBAC, trạng thái tài khoản, refresh
-  rotation/reuse, CSRF và logout; access token chỉ ở RAM.
-- Catalog/Copies: category/book/copy CRUD, search/filter/page, archive,
-  availability, ETag/304 và If-Match/428/412.
-- Loans/Dashboard/Audit: mượn–trả, hạn mức/overdue/duplicate, transaction và khóa
-  hàng, return idempotency, dashboard staff và audit ADMIN.
-- UI theo role, Swagger/OpenAPI, Postman, test DB/browser, Docker/Nginx và CI.
+## Features
 
-Auth/Users (PR #4), Catalog/Copies (PR #5), Loans/Dashboard/Audit (PR #6)
-và English/Tiếng Việt (PR #7) đã merge. Nền tích hợp mới `main@e28ff83`
-ngày 06/11/2026 đã nhận PR #9 → #12 → #10, gồm Q1–Q3 và A1–A3.
-Nhánh PR #11 đang ghép T1–T3 trên nền này; chưa merge vào main.
-Xem [bàn giao](docs/TEAM_HANDOFF.md), [trạng thái](docs/IMPLEMENTATION_STATUS.md),
-[bàn giao T1–T3](docs/TU_QUALITY_HANDOFF.md) và
-[kiểm chứng tích hợp](docs/TU_INTEGRATION_VALIDATION.md).
-Các validation cũ giữ nguyên phạm vi và môi trường lịch sử.
+- Public catalog with search, category filters, sorting and pagination.
+- Book, category and physical-copy management, with availability and archival.
+- Registration, login, role-based access and account status management.
+- Member borrowing with loan limits, overdue checks and concurrent allocation protection.
+- Staff return confirmation that preserves the original result on repeated requests.
+- Staff dashboard and administrator audit viewer.
+- English and Vietnamese interfaces, persistent language preference and URL-based catalog state.
+- OpenAPI/Swagger documentation, Postman collections, automated tests and Docker deployment.
 
-Bản hoàn thiện source trên nhánh `fix/source-finalization` bắt đầu từ head
-`11c5445` của #11, gồm toàn bộ bản tích hợp và bản vá dependency xử lý request
-nén. Kết quả kiểm chứng và các bước phát hành còn lại được ghi riêng trong
-[SOURCE_FINALIZATION](docs/SOURCE_FINALIZATION.md); chưa coi nhánh local là main.
+The API uses signed access tokens, rotating refresh sessions, CSRF protection,
+ETag-based reads and version preconditions for book edits. See the
+[API contract](docs/API_CONTRACT.md) for resource behavior and error responses.
 
-## Ngôn ngữ giao diện
+## Requirements
 
-Chọn **Language / Ngôn ngữ** ở đầu trang để chuyển giữa **English** và
-**Tiếng Việt**. Lựa chọn được lưu trên trình duyệt. Router dùng ID và role gốc
-để giữ bộ lọc/bản nháp khi đổi ngôn ngữ; xem [hướng dẫn](docs/LANGUAGES.md)
-và phạm vi kiểm chứng trong [kế hoạch cải thiện](docs/QUALITY_IMPROVEMENT_PLAN.md).
+| Tool       | Version                                                                      |
+| ---------- | ---------------------------------------------------------------------------- |
+| Node.js    | 24.19.0, as specified in `.nvmrc`                                            |
+| npm        | 11.x                                                                         |
+| PostgreSQL | 17; the supplied Compose configuration uses 17.6                             |
+| Docker     | Engine/Desktop with Compose v2, if using the supplied database or full stack |
 
-## Cài và chạy dev
+The root, `server` and `client` packages have separate lockfiles. Use the commands
+below to install all three consistently.
 
-Yêu cầu: **Node 24.19.0** (`.nvmrc`), npm 11, PostgreSQL 17 hoặc Docker
-Engine/Desktop có Compose v2. Chạy từ root:
+## Quick start
 
 ```bash
+git clone https://github.com/minhquan006/bookflow-rest-api.git
+cd bookflow-rest-api
 npm ci
 npm run deps
 npm run setup
@@ -49,33 +46,36 @@ docker compose up -d --wait db
 npm --prefix server run build
 npm run db:migrate
 npm run db:seed
-npm run db:test:create
 npm run dev
 ```
 
-`setup` chỉ tạo `.env`, `server/.env`, `client/.env.local` khi chưa có, với
-JWT/password local ngẫu nhiên. Chạy lại giữ file hiện hữu. Khi sửa cấu hình,
-đồng bộ root `.env` và `server/.env`, rồi restart. Thay `.env` không đổi password
-của volume PostgreSQL đã tồn tại. Không đặt secret trong `VITE_*`.
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173). Swagger is available at
+[http://127.0.0.1:5173/docs/](http://127.0.0.1:5173/docs/).
 
-Mặc định DB **5432**, API **3000**, frontend **5173**. Root `.env` cấu hình
-`HOST`, `PORT` và `WEB_PORT` cho dev, Vite và Playwright; biến môi trường
-process được ưu tiên. Frontend proxy `/api`, `/docs`, `/openapi.yaml` và
-`/health` về cùng API; link Swagger là `/docs/`.
-Dev kiểm tra cổng trước, Vite dùng strict port; Ctrl+C dừng tiến trình do
-launcher tạo. Không dừng dịch vụ khác để lấy cổng.
+`npm run setup` creates missing `.env`, `server/.env` and `client/.env.local`
+files with random local credentials. It preserves existing files. Read the local
+`SEED_DEMO_PASSWORD` value privately to sign in with a seeded account:
 
-Checkout mới trên máy Mac của Quân dùng `npm run setup:mac` cho DB **5433**,
-API **3100**, web **5174**. Setup giữ file cấu hình đã có, không chuyển profile
-hoặc đổi password volume. Nếu cấu hình đã có, đồng bộ root/server `.env`,
-hai URL DB và `ALLOWED_ORIGINS` theo [profile dev](docs/DEV_PROFILES.md).
-Có thể chạy riêng server/client; giữ cấu hình root/server nhất quán.
+| Account                   | Role      | Access                                                                |
+| ------------------------- | --------- | --------------------------------------------------------------------- |
+| `member@bookflow.test`    | MEMBER    | Browse, borrow and view own loans                                     |
+| `librarian@bookflow.test` | LIBRARIAN | Manage catalog/copies, view loans, confirm returns and view dashboard |
+| `admin@bookflow.test`     | ADMIN     | Staff functions, user management and audit records                    |
 
-Nếu dùng PostgreSQL có sẵn, bỏ bước Docker DB và chỉnh `DATABASE_URL`,
-`TEST_DATABASE_URL`. DB test phải có tên kết thúc `_test`. Lệnh npm/Compose
-chạy được trên PowerShell/CMD, không cần `source .env`.
+Seeding preserves existing passwords and records. Registration creates a MEMBER;
+staff accounts do not borrow on behalf of members.
 
-## Chạy đầy đủ bằng Docker
+Default ports are **5432** for PostgreSQL, **3000** for the API and **5173** for
+Vite. If these are occupied, see [development profiles](docs/DEV_PROFILES.md).
+A fresh `npm run setup:mac` uses ports 5433, 3100 and 5174 instead.
+
+If PostgreSQL is already installed, configure `DATABASE_URL` and
+`TEST_DATABASE_URL` and skip the Docker database command. Commands are run from
+the repository root and also work in PowerShell/CMD without sourcing `.env`.
+
+## Docker deployment
+
+Install root dependencies with `npm ci` if not already installed, then run:
 
 ```bash
 npm run setup
@@ -84,98 +84,103 @@ docker compose build api web
 docker compose run --rm api npm run db:migrate
 docker compose run --rm api npm run db:seed
 docker compose up -d --wait api web
-docker compose ps
 npm run smoke
 ```
 
-Web dùng **8080**. Nginx phục vụ React, proxy API/docs/health; API không publish
-cổng host. API và Nginx chạy bằng user không phải root. DB chỉ bind loopback tại POSTGRES_PORT (mặc định 5432).
-Compose này dành cho demo local, dùng `NODE_ENV=development` để seed. Triển khai
-công khai cần HTTPS, cấu hình production và tài khoản riêng.
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080). Nginx serves the client and
+proxies API, health and documentation paths. The API is internal to the Compose
+network; the web and database ports are bound to loopback. API and web containers
+run as non-root users.
 
-`docker compose down` giữ volume; **`down -v` xóa dữ liệu**. Sau đổi source,
-build lại image và migrate trước khi khởi động API/web. Nếu cloud/công ty có
-proxy CA, dùng `npm run compose -- build api web`: CA được mount bằng BuildKit
-secret, giữ TLS verification và không đưa CA/credential vào image.
+Stop the stack with `docker compose down`; the database volume is retained.
+`docker compose down -v` deletes that data. Rebuild images and apply migrations
+when deploying changed source. For a network requiring a custom proxy CA, use
+`npm run compose -- build api web`; see [development profiles](docs/DEV_PROFILES.md).
 
-## Tài khoản và màn hình
+## Configuration
 
-| Email                     | Role      | Chức năng                              |
-| ------------------------- | --------- | -------------------------------------- |
-| `member@bookflow.test`    | MEMBER    | Catalog, mượn và loan của mình         |
-| `librarian@bookflow.test` | LIBRARIAN | Catalog/copies, loan/return, dashboard |
-| `admin@bookflow.test`     | ADMIN     | Staff, quản lý users và audit          |
+| File                                                         | Purpose                                                               |
+| ------------------------------------------------------------ | --------------------------------------------------------------------- |
+| `.env`                                                       | Compose settings and shared development configuration                 |
+| `server/.env`                                                | API, database, authentication and seed settings                       |
+| `client/.env.local`                                          | Public browser configuration; defaults to `VITE_API_BASE_URL=/api/v1` |
+| `.env.example`, `server/.env.example`, `client/.env.example` | Configuration keys without real credentials                           |
 
-Password là `SEED_DEMO_PASSWORD` trong `.env` local; không commit hoặc in vào
-log/chat. Seed giữ tài khoản/password đã tồn tại. Register luôn tạo MEMBER;
-staff/admin không được mượn thay MEMBER.
+Keep root and server configuration consistent, especially database URLs, signing
+settings and allowed origins. Environment variables set by the process take
+precedence. Changing a file does not change the credentials in an existing
+PostgreSQL volume. Restart affected processes after changing configuration.
+Never put secrets in `VITE_*` variables; their values are public browser code.
 
-Routes: `/login`, `/register`, `/books`, `/books/:id`, `/loans`, `/dashboard`,
-`/categories`, `/users`, `/audit-logs`. Menu theo role, backend vẫn kiểm tra quyền và ownership.
-Reload có thể khôi phục phiên qua refresh cookie hợp lệ.
+## Tests and checks
 
-## Kiểm thử
+Prepare a dedicated test database and the Playwright browser before the first
+integration/browser run:
 
 ```bash
-npm run check
-npm run test:integration
-npm run test:e2e
-# Khi Docker stack đã chạy:
-npm run smoke
-# Sau build và chuẩn bị TEST_DATABASE_URL:
-npm run benchmark
+npm run db:test:create
+npx playwright install chromium
 ```
 
-`check` chạy lint, source/test typecheck, hai build, test dev tooling và unit/HTTP/component tests,
-contract và format. Integration dùng PostgreSQL thật với schema ngẫu nhiên trong
-DB `_test`, chỉ xóa schema của suite; không reset DB dev. Playwright kiểm tra
-session, catalog, mượn–trả, dashboard/audit và Swagger ở desktop/mobile.
+The configured test database name must end in `_test`. Its user needs database
+creation permission for the helper, or the database must be provisioned separately.
 
-Chromium `/usr/bin/chromium` được tự chọn nếu có; có thể đặt
-`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`. Nếu chưa có browser, chạy
-`npx playwright install chromium`; Linux CI có thể cần `--with-deps`.
+| Command                           | Purpose                                                                           |
+| --------------------------------- | --------------------------------------------------------------------------------- |
+| `npm run check`                   | Lint, type checks, builds, tooling/application tests, API contract and formatting |
+| `npm run test:integration`        | PostgreSQL integration suites using isolated test schemas                         |
+| `npm run test:e2e -- --retries=0` | Managed desktop and mobile browser flows without retries                          |
+| `npm run smoke`                   | Health, documentation and HTTP error checks against a running Docker web stack    |
+| `npm run benchmark`               | Local database benchmark; requires a server build and `TEST_DATABASE_URL`         |
 
-Auth mặc định giới hạn **10** yêu cầu/IP/tài khoản trong 15 phút cho mỗi endpoint
-login/register. `AUTH_RATE_LIMIT_MAX` cho phép 1–100. Playwright tự khởi động dev
-server với ngưỡng 100 cho nhiều browser context; test bảo mật vẫn kiểm tra mặc
-định. Server được tái sử dụng giữ cấu hình lúc khởi động. Test liên tiếp có thể
-cần restart với cấu hình test; không bỏ rate limit để làm test đạt.
+Stop manually started BookFlow API/client processes before a managed E2E run;
+keep PostgreSQL running. The runner starts fresh API processes for UI and session
+batches. Mobile tests use Chromium device emulation. See
+[development profiles](docs/DEV_PROFILES.md) for report paths, external-stack mode
+and custom browser executables, and [Postman](postman/README.md) for API workflows.
 
-Xem [TU_QUALITY_HANDOFF](docs/TU_QUALITY_HANDOFF.md) cho kết quả T1–T3;
-[FULL_VALIDATION](docs/FULL_VALIDATION.md) giữ kết quả lịch sử và giới hạn,
-[BENCHMARK](docs/BENCHMARK.md) cho số đo thật và giới hạn.
+Recorded results and their exact environments are in
+[source validation](docs/SOURCE_FINALIZATION.md). These are versioned observations,
+not a test coverage percentage or a guarantee about later changes.
 
-## API và Postman
+## Repository layout
 
-| Endpoint            | Ý nghĩa                                   |
-| ------------------- | ----------------------------------------- |
-| `GET /health/live`  | Process sống                              |
-| `GET /health/ready` | DB/schema sẵn sàng; chưa sẵn sàng trả 503 |
-| `GET /api/v1`       | Thông tin dịch vụ                         |
-| `GET /docs/`        | Swagger UI                                |
-| `GET /openapi.yaml` | OpenAPI 3.1                               |
+```text
+client/       React application, styles and component tests
+server/       Express API, SQL migrations and backend tests
+scripts/      Setup, development, validation and test orchestration
+tests/e2e/   Playwright browser workflows
+postman/      API collections and an environment template
+deploy/       Container images and Nginx configuration
+docs/         API contract, guides, evidence and archived development records
+```
 
-Trong dev, frontend proxy cả API/docs/OpenAPI/health theo cùng cấu hình. Docker phục vụ
-cả API/docs/health qua web 8080. [Postman README](postman/README.md) hướng dẫn smoke,
-20-request business workflow, `baseUrl`, `frontendOrigin`, password và cookie/CSRF.
-Collection thiết kế `planned` cũ đã được bỏ; dùng các collection smoke,
-Catalog và business hiện có.
+## Documentation
 
-## Đóng góp và bài nộp
+- [Documentation index and architecture](docs/README.md)
+- [Frontend guide](client/README.md) and [backend guide](server/README.md)
+- [Development profiles and troubleshooting](docs/DEV_PROFILES.md)
+- [API contract](docs/API_CONTRACT.md) and [OpenAPI specification](docs/openapi.yaml)
+- [Database migrations](server/migrations/README.md)
+- [Contribution guide](CONTRIBUTING.md) and [team handoff](docs/TEAM_HANDOFF.md)
+- [Implementation status](docs/IMPLEMENTATION_STATUS.md) and [submission guide](docs/SUBMISSION_GUIDE.md)
 
-`server/src/modules` và `client/src/features` chứa phần theo module;
-`shared`, `middleware`, `components`, `lib` dùng chung. Đọc
-[mục lục tài liệu và cấu trúc hiện tại](docs/README.md) và
-[CONTRIBUTING](CONTRIBUTING.md): controller → service → repository, SQL tham số
-hóa, một DB client xuyên transaction, migration đã merge bất biến.
+## Scope and limitations
 
-CI có job `quality`/`containers`; cần kiểm tra kết quả thật trên GitHub.
-Branch protection do maintainer bật. Mã có AI hỗ trợ phải được người nhận đọc,
-chạy thử, chỉnh sửa và tự commit bằng danh tính Git của mình. Không thay author,
-force-push nhánh thành viên hoặc tạo lịch sử đóng góp giả.
+The supplied Docker stack is a local demonstration deployment. Public hosting
+would require HTTPS, production configuration, secret management, backups and
+operational monitoring. Authentication requires browser Web Locks and writable
+site storage on localhost or HTTPS.
 
-Quân cập nhật hạn nộp là **hết ngày 08/11/2026, giờ Việt Nam**. Đề chính thức là
-`docs/503073-Midterm-V1.docx`. Báo cáo Word/PDF tiếng Anh 20–60 trang, slide,
-video tiếng Anh có âm thanh tối đa 20 phút và đủ ba người vẫn phải hoàn thiện.
-Mẫu Khoa được đề tham chiếu nhưng chưa được cung cấp. Xem
-[đối chiếu yêu cầu](docs/REQUIREMENTS_TRACEABILITY.md).
+Access JWTs are signed, not encrypted. Logout revokes refresh sessions; an issued
+access token can remain valid until expiry. The API applies resource and HTTP
+principles but does not implement complete REST hypermedia navigation.
+Reservations, reminder emails and OAuth login are outside the current scope.
+
+## Team
+
+| Member           | Student ID | Main responsibility                               |
+| ---------------- | ---------- | ------------------------------------------------- |
+| Nguyễn Minh Quân | 52400227   | Authentication, users and integration             |
+| Phạm Văn Tú      | 52400252   | Catalog, copies, frontend and development tooling |
+| Lê Nguyễn Vạn An | 52400258   | Loans, dashboard, audit and API validation        |

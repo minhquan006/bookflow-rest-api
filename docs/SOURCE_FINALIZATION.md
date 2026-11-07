@@ -1,6 +1,14 @@
 # Hoàn thiện mã nguồn trước bài nộp
 
-## Phạm vi và trạng thái Git
+## Bản đã tích hợp
+
+PR #11 và #13 đã merge. Bản ứng dụng cuối là
+`main@ba8b18d9b5c99057d35036fe739aea72769ba2d0`.
+[CI của main](https://github.com/minhquan006/bookflow-rest-api/actions/runs/42364111090)
+đạt cả quality và containers. Các kết quả phía dưới ghi lần kiểm thử trước merge;
+không được hiểu là một lần chạy lại sau merge.
+
+## Phạm vi và trạng thái Git lúc kiểm thử
 
 Nhánh `fix/source-finalization` bắt đầu từ head PR #11
 `11c54456bcf67d42e1452fe1a300164b7a03c577`, đã ghép main `e28ff83`.
@@ -71,15 +79,9 @@ Log đầy đủ và bản source xuất riêng nằm ngoài repo trong thư m�
 source candidate từ working diff, không có env riêng/node_modules/.git;
 chưa thay thế SHA bản nộp sau GitHub review/merge.
 
-## Phát hành lên GitHub
+## Sử dụng kết quả trong bài nộp
 
-1. Quân/An hoàn tất review chính thức và merge #11 khi checks vẫn đạt.
-2. Quân tự commit phần diff của nhánh này bằng danh tính Git thật; push đúng
-   nhánh `fix/source-finalization`, không push vào nhánh Tú.
-3. Sau #11 merge, mở PR vào main cho phần diff còn lại. Nếu source main có
-   thay đổi thêm, cập nhật nhánh và kiểm lại phần bị ảnh hưởng.
-4. Reviewer kiểm tra bản vá, các kiểm thử và CI của head mới trước merge.
-5. Sau merge, xác nhận CI main, ghi SHA bản nộp và dùng cùng source cho demo.
-
-Tài liệu này ghi checkpoint phần mềm; không xác nhận báo cáo, slide hoặc video
-đã hoàn thành. Các validation cũ tiếp tục giữ nguyên phiên bản và môi trường.
+Quy trình review và merge #11, #13 đã hoàn tất. Khi xuất source, ghi SHA của
+commit được xuất và dùng đúng bản đó để demo. Tài liệu này giữ kết quả thử nghiệm
+ngày 07/11/2026; thay đổi tài liệu sau đó không tạo thêm kết quả kiểm thử ứng dụng.
+Báo cáo, slide và video cần được nhóm kiểm tra riêng trước khi nộp.

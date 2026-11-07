@@ -1,12 +1,19 @@
 # Phân công cải thiện chất lượng BookFlow
 
+## Trạng thái sau tích hợp
+
+Q1–Q3, A1–A3 và T1–T3 đã merge, tiếp theo là bản vá parser trong #13.
+Bản ứng dụng là main `ba8b18d`; xem [trạng thái hiện tại](../IMPLEMENTATION_STATUS.md).
+Các checkpoint dưới đây là nhật ký kế hoạch và kiểm chứng theo thời điểm,
+không phải danh sách việc chưa làm của bản hiện tại.
+
 ## Checkpoint hoàn thiện source 07/11/2026
 
 Q1–Q3 và A1–A3 đã vào main `e28ff83`. T1–T3 được tích hợp trong #11 tại
 `11c5445`, đã sửa runner, CI đạt và có kết quả kiểm tra Quân/An; formal approval
 và merge vẫn phải hoàn tất. Nhánh `fix/source-finalization` giữ nền này và
 bổ sung bản vá parser, regression và audit CI. Kết quả mới được ghi trong
-[SOURCE_FINALIZATION](SOURCE_FINALIZATION.md); các trạng thái bên dưới giữ
+[SOURCE_FINALIZATION](../SOURCE_FINALIZATION.md); các trạng thái bên dưới giữ
 nguyên checkpoint lịch sử, không phải danh sách lỗi mới còn mở.
 
 ## Checkpoint tích hợp 06/11/2026

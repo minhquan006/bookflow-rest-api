@@ -10,3 +10,8 @@ playwright-report
 test-results
 .npm
 docs/evidence
+
+# Local caches and operating-system files
+.cache
+**/.cache
+**/.DS_Store

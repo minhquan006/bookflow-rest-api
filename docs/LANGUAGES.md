@@ -1,59 +1,46 @@
-# Website languages
+# Interface languages
 
-BookFlow offers English and Vietnamese through the **Language / Ngôn ngữ** selector
-in the header, including on mobile. English remains the default on a new browser.
-Choosing **Tiếng Việt** changes the current interface immediately; choosing **English**
-switches it back. The preference is saved as `bookflow.language` in localStorage and
-restored after reload. No credentials or profile data are written to browser storage; the session
-coordinator stores only an opaque revision marker. If
-storage is unavailable, switching still works for the current visit.
+BookFlow supports English and Vietnamese through the header's **Language /
+Ngôn ngữ** selector. English is the default for a new browser. The selection is
+stored as `bookflow.language` and restored after reload. If storage is unavailable,
+switching still works for the current visit.
 
-The translation covers navigation, public pages, authentication, account and user
-administration, catalog/category/copy management, loans/returns, dashboard, audit
-filters, pagination, accessibility labels and known error/validation messages.
-Changing language keeps the session. AppRouter now uses the user ID and canonical
-role in React keys, preserving Catalog filters and book-detail drafts when language
-changes. App tests cover search/category/sort/page, create/edit/barcode drafts and absence
-of language-triggered mutations. Identity/role changes clear the previous viewer's
-drafts; background restoration preserves typed sign-in credentials. Browser tests
-exercise the same language matrix with the real API. See
-[Quân's validation](QUAN_VALIDATION.md) for the exact workspace and results;
-peer review remains tracked in [the improvement plan](QUALITY_IMPROVEMENT_PLAN.md).
-Other outstanding language work includes untranslated return instructions in
-loan rows (A2). The existing test evidence does not establish full coverage.
-Library dates use the selected locale and always retain Vietnam's UTC+7 timezone.
+## User-visible behavior
 
-Book titles, descriptions, category names, user names and emails remain exactly as
-stored. API field names, enum values, resource IDs and audit action codes stay
-unchanged. Swagger/OpenAPI remains the English API contract. Unrecognized API error
-details remain visible in their original language rather than losing diagnostic
-information.
+Translations cover navigation, authentication, catalog/category/copy management,
+loans and return confirmation, dashboard, users, audit filters, pagination,
+accessibility labels and known validation/error messages. Dates use the selected
+locale with Vietnam's UTC+7 timezone.
 
-## Catalog state
+Changing language preserves the current session, applied catalog query, page size,
+search draft and book/copy form drafts. It does not submit a form or repeat a
+mutation. Identity or role changes clear the previous viewer's protected state;
+a late response cannot restore that state. See
+[implementation status](IMPLEMENTATION_STATUS.md) and
+[source validation](SOURCE_FINALIZATION.md) for recorded scope.
 
-The App viewer key uses user ID and raw role. EN/VI changes preserve Catalog
-create/edit/copy drafts; identity or role changes still clear the old viewer.
-Applied filters, sort, page and size are stored in the Catalog URL.
-Quân must review this minimal Q1 prerequisite when integrating Q1.
-See [actual T1–T3 checks](TU_QUALITY_HANDOFF.md).
+Book titles, descriptions, category names, user names and emails remain as stored.
+API field names, enum values, resource IDs and audit action codes remain canonical.
+The OpenAPI contract stays in English. Unknown API error details remain visible
+rather than being replaced with a misleading translation.
 
 ## Maintenance
 
-`client/src/i18n/LanguageProvider.tsx` owns language selection and persistence.
-`client/src/i18n/language.ts` provides the context and translation helpers. `client/src/i18n/vi.ts` contains the Vietnamese dictionary;
-English source messages serve as typed keys for `t`. Use complete messages with
-named placeholders instead of concatenating translated fragments. Use `translate`
-only for known canonical messages or status labels coming from state/API helpers;
-never pass book or user content to it. Store canonical messages or timestamps in
-state so existing feedback also updates when the language changes. Pass the chosen
-locale to `formatLibraryDate` in `client/src/lib/datetime.ts`; do not change
-timestamps sent to the API.
+- `client/src/i18n/LanguageProvider.tsx` owns selection and persistence.
+- `client/src/i18n/language.ts` provides context and translation helpers.
+- `client/src/i18n/vi.ts` contains the Vietnamese dictionary; English messages
+  serve as typed translation keys.
+- Use complete messages with named placeholders. Do not concatenate translated
+  sentence fragments or translate stored book/user content.
+- Store canonical feedback and timestamps in state so existing feedback updates
+  when the language changes. Use `formatLibraryDate` from `client/src/lib/datetime.ts`
+  for display and preserve API timestamps.
+- Use stable user IDs and canonical roles for viewer identity, never translated labels.
 
 ## Validation
 
-Run `npm run check` and `npm run test:e2e` with the seeded database. The language
-component tests cover persistence, unavailable storage, unsupported preferences,
-form preservation, existing API errors, interpolation and localized dates. Browser
-tests exercise language switching/reload and registration form validation on both
-screen sizes. The borrowing/return flow runs in Vietnamese on mobile and English
-on desktop, with real API, database, dashboard and audit assertions.
+Run `npm run check` and relevant `npm run test:e2e` flows after UI changes.
+Component tests cover persistence, unavailable storage, form preservation,
+feedback, interpolation and dates. Browser flows cover language changes, reload,
+registration and circulation with the API. Mobile cases use Chromium emulation;
+these results do not establish support for every browser or physical device.

@@ -1,24 +1,33 @@
-# Bằng chứng thực tế
+# Validation evidence
 
-Kết quả Loans v2 mới nằm ở `loans-v2-validation.json` và
-`loans-v2-benchmark.json`; xem [LOANS_VALIDATION](../LOANS_VALIDATION.md).
-Các tệp `validation.json`, `benchmark.json`, `postman.json` và ảnh Catalog
-bên dưới là bằng chứng lịch sử ngày 21/10/2026, được giữ nguyên từ gói bàn giao.
+Evidence is organized by execution date, source baseline and environment. Moving
+or summarizing a record does not constitute a new test run. Use
+[source validation](../SOURCE_FINALIZATION.md) for the integrated application and
+[the archive](../archive/README.md) for earlier review narratives.
 
-Các tệp ở đây ghi kết quả trên bản ghép giữ mã và lịch sử Catalog thật của Tú,
-Auth/Users của Quân và Loans/Dashboard/Audit bàn giao cho An.
+| Artifact                                                                                     | Scope                                                                                |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [source-finalization-20261107.json](source-finalization-20261107.json)                       | Final application validation summary and hashes of changed implementation/test files |
+| [tu-integration-20261106/run-summary.json](tu-integration-20261106/run-summary.json)         | Integrated #11 validation                                                            |
+| [tu-integration-20261106/runner-followup.json](tu-integration-20261106/runner-followup.json) | E2E runner argument regression follow-up                                             |
+| [tu-review-20261102](tu-review-20261102/README.md)                                           | Q1/A2 browser review, screenshots and reproduction harnesses                         |
+| [loans-v2-validation.json](loans-v2-validation.json)                                         | Earlier circulation validation                                                       |
+| [loans-v2-benchmark.json](loans-v2-benchmark.json)                                           | Earlier circulation measurements                                                     |
+| [validation.json](validation.json)                                                           | Initial integrated validation summary                                                |
+| [postman.json](postman.json)                                                                 | Historical Docker/Nginx Newman run: 20 requests, 33 assertions                       |
+| [benchmark.json](benchmark.json)                                                             | Historical local catalog benchmark                                                   |
 
-- `validation.json`: kết quả các suite đã chạy, phạm vi nguồn và giới hạn.
-- `postman.json`: lần Newman20requests/33assertions qua Docker/Nginx.
-- `benchmark.json`: dữ liệu tổng hợp, cấu hình workload và số đo catalog reads.
-- `catalog-desktop.png`, `catalog-mobile.png`: ảnh thật của web Docker/Nginx,
-  guest tìm sách seed Practical Web Foundations và mở inline details/availability.
-  Không phải ảnh dựng; không có token/mật khẩu trong ảnh. Mobile là Chromium
-  emulation iPhone13, không phải kiểm tra trực tiếp trên iPhone/Safari.
-- `CATALOG_VALIDATION.md`: ghi nhận lịch sử ở nhánh Catalog trước khi tích hợp;
-  kết quả hiện tại xem `../CATALOG_VALIDATION.md` và `../FULL_VALIDATION.md`.
+The top-level catalog screenshots and the initial validation/Postman/benchmark
+records date from 21 October 2026. The `loans-v2-*` images and records belong to
+the later circulation review. Captures use synthetic data; mobile screenshots
+use Chromium device emulation rather than a physical iPhone/Safari session.
 
-Ảnh và JSON là bằng chứng local, không xác nhận CI GitHub, hosting production
-hoặc checkout trên máy thành viên thứ hai. Browser/Postman tạo fixture tổng hợp
-và giữ lịch sử; không đưa log cookie, JWT, mật khẩu hoặc dữ liệu người dùng thật
-vào gói nộp.
+[Catalog review notes](CATALOG_VALIDATION.md) and
+[review fixes](CATALOG_REVIEW_FIX.md) describe their original source context.
+Earlier combined results are in [full validation](../archive/FULL_VALIDATION.md).
+Do not use these records to claim a new production deployment, another member's
+machine, or CI status for an untested commit.
+
+Keep evidence free of passwords, tokens, cookies and personal-data dumps. Store
+private logs and local configuration outside Git. Reproduction scripts can create
+synthetic application data; read their prerequisites before running them.

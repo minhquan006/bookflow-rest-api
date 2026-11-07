@@ -121,7 +121,7 @@ phẩm hoặc bản ghép #9 + #10 + #11.
 
 ## Bằng chứng và cách chạy lại
 
-Xem [gói bằng chứng](evidence/tu-review-20261102/README.md), JSON ma trận và ảnh
+Xem [gói bằng chứng](../evidence/tu-review-20261102/README.md), JSON ma trận và ảnh
 giao diện thật. Hướng dẫn có harness browser để nhóm chạy lại trên source đã
 chọn. Đối chiếu SHA/DB của stack trước khi chạy; không đưa credentials vào log.
 

@@ -26,4 +26,4 @@ giữ formatter từ `lib/datetime`, `isLoanReturnResponse`, DTO mới và share
 pagination/router imports; chạy lại kiểm tra trên head tích hợp trước merge.
 
 Báo cáo và ảnh thuộc bộ review nhánh Tú, có AI hỗ trợ. Sau khi push evidence, có thể dẫn
-`docs/TU_FRONTEND_REVIEW.md` trong PR #11 để nhóm đối chiếu.
+`docs/archive/TU_FRONTEND_REVIEW.md` trong PR #11 để nhóm đối chiếu.

@@ -25,7 +25,7 @@ helper được chạy từng bước, không bỏ kiểm tra hoặc sửa serie
 GitHub Actions, review độc lập của Quân hoặc nghiệm thu trên máy riêng của An.
 Node 24.19.0, npm 11.9.0, PostgreSQL 17.6 Docker và Chromium hệ thống.
 Thời điểm UTC và kết quả máy đọc ở
-[evidence/loans-v2-validation.json](evidence/loans-v2-validation.json).
+[evidence/loans-v2-validation.json](../evidence/loans-v2-validation.json).
 
 ## Kết quả từng bước
 
@@ -68,7 +68,7 @@ của suite. E2E tạo synthetic records qua API và giữ lịch sử; không r
 
 Chạy `npm run benchmark` với `BENCHMARK_OUTPUT` trỏ ra ngoài checkout, rồi lưu
 kết quả không chứa secret tại
-[evidence/loans-v2-benchmark.json](evidence/loans-v2-benchmark.json).
+[evidence/loans-v2-benchmark.json](../evidence/loans-v2-benchmark.json).
 
 Dataset: 1.000 books, 3.000 copies, 10.000 historical loans; 500 requests,
 20 concurrency và 20 warm-up. Kết quả: **500 HTTP 200, 0 lỗi, p95 139,99 ms**.
@@ -86,7 +86,7 @@ Docs/evidence được kiểm tra format và contract trước khi push commit c
 Gói gốc bên ngoài checkout giữ nguyên.
 
 Ảnh Loans thật từ API/frontend dev hiện tại:
-[desktop](evidence/loans-v2-desktop.png), [mobile](evidence/loans-v2-mobile.png).
+[desktop](../evidence/loans-v2-desktop.png), [mobile](../evidence/loans-v2-mobile.png).
 Mobile là Chromium emulation iPhone 13, không phải Safari/iPhone thật.
 Ảnh dùng tài khoản librarian demo và dữ liệu tổng hợp, không có password/token.
 

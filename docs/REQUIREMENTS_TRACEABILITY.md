@@ -1,62 +1,47 @@
-# Đối chiếu yêu cầu học phần và phạm vi nhóm
+# Assignment requirements and evidence
 
-**Môn:** Web Programming & Applications — 503073, học kỳ 1 năm 2026–2027.
+Course: **Web Programming & Applications (503073)**. Topic: **RESTful Web Services**.
+Instructor: **Trần Đại Nhân**. Class: **N01_T02**.
 
-**Đề tài 1:** Restful Web Services. **Sản phẩm:** BookFlow — Library Management
-REST API and Web Application.
+The authoritative assignment is [503073-Midterm-V1.docx](503073-Midterm-V1.docx),
+including sections I–V, topic ID 1 and the teamwork policy. The deadline supplied
+by the team is the end of **8 November 2026, Vietnam time**. Check the course
+system for the exact upload mechanism and closing time.
 
-| Thành viên       | MSSV     | Phụ trách chính                     |
-| ---------------- | -------- | ----------------------------------- |
-| Nguyễn Minh Quân | 52400227 | Auth/Users, nền tảng/tích hợp       |
-| Phạm Văn Tú      | 52400252 | Catalog/Copies, UI                  |
-| Lê Nguyễn Vạn An | 52400258 | Loans, Dashboard/Audit, test/deploy |
+The [system design](PROJECT_BLUEPRINT.md) records the team's implementation choices;
+it does not add requirements to the assignment. Application scope and recorded
+validation are documented in [implementation status](IMPLEMENTATION_STATUS.md)
+and [source validation](SOURCE_FINALIZATION.md).
 
-Nguồn chính thức: [`503073-Midterm-V1.docx`](503073-Midterm-V1.docx), mục I,
-hàng ID 1 mục II, mục III–V và Teamworking Policy. [Blueprint](PROJECT_BLUEPRINT.md)
-là thiết kế nhóm tự chọn, không thay đề bài. Quân cập nhật **hạn hết ngày
-08/11/2026, giờ Việt Nam**; đề DOCX trên là yêu cầu giảng viên đã cung cấp.
+## Mapping
 
-Checkpoint phần mềm 06/11/2026: main@`e28ff83` đã nhận #9/#12/#10.
-T1–T3 đang tích hợp ở #11, chưa merge; xem [kiểm chứng mới](TU_INTEGRATION_VALIDATION.md).
-Trạng thái phần mềm không xác nhận báo cáo/slide/video đã hoàn tất.
+| Assignment area   | Requirement                                                                                                      | Project evidence or remaining action                                                                                                                                                 |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Research          | History, principles, specifications, practices, advantages and limitations, credible references                  | Explain REST and HTTP with primary references; relate claims to the implemented application. Review the report's citations before submission.                                        |
+| Topic ID 1        | Suggested REST constraints, HTTP methods, authentication and comparison with GraphQL/SOAP                        | The application demonstrates resource routes, JWT/roles, conditional requests and transaction behavior. Qualitative comparison does not require implementing competing servers.      |
+| Website           | A working application with meaningful scope, explained goals, users, architecture and outcomes                   | Catalog, authentication, borrowing/returns, dashboard and audit are integrated; see source validation for tested scope.                                                              |
+| Report            | English Word and PDF, 20–60 pages excluding covers and appendices, faculty format, figures/tables and references | Drafts are prepared separately for team review. Check cover details, content, pagination, citations and signatures before uploading.                                                 |
+| Source and README | Complete source, dependency manifests, configuration and installation/test instructions                          | Root/client/server lockfiles, migration/seed, setup commands, tests, OpenAPI, Postman and Docker are included. Export the intended commit without local secrets or generated output. |
+| Video             | English narration with sound, at most 20 minutes, all members participating, theory and working demonstration    | Record and play back the full video. A slide deck alone does not satisfy this requirement.                                                                                           |
+| Presentation      | Slides and participation by every member in the scheduled session                                                | Review the prepared slide draft, rehearse handoffs and confirm the presentation schedule.                                                                                            |
+| Teamwork          | Two or three members with identifiable responsibilities and participation                                        | The three-member list and module ownership are in the team handoff; preserve actual contribution and review records.                                                                 |
 
-## Yêu cầu và bằng chứng
+## Assessment and submission
 
-| Căn cứ             | Yêu cầu/định hướng                                                                     | Trạng thái và việc còn lại                                                                                                                                                                      |
-| ------------------ | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| I; III — Research  | Lịch sử, nguyên lý, đặc tả, best practices, ưu/nhược điểm, nguồn tin cậy               | Blueprint có dàn ý/nguồn; cả nhóm phải kiểm nguồn và viết báo cáo với trích dẫn thật                                                                                                            |
-| II — ID1           | Gợi ý REST constraints, HTTP GET/POST/PUT/DELETE, JWT/OAuth, so sánh GraphQL/SOAP      | Source tích hợp có HTTP methods, JWT/RBAC/cache/concurrency để demo; phần lý thuyết/so sánh vẫn phải viết. Đề nói đây là gợi ý, không phải checklist bảo đảm điểm                               |
-| I; III — Website   | Website hoạt động, không quá đơn giản, giải thích mục tiêu/đối tượng/kiến trúc/kết quả | Các module đã merge qua PR #4–#7; có luồng catalog→login→borrow→return, dashboard/audit và test. Các lỗi còn mở nằm trong QUALITY_IMPROVEMENT_PLAN; kiểm tra máy nhóm cần ghi bằng chứng riêng. |
-| III — Report       | 20–60 trang, không tính bìa/phụ lục; cấu trúc/trích dẫn/hình/bảng/sơ đồ                | Chưa có báo cáo nộp hoàn chỉnh;30–40 trang là mục tiêu nhóm tự đặt                                                                                                                              |
-| IV; V — Word/PDF   | Báo cáo tiếng Anh theo mẫu Khoa, thông tin môn/đề tài/giảng viên/thành viên chính xác  | Cần hoàn thiện và xuất Word/PDF. `Report templates and guidelines.zip` được đề tham chiếu nhưng chưa cung cấp; không đoán mẫu/thông tin giảng viên                                              |
-| IV — Source/README | Đầy đủ source, dependencies, thư mục, cài/chạy/test đã kiểm chứng                      | Có manifests/lockfiles, migration/seed, README, test, Postman và Docker. Kết quả trong FULL_VALIDATION mô tả tree được test, không tự áp dụng cho các nhánh chưa merge                          |
-| IV; V — Video      | Tiếng Anh, **có âm thanh**, tối đa 20 phút, đủ ba người; lý thuyết/demo/kiến trúc/code | Chưa quay video. Thiếu video có âm thanh hoặc source hoàn chỉnh kèm hướng dẫn làm phần demo nhận 0 điểm theo đề                                                                                 |
-| I — Slides         | Slide, đăng ký lịch, mỗi thành viên trình bày tuần 9–10                                | Chưa có slide hoàn chỉnh/lịch được xác nhận                                                                                                                                                     |
-| V — Teamwork       | Nhóm 2–3 người, phân phối công việc và trình bày đầy đủ                                | Ba người phụ trách module; giữ lịch sử đóng góp thật và công bố AI assistance. Các gói patch cũ là lịch sử, không áp dụng lại.                                                                  |
+The assignment allocates six points to the report and four to the demonstration.
+Missing an audible demo video or complete source with setup instructions can make
+the demonstration component receive zero. The late penalty is one point per day,
+including a partial day. Consult the original assignment for the full rubric.
 
-Code dùng Node/Express/React/PostgreSQL, OpenAPI, Postman và Docker là lựa chọn
-của nhóm; giảng viên cho phép tự chọn stack. JWT có chữ ký không có nghĩa được
-mã hóa. Không phải tích hợp OAuth login hoặc triển khai thêm GraphQL/SOAP để
-viết so sánh định tính; phải phân biệt khảo sát với thực nghiệm.
+The supplied `TemplateIT.dotx` is the faculty layout reference. Its sample course,
+instructor and topic text must be replaced with this project's actual details.
+The instructor's name does not establish a degree or academic title.
 
-## Phạm vi nhóm đã chốt
+The team selected React, Express, PostgreSQL and Docker. Its default three-loan
+limit and fourteen-day duration are application rules rather than assignment
+requirements. Public hosting, microservices, OAuth login, reservations and reminder
+email are outside this release. JWT signatures do not encrypt token contents.
 
-| Lựa chọn blueprint                                    | Ý nghĩa                                                                                                                                              |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P0/P1 mục 1.4                                         | Source tích hợp triển khai Auth/Users, Catalog/Copies, Loans, refresh/CSRF, ETag/If-Match, dashboard/audit; xem FULL_VALIDATION để biết kết quả thật |
-| Tối đa 3 loan, hạn 14×24 giờ, chặn overdue/mượn trùng | Luật demo tự chọn; có service/transaction và test DB thật, không phải quy định giảng viên                                                            |
-| Kế hoạch 7 ngày với AI                                | Kế hoạch nội bộ; đề cho 8 tuần. Hạn hết ngày 08/11/2026 do Quân cập nhật, không suy ra từ kế hoạch                                                   |
-| Hosting công khai                                     | Tùy chọn; chưa cần mua dịch vụ/domain hoặc microservices                                                                                             |
-| P2: đặt trước/email/OAuth login/full-text             | Hướng mở rộng; không tự thêm vào phạm vi nộp hiện tại                                                                                                |
-
-## Bằng chứng và đầu ra phải hoàn thiện
-
-[Full validation](FULL_VALIDATION.md) phân biệt native/Docker/CI/máy thứ hai;
-[benchmark](BENCHMARK.md) ghi đúng dữ liệu, tải và giới hạn của phép đo local;
-`docs/evidence` chứa kết quả tổng hợp không có credentials. Kết quả mô tả bản ghép Auth `f33bd6b` + Catalog thật của Tú `1bdf367` + phần bổ sung
-và Loans; không tự áp dụng cho `main` hay những commit thành viên viết thêm sau đó.
-
-Còn cần báo cáo Word/PDF, slide, video, ảnh thật, kiểm tra máy thứ hai và kết quả
-CI sau merge. Thông tin giảng viên và mẫu Khoa chưa được cung cấp; phải xác nhận
-trước khi hoàn thiện hồ sơ. Hoàn thành source không bảo đảm mức điểm hoặc đủ
-mọi sản phẩm đầu ra của môn học.
+Use the [submission guide](SUBMISSION_GUIDE.md) to prepare the final files and
+verify their successful upload. Historical benchmark and Newman evidence remains
+separate from the final application validation; report the scope actually tested.
