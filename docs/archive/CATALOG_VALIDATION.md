@@ -56,4 +56,4 @@ E2E desktop/mobile đăng nhập MEMBER, xem sách và tài khoản, xác nhận
 nút/điều hướng Loans hoặc request /api/v1/loans. README được cập nhật đúng phạm vi.
 
 Kết quả của lần kiểm tra sau sửa sẽ được ghi riêng trong
-[evidence/CATALOG_REVIEW_FIX.md](evidence/CATALOG_REVIEW_FIX.md).
+[evidence/CATALOG_REVIEW_FIX.md](../evidence/CATALOG_REVIEW_FIX.md).

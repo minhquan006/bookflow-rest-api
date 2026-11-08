@@ -36,12 +36,12 @@ Lint không có error; vẫn có React effect/HMR advisory.
 
 Bằng chứng máy đọc được:
 
-- [`evidence/postman.json`](evidence/postman.json): Newman Docker/Nginx,
+- [`evidence/postman.json`](../evidence/postman.json): Newman Docker/Nginx,
   `2026-10-21T14:01:38.191Z`.
-- [`evidence/benchmark.json`](evidence/benchmark.json): phép đo trên backend
+- [`evidence/benchmark.json`](../evidence/benchmark.json): phép đo trên backend
   Catalog của Tú, `2026-10-21T14:00:28.653Z`.
-- [`evidence/validation.json`](evidence/validation.json): tổng hợp suite và phạm vi nguồn.
-- [Ảnh thật desktop/mobile](evidence/README.md).
+- [`evidence/validation.json`](../evidence/validation.json): tổng hợp suite và phạm vi nguồn.
+- [Ảnh thật desktop/mobile](../evidence/README.md).
 - [CATALOG_VALIDATION](CATALOG_VALIDATION.md): bước nghiệm thu Catalog trước gói An.
 
 Không dùng các số cũ của bản Catalog tham chiếu để mô tả source này. JSON tổng
@@ -69,7 +69,7 @@ lại có thể tăng dữ liệu demo. Không reset DB dev hoặc tuyên bố p
 
 Benchmark chỉ đọc catalog trên dữ liệu tổng hợp và HTTP loopback, không đo
 login Argon2id, loan writes, Nginx/Internet hoặc capacity production. Cấu hình,
-số liệu và giới hạn nằm trong [BENCHMARK](BENCHMARK.md).
+số liệu và giới hạn nằm trong [BENCHMARK](../BENCHMARK.md).
 
 ## Chạy lại
 
@@ -82,7 +82,7 @@ npm run smoke
 npm run benchmark
 ```
 
-Postman theo [hướng dẫn riêng](../postman/README.md). Docker browser dùng
+Postman theo [hướng dẫn riêng](../../postman/README.md). Docker browser dùng
 `E2E_EXTERNAL=1`, `E2E_BASE_URL=http://127.0.0.1:8080`; cách đặt biến tùy shell.
 Suite đa browser dùng `AUTH_RATE_LIMIT_MAX=100` trong process dev/test. Auth mặc
 định 10 vẫn được test riêng; sau lần nghiệm thu, Docker trở về cấu hình mặc định.

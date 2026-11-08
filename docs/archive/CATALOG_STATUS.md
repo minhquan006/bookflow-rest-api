@@ -4,7 +4,7 @@ Catalog/Copies includes public browsing, live availability and staff management.
 Auth/Users and Loans/Dashboard/Audit are integrated in this assembled snapshot.
 Borrow controls and Loans navigation are enabled together with the Loans API.
 The historical Catalog-only review fix remains recorded in
-[evidence/CATALOG_REVIEW_FIX.md](evidence/CATALOG_REVIEW_FIX.md); its absence-of-Loans
+[evidence/CATALOG_REVIEW_FIX.md](../evidence/CATALOG_REVIEW_FIX.md); its absence-of-Loans
 assertions apply to that earlier stage. Current tests verify integrated navigation
 without creating a loan merely by browsing.
 

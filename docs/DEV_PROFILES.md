@@ -1,57 +1,141 @@
-# Development profiles
+# Development configuration
 
-Use Node 24.19.0/npm 11. Root `.env` configures dev, Vite and Playwright.
-Process variables override root values. No private setting belongs in `VITE_*`.
+Use Node 24.19.0 and npm 11. The [root README](../README.md) provides the full
+installation sequence. This guide covers alternate ports, configuration updates,
+browser tests and troubleshooting.
 
-| Setting                  | Default   | Quân's Mac profile |
-| ------------------------ | --------- | ------------------ |
-| HOST                     | 127.0.0.1 | 127.0.0.1          |
-| PORT (API)               | 3000      | 3100               |
-| WEB_PORT (strict Vite)   | 5173      | 5174               |
-| POSTGRES_PORT (host)     | 5432      | 5433               |
-| Both database URL ports  | 5432      | 5433               |
-| ALLOWED_ORIGINS web port | 5173      | 5174               |
+## Ports and environment files
 
-Fresh setup: `npm run setup` or `npm run setup:mac`. Both preserve existing
-local files. To switch an existing profile, retain passwords and update ports,
-both DB URLs and allowed origins consistently in root/server `.env`.
-Test DB names end `_test`. Never print or commit local env files.
+| Setting                       | Default profile | Alternate Mac profile |
+| ----------------------------- | --------------- | --------------------- |
+| `HOST`                        | `127.0.0.1`     | `127.0.0.1`           |
+| `PORT` (API)                  | `3000`          | `3100`                |
+| `WEB_PORT` (Vite)             | `5173`          | `5174`                |
+| `POSTGRES_PORT` (host)        | `5432`          | `5433`                |
+| Port in both database URLs    | `5432`          | `5433`                |
+| Web port in `ALLOWED_ORIGINS` | `5173`          | `5174`                |
 
-Follow [README](../README.md) to start DB, build, migrate, seed and create test DB.
-Existing volumes retain data/passwords; never use `docker compose down -v`.
-Docker DB connections remain `db:5432`. All-container API stays internal 3000,
-Nginx web 8080; these settings configure native dev, not that deployment.
+For a fresh checkout, choose `npm run setup` or `npm run setup:mac` before the
+first database start. Both preserve existing local files; running a different
+setup command does not switch an existing installation's ports or passwords.
 
-Dev refuses occupied ports; Vite uses strict port. Ctrl+C stops launcher-owned
-children. Do not stop unrelated applications or reuse another application's port.
-Check the web origin on 5173 (or 5174): `/api/v1` must identify BookFlow API;
-`/health/ready` must be ready; `/docs/` and `/openapi.yaml` must serve the contract.
-All four paths proxy to the same API using HOST/PORT. Wildcard API bind addresses
-use loopback as the proxy target. Root/server env must agree for a standalone API.
+Root `.env` configures Compose, the development launcher, Vite and Playwright.
+A standalone server reads `server/.env`. Process environment values override
+file settings. Client `.env.local` holds public browser settings only.
 
-`npm run test:e2e` runs managed desktop/mobile projects. Each full-project run
-splits UI and session flows, with a fresh API for each group so their traffic
-does not share the real 300/minute IP budget. Execution options such as
-`--retries=0` and `--reporter=list,html` retain that split; both `--flag=value`
-and separate option values are supported. An explicit project runs that project
-alone. Explicit file/grep filters and external mode retain their original scope.
+To change an existing profile:
 
-Default HTML reports are separate for all four batches:
+1. Stop BookFlow API/client processes with Ctrl+C in their terminals.
+2. Preserve database passwords and signing settings. Update `PORT`, `WEB_PORT`,
+   `POSTGRES_PORT`, both database URLs and `ALLOWED_ORIGINS` consistently in root
+   and server configuration where applicable.
+3. If the database host port changed, recreate the DB container using
+   `docker compose up -d --wait db`. Keep the existing data volume.
+4. Restart the application and verify `/api/v1`, `/health/ready`, `/docs/` and
+   `/openapi.yaml` through the web origin on the selected port.
+
+The launcher rejects occupied ports, and Vite uses a strict port. It stops only
+child processes it created. Wildcard API bind addresses are converted to loopback
+for the development proxy target. Do not terminate an unrelated application to
+make its port available.
+
+Existing PostgreSQL volumes retain their original credentials. Editing `.env`
+does not change those credentials. `docker compose down` retains the volume;
+`docker compose down -v` removes it and its data.
+
+## Docker configuration
+
+Inside Compose, the API connects to `db:5432`, listens internally on port 3000,
+and is reached through Nginx on host port 8080. Native development port settings
+do not change that deployment's API/web ports. Database port publication uses
+`POSTGRES_PORT` on loopback.
+
+If a development network requires a custom proxy CA, the Compose wrapper mounts
+the configured CA as a BuildKit secret:
+
+```bash
+npm run compose -- build api web
+```
+
+Keep TLS verification enabled. Do not copy credentials or a private environment
+file into an image.
+
+## Browser tests
+
+Prepare the database and browser with the root README commands. Stop manually
+started BookFlow API/client processes before a managed run; keep the database
+running. The Playwright configuration can reuse an existing server locally,
+which would retain that server's configuration and request budget.
+
+```bash
+npm run test:e2e -- --retries=0
+npm run test:e2e -- --project=chromium --retries=0
+npm run test:e2e -- --project=mobile --retries=0 --reporter=list,html
+```
+
+A full managed run splits each project into UI and session batches, starting a
+fresh API for each batch. Execution options such as retries and reporters retain
+this split. An explicit file/grep filter or external mode retains the selected
+scope instead. This isolates request budgets without removing application rate
+limits or assertions.
+
+HTML report locations for full managed runs are:
 
 - `playwright-report/chromium-ui/index.html`
 - `playwright-report/chromium-sessions/index.html`
 - `playwright-report/mobile-ui/index.html`
 - `playwright-report/mobile-sessions/index.html`
 
-For example, run `npm run test:e2e -- --project=chromium --retries=0`.
-Reporters that replace HTML (for example `--reporter=line`) do not create HTML
-reports; include `html` to keep them. Stop manually started BookFlow dev first
-with Ctrl+C in its own terminal; keep DB running. Do not disable rate limits.
+A reporter that replaces HTML, such as `--reporter=line`, does not produce an HTML
+report. Include `html` when it is needed. Mobile uses Chromium device emulation.
 
-For an existing stack in PowerShell, set `$env:E2E_EXTERNAL="1"` and
-`$env:E2E_BASE_URL="http://127.0.0.1:5174"` before `npm.cmd run test:e2e`.
-External mode never starts/stops servers. DB URL and seed password must match
-that stack: Catalog fixtures insert 13 synthetic books and remove only their rows.
-Set `$env:SMOKE_BASE_URL` to the web origin for smoke. Remove temporary variables
-afterwards. Without an override, all-container smoke targets web 8080.
-Linux checks using Mac port numbers do not prove macOS hardware compatibility.
+Install Chromium with `npx playwright install chromium`; Linux may require
+`npx playwright install --with-deps chromium`. Set
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to use a specific executable. The configuration
+also detects `/usr/bin/chromium` when present.
+
+Authentication defaults to 10 requests per IP/account in 15 minutes for each
+login/register endpoint. Managed E2E API processes use `AUTH_RATE_LIMIT_MAX=100`
+for repeated browser contexts. Reused servers retain their original settings.
+Do not bypass a rate-limit failure by removing the limit or treating HTTP 429 as success.
+
+## Testing an existing stack
+
+External mode starts and stops no servers. Its database connection and seed
+password must match the stack being tested. Catalog fixtures create 13 synthetic
+books and remove only their own rows; use an authorized local/test database.
+
+Bash/zsh example:
+
+```bash
+E2E_EXTERNAL=1 E2E_BASE_URL=http://127.0.0.1:5174 npm run test:e2e -- --retries=0
+SMOKE_BASE_URL=http://127.0.0.1:5174 npm run smoke
+```
+
+PowerShell example:
+
+```powershell
+$env:E2E_EXTERNAL = "1"
+$env:E2E_BASE_URL = "http://127.0.0.1:5174"
+npm.cmd run test:e2e -- --retries=0
+Remove-Item Env:E2E_EXTERNAL, Env:E2E_BASE_URL
+$env:SMOKE_BASE_URL = "http://127.0.0.1:5174"
+npm.cmd run smoke
+Remove-Item Env:SMOKE_BASE_URL
+```
+
+Use port 5173 for the default development profile or 8080 for Docker. Smoke uses
+8080 if `SMOKE_BASE_URL` is not set.
+
+## Troubleshooting
+
+| Symptom                                | Check                                                                                             |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Port already in use                    | Stop the previous BookFlow process or select unused ports.                                        |
+| Database connection refused            | Check `docker compose ps`, host port and both database URLs.                                      |
+| Password rejected after editing `.env` | Restore settings matching the existing volume; a file edit does not rotate the database password. |
+| Readiness returns 503                  | Build the API, apply migrations and check database/schema readiness.                              |
+| Seeded account cannot sign in          | Use its originally seeded password; seeding again preserves existing credentials.                 |
+| Refresh/logout rejected                | Match `ALLOWED_ORIGINS` and use one consistent hostname and port.                                 |
+| HTTP 429 during repeated tests         | Stop reused test servers and use managed batches with fresh API processes.                        |
+| Browser missing                        | Install Chromium or set its executable path.                                                      |
