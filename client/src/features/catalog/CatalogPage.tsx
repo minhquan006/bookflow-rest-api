@@ -1,3 +1,4 @@
+import { BookJacket } from "../../components/BookJacket";
 import type { PaginatedCollection } from "../../lib/pagination";
 import { useBrowserLocation } from "../../lib/navigation";
 import {
@@ -327,33 +328,40 @@ export function CatalogPage({
             </p>
           ) : (
             <div className="catalog-grid">
-              {result.data.map((book) => (
+              {result.data.map((book, index) => (
                 <article key={book.id} className="panel catalog-card">
-                  <span className="badge">
-                    {categories.find((item) => item.id === book.categoryId)
-                      ?.name ?? t("Book")}
-                  </span>
-                  <h2>{book.title}</h2>
-                  {book.archivedAt && (
-                    <span className="badge">{t("Archived")}</span>
-                  )}
-                  <p className="catalog-author">{book.author}</p>
-                  <p>{book.description || t("No description available.")}</p>
-                  <BookDetails
-                    bookId={book.id}
+                  <BookJacket
                     title={book.title}
-                    client={client}
+                    author={book.author}
+                    index={index}
                   />
-                  {onNavigate && (
-                    <Button
-                      onClick={() =>
-                        onNavigate(`/books/${book.id}${queryString}`)
-                      }
-                      aria-label={t("View {title}", { title: book.title })}
-                    >
-                      {t("Open book")}
-                    </Button>
-                  )}
+                  <div className="catalog-card-content">
+                    <span className="badge">
+                      {categories.find((item) => item.id === book.categoryId)
+                        ?.name ?? t("Book")}
+                    </span>
+                    <h2>{book.title}</h2>
+                    {book.archivedAt && (
+                      <span className="badge">{t("Archived")}</span>
+                    )}
+                    <p className="catalog-author">{book.author}</p>
+                    <p>{book.description || t("No description available.")}</p>
+                    <BookDetails
+                      bookId={book.id}
+                      title={book.title}
+                      client={client}
+                    />
+                    {onNavigate && (
+                      <Button
+                        onClick={() =>
+                          onNavigate(`/books/${book.id}${queryString}`)
+                        }
+                        aria-label={t("View {title}", { title: book.title })}
+                      >
+                        {t("Open book")}
+                      </Button>
+                    )}
+                  </div>
                 </article>
               ))}
             </div>

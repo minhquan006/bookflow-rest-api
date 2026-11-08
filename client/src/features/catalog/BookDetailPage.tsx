@@ -1,3 +1,4 @@
+import { BookJacket } from "../../components/BookJacket";
 import { useBrowserLocation } from "../../lib/navigation";
 import { catalogHref, readCatalogQuery } from "./catalogQuery";
 import { useTranslation } from "../../i18n/language";
@@ -335,7 +336,11 @@ export function BookDetailPage({
       {message && <Feedback kind="success">{translate(message)}</Feedback>}
       {currentBook && (
         <>
-          <section className="panel stack" aria-labelledby="book-title">
+          <section
+            className="panel stack book-summary"
+            aria-labelledby="book-title"
+          >
+            <BookJacket title={currentBook.title} author={currentBook.author} />
             <div className="section-heading">
               <div>
                 <p className="eyebrow">{t("Book details")}</p>

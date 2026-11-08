@@ -1,3 +1,5 @@
+import { LibraryArt } from "../../components/LibraryArt";
+import { Icon } from "../../components/Icon";
 import { useEffect, useState } from "react";
 import { Button } from "../../components/Button";
 import { Feedback } from "../../components/Feedback";
@@ -40,44 +42,56 @@ export function HomePage({
   return (
     <>
       <section className="hero-panel">
-        <p className="eyebrow">{t("YOUR NEXT CHAPTER STARTS HERE")}</p>
-        <h1>
-          {t("Good books.")}
-          <br />
-          {t("Simple borrowing.")}
-        </h1>
-        <p className="lead">
-          {t(
-            "Discover your next read, keep track of your loans, and make room for a new story.",
-          )}
-        </p>
-        <div className="action-row">
-          <Button
-            className="button button-primary"
-            onClick={() => onNavigate("/books")}
-          >
-            {t("Explore the catalog")}
-          </Button>
-          {!user && (
-            <Button onClick={() => onNavigate("/register")}>
-              {t("Join the library")}
+        <div className="hero-copy">
+          <p className="eyebrow">{t("YOUR NEXT CHAPTER STARTS HERE")}</p>
+          <h1>
+            {t("Good books.")}
+            <br />
+            {t("Simple borrowing.")}
+          </h1>
+          <p className="lead">
+            {t(
+              "Discover your next read, keep track of your loans, and make room for a new story.",
+            )}
+          </p>
+          <div className="action-row">
+            <Button
+              className="button button-primary"
+              onClick={() => onNavigate("/books")}
+            >
+              {t("Explore the catalog")}
             </Button>
-          )}
+            {!user && (
+              <Button onClick={() => onNavigate("/register")}>
+                {t("Join the library")}
+              </Button>
+            )}
+          </div>
         </div>
+        <LibraryArt />
       </section>
       <div className="module-grid overview-cards">
         <article className="panel">
-          <span className="step-number">01</span>
+          <span className="step-number">
+            <Icon name="book" />
+            <span>01</span>
+          </span>
           <h2>{t("Find your next read")}</h2>
           <p>{t("Browse books by category, title or author.")}</p>
         </article>
         <article className="panel">
-          <span className="step-number">02</span>
+          <span className="step-number">
+            <Icon name="loans" />
+            <span>02</span>
+          </span>
           <h2>{t("Borrow a copy")}</h2>
           <p>{t("Members can borrow up to three books for fourteen days.")}</p>
         </article>
         <article className="panel">
-          <span className="step-number">03</span>
+          <span className="step-number">
+            <Icon name="spark" />
+            <span>03</span>
+          </span>
           <h2>{t("Keep your story going")}</h2>
           <p>{t("Check your due dates and return books with a librarian.")}</p>
         </article>

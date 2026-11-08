@@ -54,6 +54,8 @@ jobs:
         run: |
           npm run test:e2e -- --project=chromium --retries=0
           npm run test:e2e -- --project=mobile --retries=0 --reporter=list,html
+      - name: Responsive layout and reduced motion
+        run: npx playwright test --config=playwright.ui.config.ts --project=chromium --retries=0
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -61,6 +63,7 @@ jobs:
           path: |
             playwright-report/
             test-results/
+            .cache/ui-regression/
           retention-days: 7
   containers:
     runs-on: ubuntu-latest
