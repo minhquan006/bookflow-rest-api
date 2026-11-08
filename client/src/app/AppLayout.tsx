@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { Icon, type IconName } from "../components/Icon";
 import { LanguageSelector } from "../components/LanguageSelector";
 import { Button } from "../components/Button";
 import { Feedback } from "../components/Feedback";
@@ -24,6 +25,16 @@ export function AppLayout({
     sessionError,
   } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
+  const [navigationOpen, setNavigationOpen] = useState(true);
+  const navigationIcons: Record<string, IconName> = {
+    "/": "home",
+    "/books": "book",
+    "/loans": "loans",
+    "/categories": "categories",
+    "/dashboard": "chart",
+    "/users": "users",
+    "/audit-logs": "audit",
+  };
   function signOut(retry = false) {
     if (signingOut) return;
     setSigningOut(true);
@@ -66,12 +77,21 @@ export function AppLayout({
           aria-label={t("BookFlow home")}
         >
           <span className="brand-mark" aria-hidden="true">
-            B
+            <Icon name="book" />
           </span>
           <span>
             BookFlow<small>{t("A little more discovery.")}</small>
           </span>
         </a>
+        <Button
+          className="button mobile-nav-toggle"
+          aria-label={t("Main navigation")}
+          aria-controls="library-navigation"
+          aria-expanded={navigationOpen}
+          onClick={() => setNavigationOpen((value) => !value)}
+        >
+          <Icon name={navigationOpen ? "close" : "menu"} />
+        </Button>
         <div className="header-actions">
           <LanguageSelector />
           {loading ? (
@@ -100,7 +120,11 @@ export function AppLayout({
         </div>
       </header>
       <div className="workspace">
-        <aside className="sidebar">
+        <aside
+          className="sidebar"
+          id="library-navigation"
+          data-open={navigationOpen}
+        >
           <p className="eyebrow">{t("YOUR LIBRARY")}</p>
           <nav aria-label={t("Main navigation")}>
             {links
@@ -117,7 +141,8 @@ export function AppLayout({
                   }
                   onClick={() => navigate(link.path)}
                 >
-                  {translate(link.label)}
+                  <Icon name={navigationIcons[link.path]!} />
+                  <span>{translate(link.label)}</span>
                 </button>
               ))}
           </nav>

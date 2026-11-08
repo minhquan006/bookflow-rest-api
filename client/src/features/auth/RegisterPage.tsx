@@ -1,3 +1,4 @@
+import { AuthFrame } from "./AuthFrame";
 import { useTranslation } from "../../i18n/language";
 import { useState } from "react";
 import type { FormEvent } from "react";
@@ -52,88 +53,92 @@ export function RegisterPage({
   }
   if (created)
     return (
-      <section className="panel auth-panel">
-        <h1>{t("Account created")}</h1>
-        <Feedback kind="success">
-          {t("Your member account is ready. Sign in to start borrowing.")}
-        </Feedback>
-        <Button onClick={() => onNavigate("/login")}>
-          {t("Continue to sign in")}
-        </Button>
-      </section>
+      <AuthFrame>
+        <section className="panel auth-panel">
+          <h1>{t("Account created")}</h1>
+          <Feedback kind="success">
+            {t("Your member account is ready. Sign in to start borrowing.")}
+          </Feedback>
+          <Button onClick={() => onNavigate("/login")}>
+            {t("Continue to sign in")}
+          </Button>
+        </section>
+      </AuthFrame>
     );
   return (
-    <section className="panel auth-panel" aria-labelledby="register-title">
-      <p className="eyebrow">{t("Join the library")}</p>
-      <h1 id="register-title">{t("Create account")}</h1>
-      <p className="muted">
-        {t(
-          "New accounts receive the Member role. Staff access is assigned by an administrator.",
-        )}
-      </p>
-      {error && <Feedback kind="error">{translate(error)}</Feedback>}
-      <form
-        onSubmit={(event) => {
-          void submit(event);
-        }}
-        noValidate
-        className="form-stack"
-      >
-        <FormField
-          label={t("Full name")}
-          autoComplete="name"
-          required
-          maxLength={120}
-          value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
-          error={errors.fullName}
-        />
-        <FormField
-          label={t("Email")}
-          type="email"
-          autoComplete="email"
-          required
-          maxLength={254}
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          error={errors.email}
-        />
-        <FormField
-          label={t("Password")}
-          type="password"
-          autoComplete="new-password"
-          required
-          minLength={12}
-          maxLength={128}
-          hint={t("Use at least 12 characters.")}
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          error={errors.password}
-        />
-        <FormField
-          label={t("Confirm password")}
-          type="password"
-          autoComplete="new-password"
-          required
-          maxLength={128}
-          value={confirmation}
-          onChange={(event) => setConfirmation(event.target.value)}
-          error={errors.confirmation}
-        />
-        <Button type="submit" busy={busy}>
-          {busy ? t("Creating account…") : t("Create account")}
-        </Button>
-      </form>
-      <p>
-        {t("Already registered?")}{" "}
-        <button
-          type="button"
-          className="text-button"
-          onClick={() => onNavigate("/login")}
+    <AuthFrame>
+      <section className="panel auth-panel" aria-labelledby="register-title">
+        <p className="eyebrow">{t("Join the library")}</p>
+        <h1 id="register-title">{t("Create account")}</h1>
+        <p className="muted">
+          {t(
+            "New accounts receive the Member role. Staff access is assigned by an administrator.",
+          )}
+        </p>
+        {error && <Feedback kind="error">{translate(error)}</Feedback>}
+        <form
+          onSubmit={(event) => {
+            void submit(event);
+          }}
+          noValidate
+          className="form-stack"
         >
-          {t("Sign in")}
-        </button>
-      </p>
-    </section>
+          <FormField
+            label={t("Full name")}
+            autoComplete="name"
+            required
+            maxLength={120}
+            value={fullName}
+            onChange={(event) => setFullName(event.target.value)}
+            error={errors.fullName}
+          />
+          <FormField
+            label={t("Email")}
+            type="email"
+            autoComplete="email"
+            required
+            maxLength={254}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            error={errors.email}
+          />
+          <FormField
+            label={t("Password")}
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={12}
+            maxLength={128}
+            hint={t("Use at least 12 characters.")}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            error={errors.password}
+          />
+          <FormField
+            label={t("Confirm password")}
+            type="password"
+            autoComplete="new-password"
+            required
+            maxLength={128}
+            value={confirmation}
+            onChange={(event) => setConfirmation(event.target.value)}
+            error={errors.confirmation}
+          />
+          <Button type="submit" busy={busy}>
+            {busy ? t("Creating account…") : t("Create account")}
+          </Button>
+        </form>
+        <p>
+          {t("Already registered?")}{" "}
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => onNavigate("/login")}
+          >
+            {t("Sign in")}
+          </button>
+        </p>
+      </section>
+    </AuthFrame>
   );
 }

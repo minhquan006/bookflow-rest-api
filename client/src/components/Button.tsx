@@ -15,6 +15,7 @@ export function Button({
       disabled={disabled || busy}
       aria-busy={busy}
     >
+      {busy && <span className="button-spinner" aria-hidden="true" />}
       {children}
     </button>
   );
